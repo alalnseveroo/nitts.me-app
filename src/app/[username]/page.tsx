@@ -105,7 +105,7 @@ export default function UnifiedUserPage() {
                     h: existingLayout.h ?? 2,
                 };
             }
-            return { i: card.id, x: 0, y: index, w: 1, h: 2 };
+            return { i: card.id, x: (index % 4), y: Math.floor(index / 4), w: 1, h: 2 };
         });
         setCurrentLayout(finalLayout);
     }

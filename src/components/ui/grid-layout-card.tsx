@@ -5,7 +5,7 @@ import React from 'react';
 import { GridLayoutCardBase } from './grid-layout-card-base';
 import { CardResizeControls } from './card-resize-controls';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { GripVertical, Trash2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,14 +37,19 @@ interface GridLayoutCardProps {
 
 export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize }: GridLayoutCardProps) => {
     return (
-        <div className="w-full h-full relative group/card">
+        <div className="w-full h-full">
             {/* Card Base */}
             <GridLayoutCardBase
                 card={card}
                 onUpdate={onUpdate}
             />
 
-            {/* Mobile does not get hover controls */}
+            {/* Drag Handle - Visible on mobile, hover on desktop */}
+            <div className="drag-handle absolute top-2 right-2 z-20 cursor-move text-white bg-black/30 rounded-full p-1 opacity-100 md:opacity-0 group-hover/card:opacity-100 transition-opacity">
+                <GripVertical className="h-5 w-5" />
+            </div>
+
+            {/* Desktop-only hover controls */}
             <div className="hidden md:block">
                 {/* Delete Button */}
                 <AlertDialog>
