@@ -10,25 +10,19 @@ interface CardResizeControlsProps {
 
 export const CardResizeControls = ({ onResize }: CardResizeControlsProps) => {
     return (
-        <div className="flex gap-1 items-center">
-            {/* Quadrado (1x1) */}
-            <Button title="Quadrado" variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-neutral-700 hover:text-white" onClick={() => onResize(1, 1)}>
-                <Square className="h-4 w-4" />
+        <div className="flex gap-1 items-center justify-center">
+            <Button title="Quadrado (1x1)" variant="ghost" size="icon" className="h-8 w-8 text-white/70 hover:bg-white/20 hover:text-white" onClick={() => onResize(1, 1)}>
+                <Square className="h-5 w-5" />
             </Button>
-            {/* Banner (2x1) */}
-            <Button title="Banner" variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-neutral-700 hover:text-white" onClick={() => onResize(2, 1)}>
-                <RectangleHorizontal className="h-4 w-4" />
+            <Button title="Banner (2x1)" variant="ghost" size="icon" className="h-8 w-8 text-white/70 hover:bg-white/20 hover:text-white" onClick={() => onResize(2, 1)}>
+                <RectangleHorizontal className="h-5 w-5" />
             </Button>
-            {/* Retangulo (1x2) */}
-            <Button title="Retângulo" variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-neutral-700 hover:text-white" onClick={() => onResize(1, 2)}>
-                <RectangleVertical className="h-4 w-4" />
+            <Button title="Retângulo (1x2)" variant="ghost" size="icon" className="h-8 w-8 text-white/70 hover:bg-white/20 hover:text-white" onClick={() => onResize(1, 2)}>
+                <RectangleVertical className="h-5 w-5" />
             </Button>
-            {/* Grande (2x2) */}
-            <Button title="Grande" variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-neutral-700 hover:text-white" onClick={() => onResize(2, 2)}>
-                <Crop className="h-4 w-4" />
+            <Button title="Grande (2x2)" variant="ghost" size="icon" className="h-8 w-8 text-white/70 hover:bg-white/20 hover:text-white" onClick={() => onResize(2, 2)}>
+                <Crop className="h-5 w-5" />
             </Button>
         </div>
     );
 };
-
-    

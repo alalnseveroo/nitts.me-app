@@ -29,6 +29,7 @@ interface GridLayoutProps {
     onDeleteCard: (cardId: string) => void;
     onResizeCard: (cardId: string, w: number, h: number) => void;
     onSelectCard: (cardId: string) => void;
+    onEditCard: (cardId: string) => void;
     selectedCardId: string | null;
     rowHeight: number;
     isMobile: boolean;
@@ -42,6 +43,7 @@ const GridLayoutComponent = ({
     onDeleteCard, 
     onResizeCard,
     onSelectCard,
+    onEditCard,
     selectedCardId,
     rowHeight,
     isMobile
@@ -63,11 +65,14 @@ const GridLayoutComponent = ({
                 const newLayout = allLayouts.lg || allLayouts.sm || [];
                 onLayoutChange(newLayout);
             }}
+            onDragStart={() => {
+                if (isMobile && selectedCardId) onSelectCard(selectedCardId); // Deselect on drag
+            }}
             breakpoints={{ lg: 768, sm: 0 }}
             cols={{ lg: 4, sm: 2 }}
             rowHeight={rowHeight}
             isDraggable
-            isResizable={false} // Resizing is handled by buttons now
+            isResizable={false}
             className="min-h-[400px]"
             margin={[10, 10]}
             containerPadding={[0,0]}
@@ -77,15 +82,16 @@ const GridLayoutComponent = ({
         >
             {cards.map(card => {
                 const layoutItem = layoutConfig.find(l => l.i === card.id);
-                if (!layoutItem) return null; // Avoid rendering cards without layout
+                if (!layoutItem) return null;
                 return (
-                    <div key={card.id} data-grid={layoutItem} className="bg-transparent overflow-visible group/card">
+                    <div key={card.id} data-grid={layoutItem} className="bg-transparent overflow-visible">
                         <GridLayoutCard
                             card={card}
                             onUpdate={onUpdateCard}
                             onDelete={onDeleteCard}
                             onResize={onResizeCard}
                             onClick={onSelectCard}
+                            onEdit={onEditCard}
                             isSelected={selectedCardId === card.id}
                             isMobile={isMobile}
                         />
@@ -97,5 +103,3 @@ const GridLayoutComponent = ({
 };
 
 export default GridLayoutComponent;
-
-    

@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useEffect, useState, ChangeEvent, useRef, useCallback } from 'react'
@@ -76,18 +75,23 @@ export default function UnifiedUserPage() {
 
   const updateRowHeight = useCallback(() => {
     if (typeof window === 'undefined') return;
-    const containerWidth = getContainerWidth(isMobile);
+    const container = document.querySelector('.react-grid-layout');
+    if (!container) return;
+
+    const containerWidth = container.clientWidth;
     const cols = isMobile ? 2 : 4;
-    const margin: [number, number] = [10, 10]; // This must match the grid-layout margin
+    const margin: [number, number] = [10, 10];
     const calculatedRowHeight = (containerWidth - (margin[0] * (cols + 1))) / cols;
+    
     setRowHeight(calculatedRowHeight > 0 ? calculatedRowHeight : 100);
   }, [isMobile]);
+
 
   const adjustTextareaHeight = useCallback(() => {
     const textarea = textareaRef.current;
     if (textarea) {
-      textarea.style.height = 'auto'; // Reset height
-      textarea.style.height = `${textarea.scrollHeight}px`; // Set to scroll height
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
     }
   }, []);
 
@@ -97,7 +101,6 @@ export default function UnifiedUserPage() {
 
 
   useEffect(() => {
-    // We need a slight delay for the DOM to be ready for width calculation
     const timer = setTimeout(() => {
         updateRowHeight();
     }, 100);
@@ -155,7 +158,6 @@ export default function UnifiedUserPage() {
                     h: existingLayout.h ?? 1,
                 };
             }
-            // Fallback for cards without layout info
             const cols = isMobile ? 2 : 4;
             return { i: card.id, x: (index % cols), y: Math.floor(index / cols), w: 1, h: 1 };
         });
@@ -164,7 +166,6 @@ export default function UnifiedUserPage() {
     
     setIsOwner(currentUser?.id === profileData.id);
     setLoading(false);
-    // Recalculate row height after data is loaded
     setTimeout(updateRowHeight, 100);
 
   }, [pageUsername, isMobile, updateRowHeight]);
@@ -201,7 +202,6 @@ export default function UnifiedUserPage() {
     if (!user || !profile) return
     setSaving(true);
     
-    // 1. Save profile updates (name, bio, layout)
     const validLayout = currentLayout.map(l => ({
         ...l, x: l.x ?? 0, y: l.y ?? 0, w: l.w ?? 1, h: l.h ?? 1,
     }));
@@ -211,7 +211,6 @@ export default function UnifiedUserPage() {
       .update({ name: profile.name, bio: profile.bio, layout_config: validLayout })
       .eq('id', user.id);
       
-    // 2. Save all card content updates
     const { error: cardsError } = await supabase.from('cards').upsert(cards);
 
     setSaving(false);
@@ -363,10 +362,13 @@ export default function UnifiedUserPage() {
   }, []);
 
   const handleSelectCard = useCallback((cardId: string) => {
-      if (isMobile) {
-          setSelectedCardId(currentId => currentId === cardId ? null : cardId);
-      }
-  }, [isMobile]);
+      setSelectedCardId(currentId => currentId === cardId ? null : cardId);
+  }, []);
+
+  const handleEditCard = useCallback((cardId: string) => {
+      setSelectedCardId(cardId);
+      setIsEditSheetOpen(true);
+  }, []);
 
 
   if (loading) {
@@ -394,8 +396,8 @@ export default function UnifiedUserPage() {
   if (isOwner) {
     return (
         <div className="flex flex-col min-h-screen bg-background" onClick={(e) => {
-             // Clicks outside grid should deselect
-             if (!(e.target as HTMLElement).closest('.react-grid-layout, .sheet-content, footer')) {
+             if (isMobile) return;
+             if (!(e.target as HTMLElement).closest('.react-grid-layout, .sheet-content, footer, [role=dialog]')) {
                 setSelectedCardId(null);
              }
         }}>
@@ -474,6 +476,7 @@ export default function UnifiedUserPage() {
                         onDeleteCard={handleDeleteCard}
                         onResizeCard={handleResizeCard}
                         onSelectCard={handleSelectCard}
+                        onEditCard={handleEditCard}
                         selectedCardId={selectedCardId}
                         rowHeight={rowHeight}
                         isMobile={isMobile}
@@ -500,15 +503,19 @@ export default function UnifiedUserPage() {
             </footer>
             
             {isMobile && selectedCardId && (
-                 <footer className="fixed bottom-24 left-1/2 -translate-x-1/2 w-auto p-4 z-50">
-                     <div className="bg-background/90 backdrop-blur-sm rounded-lg shadow-xl border flex justify-around items-center p-1 gap-1">
-                        <Button title="Editar conteúdo" variant="ghost" size="icon" onClick={() => setIsEditSheetOpen(true)}><Edit/></Button>
-                        <div className="h-6 w-px bg-border mx-1"></div>
-                        <CardResizeControls onResize={(w, h) => handleResizeCard(selectedCardId, w, h)} />
-                        <div className="h-6 w-px bg-border mx-1"></div>
-                        <Button title="Deletar" variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDeleteCard(selectedCardId)}><Trash2/></Button>
+                 <div className="fixed bottom-0 left-0 w-full p-4 z-50">
+                     <div className="bg-black/90 backdrop-blur-sm rounded-xl shadow-2xl flex justify-between items-center p-2 gap-2">
+                        <div className="flex-1">
+                            <CardResizeControls onResize={(w, h) => handleResizeCard(selectedCardId, w, h)} />
+                        </div>
+                        <Button 
+                          onClick={() => setSelectedCardId(null)}
+                          className="bg-green-500 text-white font-bold hover:bg-green-600 px-6"
+                        >
+                            Done
+                        </Button>
                     </div>
-                 </footer>
+                 </div>
             )}
 
             <EditCardSheet
@@ -572,5 +579,3 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
-
-    
