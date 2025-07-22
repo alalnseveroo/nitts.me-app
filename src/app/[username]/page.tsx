@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Map as MapIcon, StickyNote, Edit, Trash2 } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Image as ImageIcon, Type, Link as LinkIcon, Map as MapIcon, StickyNote, Edit, Trash2 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '@/components/ui/skeleton'
 import GridLayoutComponent from '@/components/ui/grid-layout'
@@ -73,19 +73,19 @@ export default function UnifiedUserPage() {
   const selectedCard = cards.find(c => c.id === selectedCardId);
 
   const updateRowHeight = useCallback(() => {
+    if (typeof window === 'undefined') return;
     const containerWidth = getContainerWidth();
     const cols = window.innerWidth < 768 ? 2 : 4;
     const margin: [number, number] = [20, 20];
     const calculatedRowHeight = (containerWidth - (margin[0] * (cols + 1))) / cols;
-    setRowHeight(calculatedRowHeight);
+    setRowHeight(calculatedRowHeight > 0 ? calculatedRowHeight : 100);
   }, []);
 
+
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-        updateRowHeight();
-        window.addEventListener('resize', updateRowHeight);
-        return () => window.removeEventListener('resize', updateRowHeight);
-    }
+    updateRowHeight();
+    window.addEventListener('resize', updateRowHeight);
+    return () => window.removeEventListener('resize', updateRowHeight);
   }, [updateRowHeight]);
 
 
@@ -167,11 +167,11 @@ export default function UnifiedUserPage() {
     toast({ title: "Link Copiado!", description: "A URL do seu perfil foi copiada para a área de transferência." });
   };
   
-  const handleUpdateCard = (id: string, updates: Partial<CardData>) => {
+  const handleUpdateCard = useCallback((id: string, updates: Partial<CardData>) => {
     setCards(currentCards => 
         currentCards.map(c => (c.id === id ? { ...c, ...updates } : c))
     );
-  };
+  }, []);
 
   const handleSaveChanges = async () => {
     if (!user || !profile) return
@@ -276,10 +276,9 @@ export default function UnifiedUserPage() {
     toast({ title: 'Sucesso', description: 'Card adicionado!' });
   }
 
-  const handleDeleteCard = async (cardId: string) => {
+  const handleDeleteCard = useCallback(async (cardId: string) => {
     if (!user) return;
 
-    // Optimistic deletion from state first
     setCards(prev => prev.filter(c => c.id !== cardId));
     setCurrentLayout(prev => prev.filter(l => l.i !== cardId));
     setSelectedCardId(null); 
@@ -288,12 +287,11 @@ export default function UnifiedUserPage() {
     if (error) {
         toast({ title: 'Erro', description: 'Não foi possível deletar o card no servidor.', variant: 'destructive' });
         console.error("Error deleting card:", error);
-        // Optionally, refetch data to revert optimistic update
         fetchPageData(user);
     } else {
         toast({ title: 'Sucesso', description: 'Card deletado.' });
     }
-  };
+  }, [user, fetchPageData]);
 
   const handleImageFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0 || !user) {
@@ -323,12 +321,12 @@ export default function UnifiedUserPage() {
     }
   };
 
-  const handleLayoutChange = (newLayout: Layout[]) => {
+  const handleLayoutChange = useCallback((newLayout: Layout[]) => {
     setCurrentLayout(newLayout);
     setSelectedCardId(null);
-  };
+  }, []);
   
-  const handleResizeCard = (cardId: string, w: number, h: number) => {
+  const handleResizeCard = useCallback((cardId: string, w: number, h: number) => {
       setCurrentLayout(prevLayout => {
           return prevLayout.map(item => {
               if (item.i === cardId) {
@@ -337,13 +335,13 @@ export default function UnifiedUserPage() {
               return item;
           });
       });
-  };
+  }, []);
 
-  const handleSelectCard = (cardId: string) => {
+  const handleSelectCard = useCallback((cardId: string) => {
       if (isMobile) {
           setSelectedCardId(currentId => currentId === cardId ? null : cardId);
       }
-  };
+  }, [isMobile]);
 
 
   if (loading) {
@@ -372,7 +370,7 @@ export default function UnifiedUserPage() {
     return (
         <div className="flex flex-col min-h-screen bg-background" onClick={(e) => {
              // Clicks outside grid should deselect
-             if (!(e.target as HTMLElement).closest('.react-grid-layout, .sheet-content')) {
+             if (!(e.target as HTMLElement).closest('.react-grid-layout, .sheet-content, footer')) {
                 setSelectedCardId(null);
              }
         }}>
@@ -460,7 +458,7 @@ export default function UnifiedUserPage() {
                 </main>
             </div>
 
-            <footer className="fixed bottom-0 left-0 w-full p-4 z-50 md:hidden">
+            <footer className="fixed bottom-0 left-0 w-full p-4 z-50 md:left-1/2 md:-translate-x-1/2 md:w-auto">
                 <div className="bg-card/90 backdrop-blur-sm rounded-full shadow-lg border flex justify-around items-center p-2 gap-2">
                     <Button title="Adicionar Imagem" variant="ghost" size="icon" className="rounded-full" onClick={() => imageInputRef.current?.click()} disabled={isUploadingImage}>
                         {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon />}
@@ -545,5 +543,3 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
-
-    

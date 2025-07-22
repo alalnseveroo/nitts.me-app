@@ -39,7 +39,7 @@ interface GridLayoutCardProps {
     isMobile: boolean;
 }
 
-export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize, onClick, isSelected, isMobile }: GridLayoutCardProps) => {
+const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onClick, isSelected, isMobile }: GridLayoutCardProps) => {
     const showDesktopControls = !isMobile;
     const showMobileSelection = isMobile && isSelected;
 
@@ -49,7 +49,7 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize, onClick, is
                 "w-full h-full relative",
                 isMobile && "cursor-pointer"
             )}
-            onClick={() => onClick(card.id)}
+            onClick={() => isMobile && onClick(card.id)}
         >
             <div className={cn(
                 "w-full h-full rounded-lg transition-all border-2",
@@ -62,12 +62,10 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize, onClick, is
                 />
             </div>
             
-            {/* Drag Handle - Always visible on mobile, hover on desktop */}
             <div className="drag-handle absolute top-2 right-2 z-20 cursor-move text-white bg-black/30 rounded-full p-1 md:opacity-0 group-hover/card:opacity-100 transition-opacity">
                 <GripVertical className="h-5 w-5" />
             </div>
 
-            {/* Desktop-only hover controls */}
             {showDesktopControls && (
                 <>
                     <AlertDialog>
@@ -107,3 +105,6 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize, onClick, is
         </div>
     );
 };
+
+
+export const GridLayoutCard = React.memo(GridLayoutCardComponent);
