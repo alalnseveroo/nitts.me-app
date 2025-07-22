@@ -1,7 +1,7 @@
 
 'use client'
 
-import React, 'react';
+import React from 'react';
 import { GridLayoutCardBase } from './grid-layout-card-base';
 import { CardResizeControls } from './card-resize-controls';
 import { Button } from '@/components/ui/button';
