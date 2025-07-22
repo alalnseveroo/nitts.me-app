@@ -4,6 +4,7 @@ import { useEffect, useState, ChangeEvent, useRef, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
+import type { Layout } from 'react-grid-layout';
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Settings, Bug, BarChart2, Share, Laptop, Smartphone, Upload, Loader2 } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
-import GridLayout from '@/components/ui/grid-layout'
+import GridLayoutComponent from '@/components/ui/grid-layout' // Changed import name
 import { useToast } from '@/hooks/use-toast'
 
 type Profile = {
@@ -19,7 +20,7 @@ type Profile = {
   name: string | null
   bio: string | null
   avatar_url: string | null
-  layout_config: any | null
+  layout_config: Layout[] | null
 }
 
 type Card = {
@@ -66,7 +67,7 @@ export default function EditPage() {
 
     if (profileError || !profileData) {
       console.error('Error fetching profile:', profileError);
-      // Fallback or error handling
+      setProfile(null); // Set to null on error
     } else {
       if (profileData.username !== pageUsername) {
         router.push(`/${profileData.username}/edit`);
@@ -77,6 +78,7 @@ export default function EditPage() {
     
     if (cardsError) {
         console.error('Error fetching cards:', cardsError);
+        setCards([]);
     } else {
         setCards(cardsData || []);
     }
@@ -161,8 +163,7 @@ export default function EditPage() {
         return;
     }
     
-    // Re-fetch data to update UI
-    if (user) await fetchPageData(user);
+    setCards(currentCards => [...currentCards, data]);
     toast({ title: 'Sucesso', description: 'Card adicionado!' });
   }
 
@@ -207,7 +208,7 @@ export default function EditPage() {
     }
   };
 
-  const handleLayoutChange = async (newLayout: any) => {
+  const handleLayoutChange = async (newLayout: Layout[]) => {
     if (!user) return;
 
     const { error } = await supabase
@@ -218,8 +219,6 @@ export default function EditPage() {
     if (error) {
       console.error('Erro ao salvar layout:', error);
       toast({ title: 'Erro', description: 'Não foi possível salvar o layout.', variant: 'destructive' });
-    } else {
-      toast({ title: 'Sucesso', description: 'Layout salvo!' });
     }
   };
 
@@ -267,8 +266,7 @@ export default function EditPage() {
             </div>
 
             {user && (
-              <GridLayout
-                userId={user.id}
+              <GridLayoutComponent
                 cards={cards}
                 layoutConfig={profile?.layout_config}
                 onLayoutChange={handleLayoutChange}
@@ -293,5 +291,3 @@ export default function EditPage() {
     </div>
   )
 }
-
-    

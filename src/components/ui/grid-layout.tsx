@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Responsive, WidthProvider } from 'react-grid-layout';
+import { Responsive, WidthProvider, Layout } from 'react-grid-layout';
 import { supabase } from '@/lib/supabase/client';
 import { GridLayoutCard } from './grid-layout-card';
 import { useToast } from '@/hooks/use-toast';
@@ -20,42 +20,40 @@ type Card = {
     background_image: string | null;
 };
 
-type LayoutItem = {
-    i: string;
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-};
+type LayoutItem = Layout;
 
 interface GridLayoutProps {
-    userId: string;
     cards: Card[];
     layoutConfig: LayoutItem[] | null;
     onLayoutChange: (layout: LayoutItem[]) => void;
     onDeleteCard: (cardId: string) => void;
 }
 
-const GridLayoutComponent = ({ userId, cards, layoutConfig, onLayoutChange, onDeleteCard }: GridLayoutProps) => {
+const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard }: GridLayoutProps) => {
     const [layouts, setLayouts] = useState<{ lg: LayoutItem[] }>({ lg: [] });
     const [internalCards, setInternalCards] = useState<Card[]>(cards);
     const { toast } = useToast();
 
     useEffect(() => {
         setInternalCards(cards);
-        const dbLayout = layoutConfig || [];
-        const generatedLayouts = cards.map((card, index) => {
-            const layout = dbLayout.find(l => l.i === card.id);
-            // Assign a default position if not found in layout config, avoiding Infinity
-            return { 
-                i: card.id, 
-                x: layout?.x ?? (index % 12), // simple horizontal stacking
-                y: layout?.y ?? Math.floor(index / 12), // simple vertical stacking
-                w: layout?.w ?? 2, 
-                h: layout?.h ?? 2 
+
+        // Generate layout for cards, ensuring every card has a layout.
+        const newLayout = cards.map((card, index) => {
+            const existingLayout = layoutConfig?.find(l => l.i === card.id);
+            if (existingLayout) {
+                return existingLayout;
+            }
+            // Assign a default position if not found in layout config
+            return {
+                i: card.id,
+                x: (index * 2) % 12, // Default horizontal stacking
+                y: Math.floor((index * 2) / 12), // Default vertical stacking
+                w: 2,
+                h: 2,
             };
         });
-        setLayouts({ lg: generatedLayouts });
+
+        setLayouts({ lg: newLayout });
     }, [cards, layoutConfig]);
 
     const handleUpdateCard = async (id: string, updates: Partial<Card>) => {
@@ -68,19 +66,29 @@ const GridLayoutComponent = ({ userId, cards, layoutConfig, onLayoutChange, onDe
         }
     };
 
+    // This check is crucial to prevent rendering before layout is calculated.
+    if (!layouts.lg || layouts.lg.length === 0 && internalCards.length > 0) {
+        return <div className="min-h-[400px]">Calculando layout...</div>;
+    }
+
     return (
         <ResponsiveGridLayout
             layouts={layouts}
-            onLayoutChange={(layout, allLayouts) => onLayoutChange(allLayouts.lg)}
+            onLayoutChange={(layout, allLayouts) => {
+                if (allLayouts.lg) {
+                    onLayoutChange(allLayouts.lg);
+                    setLayouts(allLayouts);
+                }
+            }}
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
             cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
             rowHeight={50}
             isDraggable
             isResizable
-            className="min-h-[400px]" // Garante uma altura mínima para o grid
+            className="min-h-[400px]"
         >
             {internalCards.map(card => (
-                <div key={card.id} data-grid={{w:2, h:2}} className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div key={card.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                     <GridLayoutCard
                         card={card}
                         onUpdate={handleUpdateCard}
@@ -93,5 +101,3 @@ const GridLayoutComponent = ({ userId, cards, layoutConfig, onLayoutChange, onDe
 };
 
 export default GridLayoutComponent;
-
-    
