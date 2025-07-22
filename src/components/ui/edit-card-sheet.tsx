@@ -128,7 +128,7 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
           <SheetTitle>Editar Card</SheetTitle>
           <SheetDescription>
             Faça alterações no conteúdo do seu card aqui. Clique em salvar quando terminar.
-          </Sheet-Description>
+          </SheetDescription>
         </SheetHeader>
         <div className="py-4">
           {renderFormContent()}
