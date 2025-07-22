@@ -1,4 +1,3 @@
-
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -42,14 +41,13 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false }: GridL
 
     const handleBlur = () => {
         setIsFocused(false);
-        const { id, type, user_id, ...updates } = currentData;
-        // Check if any value actually changed
-        if (JSON.stringify(updates) !== JSON.stringify({ title: card.title, content: card.content, link: card.link, background_image: card.background_image })) {
-            onUpdate(id, updates);
+        // Only trigger update if data has actually changed
+        if (JSON.stringify(currentData) !== JSON.stringify(card)) {
+            onUpdate(card.id, currentData);
         }
     };
-
-    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    
+    const handleImageFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files || event.target.files.length === 0) return;
         
         const file = event.target.files[0];
@@ -69,7 +67,6 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false }: GridL
             onUpdate(card.id, updates);
 
         } catch (error) {
-            alert('Falha no upload da imagem.');
             console.error(error);
         } finally {
             setUploading(false);
@@ -81,14 +78,6 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false }: GridL
             case 'image':
                 return (
                     <div className="w-full h-full relative group/image-card">
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            className="hidden"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            disabled={uploading || isDisabled}
-                        />
                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/image-card:opacity-100 flex items-center justify-center transition-opacity z-10">
                             <Button
                                 onClick={() => fileInputRef.current?.click()}
@@ -103,6 +92,14 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false }: GridL
                                 Alterar Imagem
                             </Button>
                         </div>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleImageFileSelected}
+                            disabled={uploading || isDisabled}
+                        />
                         <img 
                             src={currentData.background_image || 'https://placehold.co/400x400.png'} 
                             alt={currentData.title || 'Card image'}
@@ -185,3 +182,5 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false }: GridL
         </Card>
     );
 };
+
+    

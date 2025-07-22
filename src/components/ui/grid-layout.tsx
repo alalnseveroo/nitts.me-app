@@ -1,9 +1,7 @@
-
 'use client'
 
 import React from 'react';
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout';
-import { supabase } from '@/lib/supabase/client';
 import { GridLayoutCard } from './grid-layout-card';
 import { useToast } from '@/hooks/use-toast';
 import 'react-grid-layout/css/styles.css';
@@ -27,6 +25,7 @@ interface GridLayoutProps {
     cards: Card[];
     layoutConfig: LayoutItem[];
     onLayoutChange: (layout: LayoutItem[]) => void;
+    onUpdateCard: (id: string, updates: Partial<Card>) => void;
     onDeleteCard: (cardId: string) => void;
     onResizeCard: (cardId: string, w: number, h: number) => void;
     onSelectCard: (cardId: string) => void;
@@ -38,7 +37,8 @@ interface GridLayoutProps {
 const GridLayoutComponent = ({ 
     cards, 
     layoutConfig, 
-    onLayoutChange, 
+    onLayoutChange,
+    onUpdateCard, 
     onDeleteCard, 
     onResizeCard,
     onSelectCard,
@@ -47,15 +47,6 @@ const GridLayoutComponent = ({
     isMobile
 }: GridLayoutProps) => {
     const { toast } = useToast();
-
-    const handleUpdateCard = async (id: string, updates: Partial<Card>) => {
-        const { error } = await supabase.from('cards').update(updates).eq('id', id);
-        if (error) {
-            toast({ title: 'Erro', description: 'Falha ao atualizar o card.', variant: 'destructive' });
-        } else {
-           // Do not show toast on every auto-save for a better UX
-        }
-    };
     
     if (cards.length === 0) {
         return (
@@ -89,7 +80,7 @@ const GridLayoutComponent = ({
                     <div key={card.id} data-grid={layoutItem} className="bg-transparent overflow-visible group/card">
                         <GridLayoutCard
                             card={card}
-                            onUpdate={handleUpdateCard}
+                            onUpdate={onUpdateCard}
                             onDelete={onDeleteCard}
                             onResize={onResizeCard}
                             onClick={onSelectCard}
@@ -104,3 +95,5 @@ const GridLayoutComponent = ({
 };
 
 export default GridLayoutComponent;
+
+    

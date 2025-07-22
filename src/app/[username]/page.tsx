@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useEffect, useState, ChangeEvent, useRef, useCallback } from 'react'
@@ -17,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import GridLayoutComponent from '@/components/ui/grid-layout'
 import { ElementCard } from '@/components/ui/element-card'
 import { CardResizeControls } from '@/components/ui/card-resize-controls'
+import { EditCardSheet } from '@/components/ui/edit-card-sheet'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
 import { Responsive, WidthProvider } from 'react-grid-layout'
@@ -33,7 +33,7 @@ type Profile = {
   layout_config: Layout[] | null
 }
 
-type CardData = {
+export type CardData = {
     id: string;
     user_id: string;
     type: string;
@@ -62,6 +62,7 @@ export default function UnifiedUserPage() {
   const [error, setError] = useState<string | null>(null);
   const [rowHeight, setRowHeight] = useState(100);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
 
   const imageInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter()
@@ -69,6 +70,7 @@ export default function UnifiedUserPage() {
   const { toast } = useToast();
   const pageUsername = params.username as string
   const isMobile = useIsMobile();
+  const selectedCard = cards.find(c => c.id === selectedCardId);
 
   const updateRowHeight = useCallback(() => {
     const containerWidth = getContainerWidth();
@@ -164,34 +166,34 @@ export default function UnifiedUserPage() {
     navigator.clipboard.writeText(url);
     toast({ title: "Link Copiado!", description: "A URL do seu perfil foi copiada para a área de transferência." });
   };
+  
+  const handleUpdateCard = (id: string, updates: Partial<CardData>) => {
+    setCards(currentCards => 
+        currentCards.map(c => (c.id === id ? { ...c, ...updates } : c))
+    );
+  };
 
   const handleSaveChanges = async () => {
     if (!user || !profile) return
     setSaving(true);
     
+    // 1. Save profile updates (name, bio, layout)
     const validLayout = currentLayout.map(l => ({
-        ...l,
-        x: l.x ?? 0,
-        y: l.y ?? 0,
-        w: l.w ?? 1,
-        h: l.h ?? 1,
-    }))
+        ...l, x: l.x ?? 0, y: l.y ?? 0, w: l.w ?? 1, h: l.h ?? 1,
+    }));
 
-    const profileUpdates = {
-      name: profile.name,
-      bio: profile.bio,
-      layout_config: validLayout,
-    };
-
-    const { error } = await supabase
+    const { error: profileError } = await supabase
       .from('profiles')
-      .update(profileUpdates)
-      .eq('id', user.id)
-    
+      .update({ name: profile.name, bio: profile.bio, layout_config: validLayout })
+      .eq('id', user.id);
+      
+    // 2. Save all card content updates
+    const { error: cardsError } = await supabase.from('cards').upsert(cards);
+
     setSaving(false);
-    if (error) {
-      toast({ title: 'Erro', description: 'Erro ao salvar as alterações.', variant: 'destructive' });
-      console.error(error);
+    if (profileError || cardsError) {
+      toast({ title: 'Erro', description: `Erro ao salvar: ${profileError?.message || cardsError?.message}`, variant: 'destructive' });
+      console.error(profileError || cardsError);
     } else {
       toast({ title: 'Sucesso', description: 'Alterações salvas com sucesso!' });
     }
@@ -236,10 +238,13 @@ export default function UnifiedUserPage() {
     const w = type === 'title' ? 4 : 1;
     const h = 1;
 
-    const finalData = {
+    const finalData: Omit<CardData, 'id'> = {
         user_id: user.id,
         type: type,
         title: ``,
+        content: null,
+        link: null,
+        background_image: null,
         ...extraData
     };
     if (type === 'title') {
@@ -273,14 +278,19 @@ export default function UnifiedUserPage() {
 
   const handleDeleteCard = async (cardId: string) => {
     if (!user) return;
+
+    // Optimistic deletion from state first
+    setCards(prev => prev.filter(c => c.id !== cardId));
+    setCurrentLayout(prev => prev.filter(l => l.i !== cardId));
+    setSelectedCardId(null); 
+    
     const { error } = await supabase.from('cards').delete().eq('id', cardId);
     if (error) {
-        toast({ title: 'Erro', description: 'Não foi possível deletar o card.', variant: 'destructive' });
+        toast({ title: 'Erro', description: 'Não foi possível deletar o card no servidor.', variant: 'destructive' });
         console.error("Error deleting card:", error);
+        // Optionally, refetch data to revert optimistic update
+        fetchPageData(user);
     } else {
-        setCards(prev => prev.filter(c => c.id !== cardId));
-        setCurrentLayout(prev => prev.filter(l => l.i !== cardId));
-        setSelectedCardId(null); // Deselect card on deletion
         toast({ title: 'Sucesso', description: 'Card deletado.' });
     }
   };
@@ -362,7 +372,7 @@ export default function UnifiedUserPage() {
     return (
         <div className="flex flex-col min-h-screen bg-background" onClick={(e) => {
              // Clicks outside grid should deselect
-             if (!(e.target as HTMLElement).closest('.react-grid-layout')) {
+             if (!(e.target as HTMLElement).closest('.react-grid-layout, .sheet-content')) {
                 setSelectedCardId(null);
              }
         }}>
@@ -433,6 +443,7 @@ export default function UnifiedUserPage() {
                         cards={cards}
                         layoutConfig={currentLayout}
                         onLayoutChange={handleLayoutChange}
+                        onUpdateCard={handleUpdateCard}
                         onDeleteCard={handleDeleteCard}
                         onResizeCard={handleResizeCard}
                         onSelectCard={handleSelectCard}
@@ -464,12 +475,21 @@ export default function UnifiedUserPage() {
             {isMobile && selectedCardId && (
                  <footer className="fixed bottom-24 left-1/2 -translate-x-1/2 w-auto p-4 z-50">
                      <div className="bg-background/90 backdrop-blur-sm rounded-lg shadow-xl border flex justify-around items-center p-1 gap-1">
+                        <Button title="Editar conteúdo" variant="ghost" size="icon" onClick={() => setIsEditSheetOpen(true)}><Edit/></Button>
+                        <div className="h-6 w-px bg-border mx-1"></div>
                         <CardResizeControls onResize={(w, h) => handleResizeCard(selectedCardId, w, h)} />
                         <div className="h-6 w-px bg-border mx-1"></div>
                         <Button title="Deletar" variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDeleteCard(selectedCardId)}><Trash2/></Button>
                     </div>
                  </footer>
             )}
+
+            <EditCardSheet
+                isOpen={isEditSheetOpen}
+                onOpenChange={setIsEditSheetOpen}
+                card={selectedCard}
+                onUpdate={handleUpdateCard}
+            />
         </div>
     )
   }
@@ -525,3 +545,5 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
+
+    
