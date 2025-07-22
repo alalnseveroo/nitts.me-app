@@ -10,9 +10,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Bug, BarChart2, Share, Laptop, Smartphone, Upload, Loader2 } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Edit } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '@/components/ui/skeleton'
-import GridLayoutComponent from '@/components/ui/grid-layout' // Changed import name
+import GridLayoutComponent from '@/components/ui/grid-layout'
 import { useToast } from '@/hooks/use-toast'
 
 type Profile = {
@@ -37,6 +38,7 @@ export default function EditPage() {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [cards, setCards] = useState<Card[]>([]);
+  const [currentLayout, setCurrentLayout] = useState<Layout[]>([]);
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -67,13 +69,16 @@ export default function EditPage() {
 
     if (profileError || !profileData) {
       console.error('Error fetching profile:', profileError);
-      setProfile(null); // Set to null on error
+      setProfile(null);
     } else {
       if (profileData.username !== pageUsername) {
         router.push(`/${profileData.username}/edit`);
         return;
       }
       setProfile(profileData as Profile);
+      if (profileData.layout_config) {
+        setCurrentLayout(profileData.layout_config);
+      }
     }
     
     if (cardsError) {
@@ -101,23 +106,37 @@ export default function EditPage() {
     fetchSessionAndProfile()
   }, [router, fetchPageData])
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
+    router.refresh();
+  };
 
-  const handleUpdateProfile = async () => {
+  const handleShare = () => {
+    const url = `${window.location.origin}/${pageUsername}`;
+    navigator.clipboard.writeText(url);
+    toast({ title: "Link Copiado!", description: "A URL do seu perfil foi copiada para a área de transferência." });
+  };
+
+  const handleSaveChanges = async () => {
     if (!user || !profile) return
+
+    const profileUpdates = {
+      name: profile.name,
+      bio: profile.bio,
+      layout_config: currentLayout,
+    };
 
     const { error } = await supabase
       .from('profiles')
-      .update({
-        name: profile.name,
-        bio: profile.bio,
-      })
+      .update(profileUpdates)
       .eq('id', user.id)
 
     if (error) {
-      toast({ title: 'Erro', description: 'Erro ao atualizar o perfil.', variant: 'destructive' });
+      toast({ title: 'Erro', description: 'Erro ao salvar as alterações.', variant: 'destructive' });
       console.error(error);
     } else {
-      toast({ title: 'Sucesso', description: 'Perfil atualizado com sucesso!' });
+      toast({ title: 'Sucesso', description: 'Alterações salvas com sucesso!' });
     }
   }
 
@@ -138,6 +157,7 @@ export default function EditPage() {
         if (updateError) throw updateError
 
         if (profile) setProfile({ ...profile, avatar_url: publicUrl })
+        toast({ title: 'Sucesso', description: 'Avatar atualizado!' });
     } catch (error) {
         toast({ title: 'Erro', description: 'Erro ao fazer upload do avatar.', variant: 'destructive'});
         console.error(error);
@@ -208,25 +228,15 @@ export default function EditPage() {
     }
   };
 
-  const handleLayoutChange = async (newLayout: Layout[]) => {
-    if (!user) return;
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ layout_config: newLayout })
-      .eq('id', user.id);
-
-    if (error) {
-      console.error('Erro ao salvar layout:', error);
-      toast({ title: 'Erro', description: 'Não foi possível salvar o layout.', variant: 'destructive' });
-    }
+  const handleLayoutChange = (newLayout: Layout[]) => {
+    setCurrentLayout(newLayout);
   };
 
 
   if (loading) {
     return (
       <div className="flex flex-col min-h-screen bg-gray-100 p-4">
-        <header className="flex justify-between items-center bg-white shadow-md p-4"><Skeleton className="h-8 w-32" /><Skeleton className="h-8 w-48" /><Skeleton className="h-10 w-32" /></header>
+        <header className="flex justify-between items-center bg-white shadow-md p-4 sticky top-0 z-20"><Skeleton className="h-8 w-32" /><Skeleton className="h-8 w-48" /><Skeleton className="h-10 w-32" /></header>
         <main className="flex-grow p-8 flex items-start justify-center">
           <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-8 space-y-6">
             <div className="flex flex-col items-center text-center"><Skeleton className="w-24 h-24 rounded-full mb-4" /><Skeleton className="h-8 w-48 mb-2" /><Skeleton className="h-12 w-full" /></div>
@@ -248,9 +258,26 @@ export default function EditPage() {
         />
 
       <header className="flex justify-between items-center p-4 bg-white shadow-md sticky top-0 z-20">
-        <div className="flex items-center space-x-2"><Button variant="ghost" size="icon"><Settings className="h-6 w-6" /></Button><Button variant="ghost" size="icon"><Bug className="h-6 w-6" /></Button><Button variant="ghost" size="icon"><BarChart2 className="h-6 w-6" /></Button></div>
-        <div className="flex items-center space-x-2"><Button variant="outline" size="sm"><Laptop className="h-5 w-5 mr-2" /> Desktop</Button><Button variant="outline" size="sm"><Smartphone className="h-5 w-5 mr-2" /> Mobile</Button></div>
-        <div className="flex items-center space-x-4"><Button onClick={handleUpdateProfile}>Salvar Perfil</Button><Button><Share className="mr-2 h-4 w-4" /> Compartilhar</Button></div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><Settings/></Button></DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuLabel>Opções</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem disabled><UserRound className="mr-2 h-4 w-4"/><span>Alterar Usuário</span></DropdownMenuItem>
+            <DropdownMenuItem disabled><KeyRound className="mr-2 h-4 w-4"/><span>Alterar Senha</span></DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4"/><span>Sair</span></DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <Button variant="outline" onClick={() => router.push(`/${pageUsername}`)}>
+          <Edit className="mr-2 h-4 w-4" /> Ver Página Pública
+        </Button>
+
+        <div className="flex items-center space-x-4">
+          <Button onClick={handleShare} variant="outline"><Share className="mr-2 h-4 w-4" /> Compartilhar</Button>
+          <Button onClick={handleSaveChanges}>Salvar Alterações</Button>
+        </div>
       </header>
 
       <main className="flex-grow p-8">
@@ -268,7 +295,7 @@ export default function EditPage() {
             {user && (
               <GridLayoutComponent
                 cards={cards}
-                layoutConfig={profile?.layout_config}
+                layoutConfig={currentLayout}
                 onLayoutChange={handleLayoutChange}
                 onDeleteCard={handleDeleteCard}
               />
