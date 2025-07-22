@@ -421,11 +421,14 @@ export default function UnifiedUserPage() {
                     containerPadding={[0, 0]}
                     className="min-h-[400px]"
                 >
-                    {cards.map(card => (
-                        <div key={card.id} data-grid={currentLayout.find(l => l.i === card.id) || {x:0, y:0, w:1, h:1}}>
-                            <ElementCard data={card} />
-                        </div>
-                    ))}
+                    {cards.map(card => {
+                        const layout = currentLayout.find(l => l.i === card.id);
+                        return (
+                            <div key={card.id} data-grid={layout || {x:0, y:0, w:1, h:2}}>
+                                <ElementCard data={card} />
+                            </div>
+                        )
+                    })}
                 </ResponsiveGridLayout>
                 ) : (
                     <div className="flex items-center justify-center h-64 border-2 border-dashed rounded-lg">
@@ -439,5 +442,7 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
+
+    
 
     
