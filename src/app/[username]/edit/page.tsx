@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Edit } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Edit, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Map, StickyNote } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '@/components/ui/skeleton'
 import GridLayoutComponent from '@/components/ui/grid-layout'
@@ -40,6 +40,7 @@ export default function EditPage() {
   const [cards, setCards] = useState<Card[]>([]);
   const [currentLayout, setCurrentLayout] = useState<Layout[]>([]);
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false)
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -69,16 +70,17 @@ export default function EditPage() {
 
     if (profileError || !profileData) {
       console.error('Error fetching profile:', profileError);
-      setProfile(null);
-    } else {
-      if (profileData.username !== pageUsername) {
+      router.push('/login');
+      return;
+    }
+    
+    if (profileData.username !== pageUsername) {
         router.push(`/${profileData.username}/edit`);
         return;
-      }
-      setProfile(profileData as Profile);
-      if (profileData.layout_config) {
+    }
+    setProfile(profileData as Profile);
+    if (profileData.layout_config) {
         setCurrentLayout(profileData.layout_config);
-      }
     }
     
     if (cardsError) {
@@ -120,6 +122,7 @@ export default function EditPage() {
 
   const handleSaveChanges = async () => {
     if (!user || !profile) return
+    setSaving(true);
 
     const profileUpdates = {
       name: profile.name,
@@ -131,7 +134,8 @@ export default function EditPage() {
       .from('profiles')
       .update(profileUpdates)
       .eq('id', user.id)
-
+    
+    setSaving(false);
     if (error) {
       toast({ title: 'Erro', description: 'Erro ao salvar as alterações.', variant: 'destructive' });
       console.error(error);
@@ -169,20 +173,21 @@ export default function EditPage() {
   const addNewCard = async (type: string, extraData: Record<string, any> = {}) => {
     if (!user) return;
     
-    // Define default sizes based on card type
-    let w = 2, h = 2; // Default size (quadrado padrão)
-    if (type === 'title') { w = 4; h = 1; }
-    if (type === 'link') { w = 4; h = 1; }
-    if (type === 'note') { w = 2; h = 3; }
-    if (type === 'image') { w = 2; h = 2; }
-    if (type === 'map') { w = 4; h = 4; }
+    let w = 3, h = 3; // Default size
+    if (type === 'title') { w = 6; h = 1; }
+    if (type === 'link') { w = 4; h = 2; }
+    if (type === 'note') { w = 4; h = 5; }
+    if (type === 'image') { w = 4; h = 4; }
+    if (type === 'map') { w = 5; h = 4; }
 
     const finalData = {
         user_id: user.id,
         type: type,
-        title: `Novo ${type}`,
+        title: ``,
         ...extraData
     };
+    if (type === 'title') finalData.title = 'Novo Título';
+    if (type === 'link') finalData.title = 'Novo Link';
 
     const { data, error } = await supabase.from('cards').insert(finalData).select().single();
 
@@ -193,10 +198,9 @@ export default function EditPage() {
     }
     
     setCards(currentCards => [...currentCards, data]);
-    // Add new card to layout at a default position
     setCurrentLayout(currentLayout => [
         ...currentLayout,
-        { i: data.id, x: 0, y: Infinity, w: w, h: h } // y: Infinity makes the grid place it at the bottom
+        { i: data.id, x: 0, y: Infinity, w: w, h: h }
     ]);
 
     toast({ title: 'Sucesso', description: 'Card adicionado!' });
@@ -232,7 +236,7 @@ export default function EditPage() {
 
         const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
         
-        await addNewCard('image', { background_image: publicUrl, title: 'Nova Imagem' });
+        await addNewCard('image', { background_image: publicUrl, title: '' });
     } catch (error) {
         toast({ title: 'Erro', description: 'Falha no upload da imagem.', variant: 'destructive' });
         console.error(error);
@@ -250,104 +254,114 @@ export default function EditPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-gray-100 p-4">
-        <header className="flex justify-between items-center bg-white shadow-md p-4 sticky top-0 z-20"><Skeleton className="h-8 w-32" /><Skeleton className="h-8 w-48" /><Skeleton className="h-10 w-32" /></header>
-        <main className="flex-grow p-8 flex items-start justify-center">
-          <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-8 space-y-6">
-            <div className="flex flex-col items-center text-center"><Skeleton className="w-24 h-24 rounded-full mb-4" /><Skeleton className="h-8 w-48 mb-2" /><Skeleton className="h-12 w-full" /></div>
-            <Skeleton className="h-64 w-full" />
-          </div>
-        </main>
+     <div className="w-full min-h-screen p-8">
+        <header className="flex justify-between items-center mb-8">
+            <Skeleton className="h-10 w-48" />
+            <div className="flex items-center gap-4">
+                <Skeleton className="h-10 w-32" />
+                <Skeleton className="h-10 w-32" />
+                <Skeleton className="h-10 w-10" />
+            </div>
+        </header>
+        <div className="grid grid-cols-12 gap-6">
+            <div className="col-span-3">
+                <Skeleton className="h-32 w-32 rounded-full mb-4" />
+                <Skeleton className="h-8 w-48 mb-2" />
+                <Skeleton className="h-20 w-full" />
+            </div>
+            <div className="col-span-9">
+                <Skeleton className="h-[600px] w-full" />
+            </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-background">
       <input
-            type="file"
-            ref={imageInputRef}
-            onChange={handleImageFileSelected}
-            className="hidden"
-            accept="image/*"
-        />
+        type="file"
+        ref={imageInputRef}
+        onChange={handleImageFileSelected}
+        className="hidden"
+        accept="image/*"
+      />
 
-      <header className="flex justify-between items-center p-4 bg-white shadow-md sticky top-0 z-50">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><Settings/></Button></DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuLabel>Opções</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem disabled><UserRound className="mr-2 h-4 w-4"/><span>Alterar Usuário</span></DropdownMenuItem>
-            <DropdownMenuItem disabled><KeyRound className="mr-2 h-4 w-4"/><span>Alterar Senha</span></DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4"/><span>Sair</span></DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
+      <header className="flex justify-between items-center p-4 sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b">
         <Button variant="outline" onClick={() => router.push(`/${pageUsername}`)}>
-          <Edit className="mr-2 h-4 w-4" /> Ver Página Pública
+          <ArrowLeft className="mr-2 h-4 w-4" /> Voltar para a página
         </Button>
 
-        <div className="flex items-center space-x-4">
-          <Button onClick={handleShare} variant="outline"><Share className="mr-2 h-4 w-4" /> Compartilhar</Button>
-          <Button onClick={handleSaveChanges}>Salvar Alterações</Button>
+        <div className="flex items-center space-x-2">
+          <Button onClick={handleShare} variant="ghost"><Share className="mr-2 h-4 w-4" /> Compartilhar</Button>
+          <Button onClick={handleSaveChanges} disabled={saving}>
+            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Salvar
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><Settings/></Button></DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Opções</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem disabled><UserRound className="mr-2 h-4 w-4"/><span>Alterar Usuário</span></DropdownMenuItem>
+              <DropdownMenuItem disabled><KeyRound className="mr-2 h-4 w-4"/><span>Alterar Senha</span></DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4"/><span>Sair</span></DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
-
-      <div className="flex flex-1">
-        {/* Coluna do Perfil (Esquerda) */}
-        <aside className="w-1/3 max-w-sm p-8 sticky top-[80px] h-[calc(100vh-80px)]">
-            <div className="flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-lg h-full">
-                <div className="relative mb-4">
+      
+      <div className="grid grid-cols-12 gap-8 flex-1 p-8">
+        <aside className="col-span-12 md:col-span-3 py-8">
+            <div className="sticky top-24">
+                <div className="relative mb-4 w-32 h-32">
                     <Avatar className="w-32 h-32 text-lg">
                         <AvatarImage src={profile?.avatar_url || ''} alt={profile?.username || 'avatar'} />
                         <AvatarFallback>{profile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
-                    <label htmlFor="avatar-upload" className="absolute bottom-1 right-1 bg-gray-700 text-white rounded-full p-2 cursor-pointer hover:bg-gray-600 transition-all">
+                    <label htmlFor="avatar-upload" className="absolute bottom-1 right-1 bg-primary text-primary-foreground rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-all">
                         {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                     </label>
                     <input id="avatar-upload" type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={uploading}/>
                 </div>
                 <Input
-                  className="text-2xl font-bold text-center border-none focus:ring-0 shadow-none"
+                  className="text-4xl font-bold border-none focus:ring-0 shadow-none p-0 h-auto mb-2"
                   value={profile?.name || ''}
                   onChange={(e) => setProfile(p => p ? { ...p, name: e.target.value } : null)}
                   placeholder="Seu Nome"
                 />
                 <Textarea
-                  className="text-center text-gray-500 mt-2 border-none focus:ring-0 shadow-none resize-none"
+                  className="text-muted-foreground mt-2 border-none focus:ring-0 shadow-none resize-none p-0"
                   value={profile?.bio || ''}
                   onChange={(e) => setProfile(p => p ? { ...p, bio: e.target.value } : null)}
                   placeholder="Sua biografia..."
+                  rows={3}
                 />
             </div>
         </aside>
 
-        {/* Coluna do Canvas (Direita) */}
-        <main className="flex-1 p-8">
-            <div className="bg-white rounded-lg shadow-lg p-4 mb-24 min-h-full">
-                {user && (
-                <GridLayoutComponent
-                    cards={cards}
-                    layoutConfig={currentLayout}
-                    onLayoutChange={handleLayoutChange}
-                    onDeleteCard={handleDeleteCard}
-                />
-                )}
-            </div>
+        <main className="col-span-12 md:col-span-9 mb-24">
+            {user && (
+            <GridLayoutComponent
+                cards={cards}
+                layoutConfig={currentLayout}
+                onLayoutChange={handleLayoutChange}
+                onDeleteCard={handleDeleteCard}
+            />
+            )}
         </main>
       </div>
 
-      <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-sm p-4 z-50">
-        <div className="bg-white/90 backdrop-blur-sm rounded-full shadow-lg flex justify-around items-center p-2">
-            <Button title="Adicionar Imagem" variant="ghost" size="icon" className="rounded-full text-xl" onClick={() => imageInputRef.current?.click()} disabled={isUploadingImage}>
-                {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : '🖼️'}
+      <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-auto p-4 z-50">
+        <div className="bg-card/90 backdrop-blur-sm rounded-full shadow-lg border flex justify-around items-center p-2 gap-2">
+            <Button title="Adicionar Imagem" variant="ghost" size="icon" className="rounded-full" onClick={() => imageInputRef.current?.click()} disabled={isUploadingImage}>
+                {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon />}
             </Button>
-            <Button title="Adicionar Título" variant="ghost" size="icon" className="rounded-full text-xl font-bold" onClick={() => addNewCard('title')}>T</Button>
-            <Button title="Adicionar Nota" variant="ghost" size="icon" className="rounded-full text-xl" onClick={() => addNewCard('note')}>📝</Button>
-            <Button title="Adicionar Link" variant="ghost" size="icon" className="rounded-full text-xl" onClick={() => addNewCard('link')}>🔗</Button>
-            <Button title="Adicionar Mapa" variant="ghost" size="icon" className="rounded-full text-xl" onClick={() => addNewCard('map')}>🗺️</Button>
+            <Button title="Adicionar Título" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('title')}><Type /></Button>
+            <Button title="Adicionar Nota" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('note')}><StickyNote /></Button>
+            <Button title="Adicionar Link" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('link')}><LinkIcon /></Button>
+            <Button title="Adicionar Mapa" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('map')}><Map /></Button>
         </div>
       </footer>
     </div>

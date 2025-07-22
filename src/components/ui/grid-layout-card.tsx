@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -16,9 +16,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, UploadCloud } from 'lucide-react';
+import { Trash2, UploadCloud, Loader2 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
-type Card = {
+type CardData = {
     id: string;
     user_id: string;
     type: string;
@@ -29,29 +30,35 @@ type Card = {
 };
 
 interface GridLayoutCardProps {
-    card: Card;
-    onUpdate: (id: string, updates: Partial<Card>) => void;
+    card: CardData;
+    onUpdate: (id: string, updates: Partial<CardData>) => void;
     onDelete: (id: string) => void;
 }
 
 export const GridLayoutCard = ({ card, onUpdate, onDelete }: GridLayoutCardProps) => {
-    const [currentCard, setCurrentCard] = useState(card);
+    const [currentData, setCurrentData] = useState(card);
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isFocused, setIsFocused] = useState(false);
 
-    const handleChange = (field: keyof Omit<Card, 'id' | 'user_id' | 'type'>, value: string) => {
-        setCurrentCard(prev => ({ ...prev, [field]: value }));
+    // Update internal state if the card prop changes from parent
+    useEffect(() => {
+        setCurrentData(card);
+    }, [card]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setCurrentData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSave = () => {
-        const { id, type, user_id, ...updates } = currentCard;
+    const handleBlur = () => {
+        setIsFocused(false);
+        const { id, type, user_id, ...updates } = currentData;
         onUpdate(id, updates);
     };
 
     const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!event.target.files || event.target.files.length === 0) {
-            return;
-        }
+        if (!event.target.files || event.target.files.length === 0) return;
         
         const file = event.target.files[0];
         const fileExt = file.name.split('.').pop();
@@ -59,20 +66,15 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete }: GridLayoutCardProps
 
         try {
             setUploading(true);
-            // Corrected to use the 'avatars' bucket
-            const { error: uploadError } = await supabase.storage
-                .from('avatars') 
-                .upload(filePath, file);
+            const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
 
             if (uploadError) throw uploadError;
 
-            // Corrected to get the URL from the 'avatars' bucket
-            const { data: { publicUrl } } = supabase.storage
-                .from('avatars')
-                .getPublicUrl(filePath);
+            const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
             
-            setCurrentCard(prev => ({ ...prev, background_image: publicUrl }));
-            onUpdate(card.id, { background_image: publicUrl });
+            const updates = { background_image: publicUrl };
+            setCurrentData(prev => ({ ...prev, ...updates }));
+            onUpdate(card.id, updates);
 
         } catch (error) {
             alert('Falha no upload da imagem.');
@@ -86,7 +88,7 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete }: GridLayoutCardProps
         switch (card.type) {
             case 'image':
                 return (
-                    <div className="w-full h-full">
+                    <div className="w-full h-full relative group">
                         <input
                             type="file"
                             ref={fileInputRef}
@@ -95,58 +97,58 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete }: GridLayoutCardProps
                             onChange={handleImageUpload}
                             disabled={uploading}
                         />
-                        {currentCard.background_image ? (
-                            <img 
-                                src={currentCard.background_image} 
-                                alt={currentCard.title || 'Card image'}
-                                className="w-full h-full object-cover cursor-pointer"
-                                onClick={() => fileInputRef.current?.click()}
-                            />
-                        ) : (
-                            <button
+                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10">
+                            <Button
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={uploading}
-                                className="w-full h-full flex flex-col items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-md border-2 border-dashed"
+                                variant="outline"
                             >
                                 {uploading ? (
-                                    <>
-                                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mb-2"></div>
-                                        <span>Enviando...</span>
-                                    </>
+                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
                                 ) : (
-                                    <>
-                                        <UploadCloud className="h-8 w-8 text-gray-500 mb-2" />
-                                        <span className="text-sm font-semibold">Clique para enviar</span>
-                                        <span className="text-xs text-gray-500">PNG, JPG, GIF</span>
-                                    </>
+                                    <UploadCloud className="h-4 w-4 mr-2" />
                                 )}
-                            </button>
-                        )}
+                                Alterar Imagem
+                            </Button>
+                        </div>
+                        <img 
+                            src={currentData.background_image || 'https://placehold.co/400x400.png'} 
+                            alt={currentData.title || 'Card image'}
+                            className="w-full h-full object-cover"
+                            data-ai-hint="abstract background"
+                        />
                     </div>
                 );
             case 'link':
                 return (
-                    <div className="space-y-3 p-4">
+                    <div className="space-y-2 p-4">
                         <Input
-                            placeholder="Título do Link"
-                            value={currentCard.title || ''}
-                            onChange={(e) => handleChange('title', e.target.value)}
+                            name="title"
+                            placeholder="Título"
+                            value={currentData.title || ''}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            className="font-semibold"
                         />
                         <Input
+                            name="link"
                             placeholder="https://exemplo.com"
-                            value={currentCard.link || ''}
-                            onChange={(e) => handleChange('link', e.target.value)}
+                            value={currentData.link || ''}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
                         />
                     </div>
                 );
             case 'title':
                  return (
-                    <div className="p-4">
+                    <div className="p-4 w-full h-full">
                         <Input
+                            name="title"
                             placeholder="Título Principal"
-                            className="text-xl font-bold border-none focus:ring-0 p-0"
-                            value={currentCard.title || ''}
-                            onChange={(e) => handleChange('title', e.target.value)}
+                            className="text-4xl font-bold border-none focus:ring-0 p-0 h-full w-full"
+                            value={currentData.title || ''}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
                         />
                     </div>
                 );
@@ -154,49 +156,54 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete }: GridLayoutCardProps
                 return (
                     <div className="p-4 h-full">
                         <Textarea
+                            name="content"
                             placeholder="Escreva sua nota aqui..."
-                            value={currentCard.content || ''}
-                            onChange={(e) => handleChange('content', e.target.value)}
-                            className="border-none focus:ring-0 p-0 h-full resize-none"
+                            value={currentData.content || ''}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            className="border-none focus:ring-0 p-0 h-full resize-none bg-transparent"
                         />
                     </div>
                 );
             case 'map':
-                return <p className="text-sm text-gray-500 p-4">🗺️ Elemento de Mapa (WIP)</p>
+                return (
+                    <div className="p-4 flex items-center justify-center text-muted-foreground">
+                        🗺️ Elemento de Mapa (WIP)
+                    </div>
+                )
             default:
                 return <p className="p-4">Tipo de card desconhecido</p>;
         }
     };
 
     return (
-        <div className="w-full h-full flex flex-col bg-white rounded-lg border overflow-hidden">
-            <div className="flex-grow flex items-center justify-center">
+        <Card className={`w-full h-full flex flex-col bg-card border-2 transition-all overflow-hidden ${isFocused ? 'border-primary' : 'border-transparent'}`} onFocus={() => setIsFocused(true)} onBlurCapture={handleBlur}>
+            <div className="flex-grow flex items-center justify-center relative">
                 {renderCardContent()}
+                 <div className="absolute top-1 right-1">
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Isso deletará o card permanentemente. Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => onDelete(card.id)} className="bg-destructive hover:bg-destructive/90">
+                                    Deletar
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
             </div>
-            <div className="flex items-center justify-end p-2 space-x-2 border-t">
-                 <Button size="sm" variant="outline" onClick={handleSave}>Salvar</Button>
-                 <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                         <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600">
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Isso deletará o card permanentemente. Esta ação não pode ser desfeita.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => onDelete(card.id)} className="bg-red-600 hover:bg-red-700">
-                                Deletar
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-            </div>
-        </div>
+        </Card>
     );
 };

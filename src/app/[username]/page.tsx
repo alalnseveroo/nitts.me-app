@@ -9,7 +9,6 @@ import { WidthProvider, Responsive, Layout } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
-
 // Componentes UI
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -108,66 +107,75 @@ export default function UnifiedUserPage() {
     router.refresh();
   };
 
-  if (loading) return <div className="flex justify-center items-center h-screen"><Skeleton className="h-full w-full" /></div>;
+  if (loading) return (
+    <div className="w-full min-h-screen p-8">
+        <div className="grid grid-cols-12 gap-6">
+            <div className="col-span-3">
+                <Skeleton className="h-32 w-32 rounded-full mb-4" />
+                <Skeleton className="h-8 w-48 mb-2" />
+                <Skeleton className="h-5 w-64" />
+            </div>
+            <div className="col-span-9">
+                <Skeleton className="h-[600px] w-full" />
+            </div>
+        </div>
+    </div>
+  );
   if (error) return <div className="flex flex-col justify-center items-center h-screen text-center p-4"><h1>{error}</h1> <Link href="/"><Button variant="link">Voltar para a página inicial</Button></Link></div>;
 
-  // RENDERIZA A VISÃO PÚBLICA
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gray-50 p-4">
-      {isOwner && (
-        <div className="absolute top-4 right-4 flex gap-2 z-10">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><Settings/></Button></DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel><DropdownMenuSeparator />
-                <DropdownMenuItem disabled><UserRound className="mr-2 h-4 w-4"/><span>Alterar Usuário</span></DropdownMenuItem>
-                <DropdownMenuItem disabled><KeyRound className="mr-2 h-4 w-4"/><span>Alterar Senha</span></DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4"/><span>Sair</span></DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button asChild variant="outline" className="bg-white">
-              <Link href={`/${username}/edit`}>
-                <Edit className="mr-2 h-4 w-4" /> Editar Página
-              </Link>
-            </Button>
-        </div>
-      )}
-      <div className="w-full max-w-4xl mx-auto">
-        <header className="flex flex-col items-center text-center py-8">
-          <Avatar className="w-24 h-24 mb-4"><AvatarImage src={profile?.avatar_url || ''} /><AvatarFallback>{profile?.name?.charAt(0)}</AvatarFallback></Avatar>
-          <h1 className="text-2xl font-bold">{profile?.name || `@${profile?.username}`}</h1>
-          <p className="text-gray-500 mt-2">{profile?.bio}</p>
-          <Button onClick={handleShare} variant="ghost" size="sm" className="mt-4"><Share className="mr-2 h-4 w-4" /> Compartilhar</Button>
-        </header>
-
-        {cards.length > 0 && layout.length > 0 ? (
-           <ResponsiveGridLayout
-              layouts={{ lg: layout }}
-              breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-              cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-              rowHeight={50}
-              isDraggable={false}
-              isResizable={false}
-              compactType={null}
-              preventCollision={true}
-           >
-             {cards.map(card => {
-                const cardLayout = layout.find(l => l.i === card.id);
-                return (
-                    <div key={card.id} data-grid={cardLayout || {x:0, y:0, w:2, h:2}}>
-                        <ElementCard data={card} />
-                    </div>
-                )
-             })}
-           </ResponsiveGridLayout>
-        ) : (
-          <section className="space-y-4 max-w-md mx-auto">
-            {cards.map(c => <ElementCard key={c.id} data={c} />)}
-          </section>
+    <div className="w-full min-h-screen p-8 relative">
+        {isOwner && (
+            <div className="absolute top-4 right-4 flex gap-2 z-10">
+                <Button asChild variant="default" className="bg-primary text-primary-foreground">
+                <Link href={`/${username}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" /> Editar Página
+                </Link>
+                </Button>
+            </div>
         )}
+        <div className="grid grid-cols-12 gap-8">
+            <header className="col-span-12 md:col-span-3 py-8">
+                <div className="sticky top-8">
+                    <Avatar className="w-32 h-32 mb-4">
+                        <AvatarImage src={profile?.avatar_url || ''} />
+                        <AvatarFallback>{profile?.name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <h1 className="text-4xl font-bold">{profile?.name || `@${profile?.username}`}</h1>
+                    <p className="text-muted-foreground mt-2">{profile?.bio}</p>
+                     <Button onClick={handleShare} variant="ghost" size="sm" className="mt-4 -ml-4"><Share className="mr-2 h-4 w-4" /> Compartilhar</Button>
+                </div>
+            </header>
 
-      </div>
-    </main>
+            <main className="col-span-12 md:col-span-9">
+                {cards.length > 0 && layout.length > 0 ? (
+                <ResponsiveGridLayout
+                    layouts={{ lg: layout }}
+                    breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+                    cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+                    rowHeight={50}
+                    isDraggable={false}
+                    isResizable={false}
+                    compactType={null}
+                    preventCollision={true}
+                    margin={[20, 20]}
+                >
+                    {cards.map(card => {
+                        const cardLayout = layout.find(l => l.i === card.id);
+                        return (
+                            <div key={card.id} data-grid={cardLayout || {x:0, y:0, w:2, h:2}}>
+                                <ElementCard data={card} />
+                            </div>
+                        )
+                    })}
+                </ResponsiveGridLayout>
+                ) : (
+                    <div className="flex items-center justify-center h-64 border-2 border-dashed rounded-lg">
+                        <p className="text-muted-foreground">Este perfil ainda não tem cards.</p>
+                    </div>
+                )}
+            </main>
+        </div>
+    </div>
   );
 }

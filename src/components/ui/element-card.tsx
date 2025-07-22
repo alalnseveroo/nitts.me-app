@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { LinkIcon } from 'lucide-react';
 
 type CardData = {
     id: string;
@@ -19,38 +20,53 @@ interface ElementCardProps {
 
 export const ElementCard = ({ data }: ElementCardProps) => {
     
-    const renderPublicView = () => {
-        switch (data.type) {
-            case 'link':
-                return (
-                    <Button asChild className="w-full h-full text-base">
-                        <Link href={data.link || '#'} target="_blank" rel="noopener noreferrer">
-                            {data.title || data.link}
-                        </Link>
-                    </Button>
-                );
-            case 'title':
-                return <h2 className="text-2xl font-bold text-center p-2">{data.title}</h2>;
-            case 'note':
-                return <p className="text-sm text-gray-600 whitespace-pre-wrap p-4">{data.content}</p>;
-            case 'image':
-                 return (
-                    <div className="aspect-square w-full h-full rounded-md overflow-hidden">
-                        <img src={data.background_image || 'https://placehold.co/400x400.png'} alt={data.title || 'image'} className="w-full h-full object-cover" />
-                    </div>
-                );
-             case 'map':
-                return <p className="text-sm text-center text-gray-500">🗺️ Mapa (WIP)</p>;
-            default:
-                return <p className="text-sm text-center text-gray-500">Elemento desconhecido</p>;
-        }
-    };
-
-    return (
-        <Card className="w-full h-full">
-            <CardContent className="p-0 flex justify-center items-center w-full h-full">
-                {renderPublicView()}
-            </CardContent>
-        </Card>
-    )
+    switch (data.type) {
+        case 'link':
+            return (
+                <Card asChild className="w-full h-full bg-card hover:bg-secondary/50 transition-colors">
+                    <Link href={data.link || '#'} target="_blank" rel="noopener noreferrer" className="flex flex-col justify-between p-4">
+                        <div>
+                            <CardTitle className="text-base font-semibold">{data.title}</CardTitle>
+                            <CardDescription className="text-sm truncate">{data.link}</CardDescription>
+                        </div>
+                        <LinkIcon className="h-4 w-4 text-muted-foreground self-end"/>
+                    </Link>
+                </Card>
+            );
+        case 'title':
+            return (
+                <div className="w-full h-full flex items-center justify-start p-2">
+                     <h2 className="text-4xl font-bold">{data.title}</h2>
+                </div>
+            );
+        case 'note':
+            return (
+                 <Card className="w-full h-full p-4 overflow-y-auto">
+                    <p className="text-sm text-foreground whitespace-pre-wrap">{data.content}</p>
+                </Card>
+            );
+        case 'image':
+            return (
+                <Card className="w-full h-full overflow-hidden">
+                    <img 
+                        src={data.background_image || 'https://placehold.co/400x400.png'} 
+                        alt={data.title || 'image'} 
+                        className="w-full h-full object-cover" 
+                        data-ai-hint="abstract background"
+                    />
+                </Card>
+            );
+        case 'map':
+            return (
+                <Card className="w-full h-full p-4 flex items-center justify-center">
+                    <p className="text-sm text-center text-muted-foreground">🗺️ Mapa (WIP)</p>
+                </Card>
+            );
+        default:
+            return (
+                <Card className="w-full h-full p-4 flex items-center justify-center">
+                    <p className="text-sm text-center text-muted-foreground">Elemento desconhecido</p>
+                </Card>
+            );
+    }
 };

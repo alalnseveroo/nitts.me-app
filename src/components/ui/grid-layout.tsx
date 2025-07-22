@@ -43,18 +43,17 @@ const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard
                 return existingLayout;
             }
             
-            let w = 2, h = 2; // Default (quadrado padrão)
-            if (card.type === 'title') { w = 4; h = 1; }
-            if (card.type === 'link') { w = 4; h = 1; }
-            if (card.type === 'note') { w = 2; h = 3; }
-            if (card.type === 'image') { w = 2; h = 2; }
-            if (card.type === 'map') { w = 4; h = 4; }
-
-            // Place new cards in a default position
+            let w = 3, h = 3; // Default size
+            if (card.type === 'title') { w = 6; h = 1; }
+            if (card.type === 'link') { w = 4; h = 2; }
+            if (card.type === 'note') { w = 4; h = 5; }
+            if (card.type === 'image') { w = 4; h = 4; }
+            if (card.type === 'map') { w = 5; h = 4; }
+            
             return {
                 i: card.id,
                 x: (index * w) % 12,
-                y: Infinity, // This tells react-grid-layout to place it at the bottom
+                y: Infinity,
                 w: w,
                 h: h,
             };
@@ -70,14 +69,18 @@ const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard
             toast({ title: 'Erro', description: 'Falha ao atualizar o card.', variant: 'destructive' });
         } else {
             setInternalCards(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
-            toast({ title: 'Sucesso', description: 'Card salvo!' });
+            // Do not show toast on every auto-save
         }
     };
 
-    if (internalCards.length > 0 && layouts.lg.length === 0) {
-        return <div className="flex items-center justify-center h-full text-gray-500">Calculando layout...</div>;
+    if (internalCards.length === 0) {
+        return (
+            <div className="flex items-center justify-center h-full min-h-[400px] border-2 border-dashed rounded-lg">
+                <p className="text-muted-foreground">Seu canvas está vazio. Adicione um card abaixo!</p>
+            </div>
+        )
     }
-    
+
     return (
         <ResponsiveGridLayout
             layouts={layouts}
@@ -92,14 +95,18 @@ const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard
             rowHeight={50}
             isDraggable
             isResizable
-            className="min-h-[400px] bg-gray-50 rounded-md"
-            margin={[15, 15]}
+            className="min-h-[400px]"
+            margin={[20, 20]}
             compactType="vertical"
+            draggableHandle=".drag-handle"
         >
             {internalCards.map(card => {
                 const layoutItem = layouts.lg.find(l => l.i === card.id);
                 return (
-                    <div key={card.id} data-grid={layoutItem} className="bg-white rounded-lg shadow-md overflow-hidden border">
+                    <div key={card.id} data-grid={layoutItem} className="group/card rounded-lg shadow-md overflow-hidden bg-card">
+                        <div className="drag-handle absolute top-2 left-2 z-20 cursor-move opacity-0 group-hover/card:opacity-100 transition-opacity p-1 bg-background/50 rounded-full">
+                           <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 2C5.22386 2 5 2.22386 5 2.5C5 2.77614 5.22386 3 5.5 3H9.5C9.77614 3 10 2.77614 10 2.5C10 2.22386 9.77614 2 9.5 2H5.5ZM5 5.5C5 5.22386 5.22386 5 5.5 5H9.5C9.77614 5 10 5.22386 10 5.5C10 5.77614 9.77614 6 9.5 6H5.5C5.22386 6 5 5.77614 5 5.5ZM5.5 8C5.22386 8 5 8.22386 5 8.5C5 8.77614 5.22386 9 5.5 9H9.5C9.77614 9 10 8.77614 10 8.5C10 8.22386 9.77614 8 9.5 8H5.5ZM5 11.5C5 11.2239 5.22386 11 5.5 11H9.5C9.77614 11 10 11.2239 10 11.5C10 11.7761 9.77614 12 9.5 12H5.5C5.22386 12 5 11.7761 5 11.5Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+                        </div>
                         <GridLayoutCard
                             card={card}
                             onUpdate={handleUpdateCard}
