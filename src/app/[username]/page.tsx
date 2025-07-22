@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useEffect, useState, ChangeEvent, useRef, useCallback } from 'react'
@@ -406,7 +407,7 @@ export default function UnifiedUserPage() {
                 </div>
             </header>
             
-            <div className="grid grid-cols-12 gap-8 flex-1 p-4 md:p-8">
+            <div className="grid grid-cols-12 gap-8 flex-1 px-2 py-4 md:p-8">
                 <aside className="col-span-12 md:col-span-3 py-8">
                     <div className="sticky top-24">
                         <div className="relative mb-4 w-32 h-32">
@@ -494,7 +495,7 @@ export default function UnifiedUserPage() {
 
   // RENDER PUBLIC VIEW
   return (
-    <div className="w-full min-h-screen p-4 md:p-8 relative bg-background">
+    <div className="w-full min-h-screen px-2 py-4 md:p-8 relative bg-background">
         <div className="grid grid-cols-12 gap-8">
             <header className="col-span-12 md:col-span-3 py-8">
                 <div className="sticky top-8">
@@ -543,3 +544,4 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
+
