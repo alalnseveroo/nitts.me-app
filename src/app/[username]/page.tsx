@@ -89,13 +89,21 @@ export default function UnifiedUserPage() {
         const fetchedCards = cardsData || [];
         setCards(fetchedCards);
 
-        // Ensure layout is always valid
+        // Ensure layout is always valid and synchronized with cards
         const savedLayout = profileData.layout_config || [];
         const layoutMap = new Map(savedLayout.map(l => [l.i, l]));
         
         const finalLayout = fetchedCards.map(card => {
-            if (layoutMap.has(card.id)) {
-                return layoutMap.get(card.id)!;
+            const existingLayout = layoutMap.get(card.id);
+            if (existingLayout) {
+                return {
+                    ...existingLayout,
+                    i: card.id, // ensure `i` is a string
+                    x: existingLayout.x ?? 0,
+                    y: existingLayout.y ?? 0,
+                    w: existingLayout.w ?? 1,
+                    h: existingLayout.h ?? 2,
+                };
             }
             // Fallback for cards without a layout
             return { i: card.id, x: 0, y: 0, w: 1, h: 2 };
@@ -184,7 +192,7 @@ export default function UnifiedUserPage() {
     if (!layout || layout.length === 0) {
         return 0;
     }
-    return layout.reduce((maxY, item) => Math.max(maxY, item.y + item.h), 0);
+    return layout.reduce((maxY, item) => Math.max(maxY, (item.y ?? 0) + (item.h ?? 0)), 0);
   };
 
   const addNewCard = async (type: string, extraData: Record<string, any> = {}) => {
@@ -428,7 +436,7 @@ export default function UnifiedUserPage() {
                     className="min-h-[400px]"
                 >
                     {cards.map(card => {
-                        const layout = currentLayout.find(l => l.i === card.id) || {x:0, y:0, w:1, h:2};
+                        const layout = currentLayout.find(l => l.i === card.id) || {x:0, y:0, w:1, h:2, i: card.id };
                         return (
                             <div key={card.id} data-grid={layout}>
                                 <ElementCard data={card} />
@@ -448,3 +456,6 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
+
+
+    
