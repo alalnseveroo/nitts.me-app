@@ -11,14 +11,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Map as MapIcon, StickyNote, Edit } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Map as MapIcon, StickyNote, Edit, Trash2 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '@/components/ui/skeleton'
 import GridLayoutComponent from '@/components/ui/grid-layout'
 import { ElementCard } from '@/components/ui/element-card'
+import { CardResizeControls } from '@/components/ui/card-resize-controls'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
 import { Responsive, WidthProvider } from 'react-grid-layout'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -59,26 +61,29 @@ export default function UnifiedUserPage() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rowHeight, setRowHeight] = useState(100);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
   const imageInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter()
   const params = useParams()
   const { toast } = useToast();
   const pageUsername = params.username as string
+  const isMobile = useIsMobile();
 
   const updateRowHeight = useCallback(() => {
     const containerWidth = getContainerWidth();
-    const isMobile = window.innerWidth < 768;
-    const cols = isMobile ? 2 : 4;
+    const cols = window.innerWidth < 768 ? 2 : 4;
     const margin: [number, number] = [20, 20];
     const calculatedRowHeight = (containerWidth - (margin[0] * (cols + 1))) / cols;
     setRowHeight(calculatedRowHeight);
   }, []);
 
   useEffect(() => {
-    updateRowHeight();
-    window.addEventListener('resize', updateRowHeight);
-    return () => window.removeEventListener('resize', updateRowHeight);
+    if (typeof window !== 'undefined') {
+        updateRowHeight();
+        window.addEventListener('resize', updateRowHeight);
+        return () => window.removeEventListener('resize', updateRowHeight);
+    }
   }, [updateRowHeight]);
 
 
@@ -125,10 +130,10 @@ export default function UnifiedUserPage() {
                     x: existingLayout.x ?? 0,
                     y: existingLayout.y ?? index,
                     w: existingLayout.w ?? 1,
-                    h: existingLayout.h ?? 2,
+                    h: existingLayout.h ?? 1,
                 };
             }
-            return { i: card.id, x: (index % 4), y: Math.floor(index / 4), w: 1, h: 2 };
+            return { i: card.id, x: (index % 4), y: Math.floor(index / 4), w: 1, h: 1 };
         });
         setCurrentLayout(finalLayout);
     }
@@ -163,11 +168,19 @@ export default function UnifiedUserPage() {
   const handleSaveChanges = async () => {
     if (!user || !profile) return
     setSaving(true);
+    
+    const validLayout = currentLayout.map(l => ({
+        ...l,
+        x: l.x ?? 0,
+        y: l.y ?? 0,
+        w: l.w ?? 1,
+        h: l.h ?? 1,
+    }))
 
     const profileUpdates = {
       name: profile.name,
       bio: profile.bio,
-      layout_config: currentLayout,
+      layout_config: validLayout,
     };
 
     const { error } = await supabase
@@ -220,7 +233,8 @@ export default function UnifiedUserPage() {
   const addNewCard = async (type: string, extraData: Record<string, any> = {}) => {
     if (!user) return;
     
-    const w = 1, h = 1; // Default to 1x1 for squares
+    const w = type === 'title' ? 4 : 1;
+    const h = 1;
 
     const finalData = {
         user_id: user.id,
@@ -266,6 +280,7 @@ export default function UnifiedUserPage() {
     } else {
         setCards(prev => prev.filter(c => c.id !== cardId));
         setCurrentLayout(prev => prev.filter(l => l.i !== cardId));
+        setSelectedCardId(null); // Deselect card on deletion
         toast({ title: 'Sucesso', description: 'Card deletado.' });
     }
   };
@@ -300,6 +315,7 @@ export default function UnifiedUserPage() {
 
   const handleLayoutChange = (newLayout: Layout[]) => {
     setCurrentLayout(newLayout);
+    setSelectedCardId(null);
   };
   
   const handleResizeCard = (cardId: string, w: number, h: number) => {
@@ -312,6 +328,13 @@ export default function UnifiedUserPage() {
           });
       });
   };
+
+  const handleSelectCard = (cardId: string) => {
+      if (isMobile) {
+          setSelectedCardId(currentId => currentId === cardId ? null : cardId);
+      }
+  };
+
 
   if (loading) {
     return (
@@ -337,7 +360,12 @@ export default function UnifiedUserPage() {
   // RENDER EDIT MODE
   if (isOwner) {
     return (
-        <div className="flex flex-col min-h-screen bg-background">
+        <div className="flex flex-col min-h-screen bg-background" onClick={(e) => {
+             // Clicks outside grid should deselect
+             if (!(e.target as HTMLElement).closest('.react-grid-layout')) {
+                setSelectedCardId(null);
+             }
+        }}>
             <input
                 type="file"
                 ref={imageInputRef}
@@ -399,7 +427,7 @@ export default function UnifiedUserPage() {
                     </div>
                 </aside>
 
-                <main className="col-span-12 md:col-span-9 mb-24">
+                <main className="col-span-12 md:col-span-9 mb-24 md:mb-0">
                     {user && cards.length > 0 && currentLayout.length > 0 && (
                     <GridLayoutComponent
                         cards={cards}
@@ -407,7 +435,10 @@ export default function UnifiedUserPage() {
                         onLayoutChange={handleLayoutChange}
                         onDeleteCard={handleDeleteCard}
                         onResizeCard={handleResizeCard}
+                        onSelectCard={handleSelectCard}
+                        selectedCardId={selectedCardId}
                         rowHeight={rowHeight}
+                        isMobile={isMobile}
                     />
                     )}
                      {user && cards.length === 0 && (
@@ -418,7 +449,7 @@ export default function UnifiedUserPage() {
                 </main>
             </div>
 
-            <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-auto p-4 z-50">
+            <footer className="fixed bottom-0 left-0 w-full p-4 z-50 md:hidden">
                 <div className="bg-card/90 backdrop-blur-sm rounded-full shadow-lg border flex justify-around items-center p-2 gap-2">
                     <Button title="Adicionar Imagem" variant="ghost" size="icon" className="rounded-full" onClick={() => imageInputRef.current?.click()} disabled={isUploadingImage}>
                         {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon />}
@@ -429,6 +460,16 @@ export default function UnifiedUserPage() {
                     <Button title="Adicionar Mapa" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('map')}><MapIcon /></Button>
                 </div>
             </footer>
+            
+            {isMobile && selectedCardId && (
+                 <footer className="fixed bottom-24 left-1/2 -translate-x-1/2 w-auto p-4 z-50">
+                     <div className="bg-background/90 backdrop-blur-sm rounded-lg shadow-xl border flex justify-around items-center p-1 gap-1">
+                        <CardResizeControls onResize={(w, h) => handleResizeCard(selectedCardId, w, h)} />
+                        <div className="h-6 w-px bg-border mx-1"></div>
+                        <Button title="Deletar" variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDeleteCard(selectedCardId)}><Trash2/></Button>
+                    </div>
+                 </footer>
+            )}
         </div>
     )
   }
@@ -484,5 +525,3 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
-
-    

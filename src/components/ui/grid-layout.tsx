@@ -29,10 +29,23 @@ interface GridLayoutProps {
     onLayoutChange: (layout: LayoutItem[]) => void;
     onDeleteCard: (cardId: string) => void;
     onResizeCard: (cardId: string, w: number, h: number) => void;
+    onSelectCard: (cardId: string) => void;
+    selectedCardId: string | null;
     rowHeight: number;
+    isMobile: boolean;
 }
 
-const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard, onResizeCard, rowHeight }: GridLayoutProps) => {
+const GridLayoutComponent = ({ 
+    cards, 
+    layoutConfig, 
+    onLayoutChange, 
+    onDeleteCard, 
+    onResizeCard,
+    onSelectCard,
+    selectedCardId,
+    rowHeight,
+    isMobile
+}: GridLayoutProps) => {
     const { toast } = useToast();
 
     const handleUpdateCard = async (id: string, updates: Partial<Card>) => {
@@ -73,12 +86,15 @@ const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard
             {cards.map(card => {
                 const layoutItem = layoutConfig.find(l => l.i === card.id);
                 return (
-                    <div key={card.id} data-grid={layoutItem} className="rounded-lg shadow-md bg-card overflow-visible group/card">
+                    <div key={card.id} data-grid={layoutItem} className="bg-transparent overflow-visible group/card">
                         <GridLayoutCard
                             card={card}
                             onUpdate={handleUpdateCard}
                             onDelete={onDeleteCard}
                             onResize={onResizeCard}
+                            onClick={onSelectCard}
+                            isSelected={selectedCardId === card.id}
+                            isMobile={isMobile}
                         />
                     </div>
                 )
@@ -88,5 +104,3 @@ const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard
 };
 
 export default GridLayoutComponent;
-
-    

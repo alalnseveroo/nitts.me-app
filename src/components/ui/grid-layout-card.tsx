@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { cn } from '@/lib/utils';
 
 type CardData = {
     id: string;
@@ -33,59 +34,76 @@ interface GridLayoutCardProps {
     onUpdate: (id: string, updates: Partial<CardData>) => void;
     onDelete: (id: string) => void;
     onResize: (id: string, w: number, h: number) => void;
+    onClick: (id: string) => void;
+    isSelected: boolean;
+    isMobile: boolean;
 }
 
-export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize }: GridLayoutCardProps) => {
-    return (
-        <div className="w-full h-full">
-            {/* Card Base */}
-            <GridLayoutCardBase
-                card={card}
-                onUpdate={onUpdate}
-            />
+export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize, onClick, isSelected, isMobile }: GridLayoutCardProps) => {
+    const showDesktopControls = !isMobile;
+    const showMobileSelection = isMobile && isSelected;
 
-            {/* Drag Handle - Visible on mobile, hover on desktop */}
-            <div className="drag-handle absolute top-2 right-2 z-20 cursor-move text-white bg-black/30 rounded-full p-1 opacity-100 md:opacity-0 group-hover/card:opacity-100 transition-opacity">
+    return (
+        <div 
+            className={cn(
+                "w-full h-full relative",
+                isMobile && "cursor-pointer"
+            )}
+            onClick={() => onClick(card.id)}
+        >
+            <div className={cn(
+                "w-full h-full rounded-lg transition-all border-2",
+                showMobileSelection ? "border-primary" : "border-transparent",
+            )}>
+                 <GridLayoutCardBase
+                    card={card}
+                    onUpdate={onUpdate}
+                    isDisabled={isMobile}
+                />
+            </div>
+            
+            {/* Drag Handle - Always visible on mobile, hover on desktop */}
+            <div className="drag-handle absolute top-2 right-2 z-20 cursor-move text-white bg-black/30 rounded-full p-1 md:opacity-0 group-hover/card:opacity-100 transition-opacity">
                 <GripVertical className="h-5 w-5" />
             </div>
 
             {/* Desktop-only hover controls */}
-            <div className="hidden md:block">
-                {/* Delete Button */}
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button
-                            title="Deletar"
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-[-10px] left-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Isso deletará o card permanentemente. Esta ação não pode ser desfeita.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => onDelete(card.id)} className="bg-destructive hover:bg-destructive/90">
-                                Deletar
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+            {showDesktopControls && (
+                <>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button
+                                title="Deletar"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute top-[-10px] left-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Isso deletará o card permanentemente. Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => onDelete(card.id)} className="bg-destructive hover:bg-destructive/90">
+                                    Deletar
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
 
-                {/* Resize Controls Toolbar */}
-                <div className="absolute bottom-[-50px] left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                    <div className="bg-black text-white rounded-lg shadow-xl p-1">
-                        <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
+                    <div className="absolute bottom-[-50px] left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                        <div className="bg-black text-white rounded-lg shadow-xl p-1">
+                            <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
+                        </div>
                     </div>
-                </div>
-            </div>
+                </>
+            )}
         </div>
     );
 };

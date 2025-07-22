@@ -22,9 +22,10 @@ type CardData = {
 interface GridLayoutCardBaseProps {
     card: CardData;
     onUpdate: (id: string, updates: Partial<CardData>) => void;
+    isDisabled?: boolean;
 }
 
-export const GridLayoutCardBase = ({ card, onUpdate }: GridLayoutCardBaseProps) => {
+export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false }: GridLayoutCardBaseProps) => {
     const [currentData, setCurrentData] = useState(card);
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -68,7 +69,6 @@ export const GridLayoutCardBase = ({ card, onUpdate }: GridLayoutCardBaseProps) 
             onUpdate(card.id, updates);
 
         } catch (error) {
-            // Using alert for simplicity, but a toast notification would be better
             alert('Falha no upload da imagem.');
             console.error(error);
         } finally {
@@ -87,12 +87,12 @@ export const GridLayoutCardBase = ({ card, onUpdate }: GridLayoutCardBaseProps) 
                             className="hidden"
                             accept="image/*"
                             onChange={handleImageUpload}
-                            disabled={uploading}
+                            disabled={uploading || isDisabled}
                         />
                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/image-card:opacity-100 flex items-center justify-center transition-opacity z-10">
                             <Button
                                 onClick={() => fileInputRef.current?.click()}
-                                disabled={uploading}
+                                disabled={uploading || isDisabled}
                                 variant="outline"
                             >
                                 {uploading ? (
@@ -121,6 +121,7 @@ export const GridLayoutCardBase = ({ card, onUpdate }: GridLayoutCardBaseProps) 
                             onChange={handleChange}
                             onBlur={handleBlur}
                             className="font-semibold border-none focus:ring-0 shadow-none p-0 h-auto"
+                            disabled={isDisabled}
                         />
                         <Input
                             name="link"
@@ -129,6 +130,7 @@ export const GridLayoutCardBase = ({ card, onUpdate }: GridLayoutCardBaseProps) 
                             onChange={handleChange}
                             onBlur={handleBlur}
                              className="border-none focus:ring-0 shadow-none p-0 h-auto text-muted-foreground"
+                             disabled={isDisabled}
                         />
                     </div>
                 );
@@ -142,6 +144,7 @@ export const GridLayoutCardBase = ({ card, onUpdate }: GridLayoutCardBaseProps) 
                             value={currentData.title || ''}
                             onChange={handleChange}
                             onBlur={handleBlur}
+                            disabled={isDisabled}
                         />
                     </div>
                 );
@@ -155,6 +158,7 @@ export const GridLayoutCardBase = ({ card, onUpdate }: GridLayoutCardBaseProps) 
                             onChange={handleChange}
                             onBlur={handleBlur}
                             className="border-none focus:ring-0 p-0 h-full resize-none bg-transparent"
+                            disabled={isDisabled}
                         />
                     </div>
                 );
@@ -171,9 +175,9 @@ export const GridLayoutCardBase = ({ card, onUpdate }: GridLayoutCardBaseProps) 
 
     return (
         <Card 
-            className={`w-full h-full flex flex-col bg-card border-2 transition-all overflow-hidden ${isFocused ? 'border-primary' : 'border-transparent'}`} 
-            onFocus={() => setIsFocused(true)}
-            onBlurCapture={handleBlur} // Use onBlurCapture to catch blur from child inputs
+            className={`w-full h-full flex flex-col bg-card overflow-hidden transition-all ${isFocused && !isDisabled ? 'ring-2 ring-primary' : ''}`} 
+            onFocus={() => !isDisabled && setIsFocused(true)}
+            onBlurCapture={handleBlur}
         >
             <div className="flex-grow flex items-center justify-center h-full">
                 {renderContent()}
