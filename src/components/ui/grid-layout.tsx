@@ -1,7 +1,7 @@
 
 'use client'
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout';
 import { GridLayoutCard } from './grid-layout-card';
 import { CardResizeControls } from '@/components/ui/card-resize-controls';
@@ -33,6 +33,7 @@ interface GridLayoutProps {
     onEditCard: (cardId: string) => void;
     rowHeight: number;
     isMobile: boolean;
+    isMenuOpen: boolean;
 }
 
 const GridLayoutComponent = ({ 
@@ -44,14 +45,23 @@ const GridLayoutComponent = ({
     onResizeCard,
     onEditCard,
     rowHeight,
-    isMobile
+    isMobile,
+    isMenuOpen
 }: GridLayoutProps) => {
 
     const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
     const handleSelectCard = useCallback((cardId: string) => {
-        setSelectedCardId(currentId => currentId === cardId ? null : cardId);
-    }, []);
+        if (isMobile) {
+            setSelectedCardId(currentId => (currentId === cardId ? null : cardId));
+        }
+    }, [isMobile]);
+
+    useEffect(() => {
+        if (isMenuOpen && selectedCardId) {
+            setSelectedCardId(null);
+        }
+    }, [isMenuOpen, selectedCardId]);
     
     if (cards.length === 0) {
         return (
@@ -98,8 +108,8 @@ const GridLayoutComponent = ({
                             card={card}
                             onUpdate={onUpdateCard}
                             onDelete={() => {
-                                handleDeleteCard(card.id);
-                                setSelectedCardId(null);
+                                onDeleteCard(card.id);
+                                if (isMobile) setSelectedCardId(null);
                             }}
                             onResize={(w, h) => onResizeCard(card.id, w, h)}
                             onClick={handleSelectCard}
@@ -112,7 +122,7 @@ const GridLayoutComponent = ({
             })}
         </ResponsiveGridLayout>
         {isMobile && selectedCardId && (
-            <div className="fixed bottom-0 left-0 w-full p-4 z-50" onClick={(e) => e.stopPropagation()}>
+            <div className="fixed bottom-24 left-0 w-full p-4 z-50" onClick={(e) => e.stopPropagation()}>
                 <div className="bg-black/90 backdrop-blur-sm rounded-xl shadow-2xl flex justify-between items-center p-2 gap-2">
                 <div className="flex-1">
                     <CardResizeControls onResize={(w, h) => onResizeCard(selectedCardId, w, h)} />

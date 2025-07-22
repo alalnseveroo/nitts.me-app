@@ -64,6 +64,7 @@ export default function UnifiedUserPage() {
   const [rowHeight, setRowHeight] = useState(100);
   const [editingCard, setEditingCard] = useState<CardData | undefined>(undefined);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const imageInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -408,7 +409,7 @@ export default function UnifiedUserPage() {
                     {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     Salvar Alterações
                 </Button>
-                <DropdownMenu>
+                <DropdownMenu onOpenChange={setIsMenuOpen}>
                     <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><Settings/></Button></DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Opções</DropdownMenuLabel>
@@ -467,6 +468,7 @@ export default function UnifiedUserPage() {
                         onEditCard={handleEditCard}
                         rowHeight={rowHeight}
                         isMobile={isMobile}
+                        isMenuOpen={isMenuOpen}
                     />
                     )}
                      {user && cards.length === 0 && (
