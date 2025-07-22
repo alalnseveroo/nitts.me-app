@@ -77,6 +77,7 @@ const GridLayoutComponent = ({
         >
             {cards.map(card => {
                 const layoutItem = layoutConfig.find(l => l.i === card.id);
+                if (!layoutItem) return null; // Avoid rendering cards without layout
                 return (
                     <div key={card.id} data-grid={layoutItem} className="bg-transparent overflow-visible group/card">
                         <GridLayoutCard

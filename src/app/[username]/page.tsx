@@ -44,10 +44,10 @@ export type CardData = {
     background_image: string | null;
 };
 
-const getContainerWidth = () => {
-  if (typeof window === 'undefined') return 1200; // Default for SSR
-  const mainElement = document.querySelector('.col-span-12.md\\:col-span-9');
-  return mainElement ? mainElement.clientWidth : window.innerWidth;
+const getContainerWidth = (isMobile: boolean) => {
+    if (typeof window === 'undefined') return isMobile ? 320 : 1200; // Default for SSR
+    const mainElement = document.querySelector('main.col-span-12');
+    return mainElement ? mainElement.clientWidth : window.innerWidth;
 };
 
 export default function UnifiedUserPage() {
@@ -76,12 +76,12 @@ export default function UnifiedUserPage() {
 
   const updateRowHeight = useCallback(() => {
     if (typeof window === 'undefined') return;
-    const containerWidth = getContainerWidth();
-    const cols = window.innerWidth < 768 ? 2 : 4;
-    const margin: [number, number] = [20, 20];
+    const containerWidth = getContainerWidth(isMobile);
+    const cols = isMobile ? 2 : 4;
+    const margin: [number, number] = [10, 10]; // This must match the grid-layout margin
     const calculatedRowHeight = (containerWidth - (margin[0] * (cols + 1))) / cols;
     setRowHeight(calculatedRowHeight > 0 ? calculatedRowHeight : 100);
-  }, []);
+  }, [isMobile]);
 
   const adjustTextareaHeight = useCallback(() => {
     const textarea = textareaRef.current;
@@ -97,9 +97,15 @@ export default function UnifiedUserPage() {
 
 
   useEffect(() => {
-    updateRowHeight();
+    // We need a slight delay for the DOM to be ready for width calculation
+    const timer = setTimeout(() => {
+        updateRowHeight();
+    }, 100);
     window.addEventListener('resize', updateRowHeight);
-    return () => window.removeEventListener('resize', updateRowHeight);
+    return () => {
+        clearTimeout(timer);
+        window.removeEventListener('resize', updateRowHeight);
+    };
   }, [updateRowHeight]);
 
 
@@ -149,15 +155,19 @@ export default function UnifiedUserPage() {
                     h: existingLayout.h ?? 1,
                 };
             }
-            return { i: card.id, x: (index % 4), y: Math.floor(index / 4), w: 1, h: 1 };
+            // Fallback for cards without layout info
+            const cols = isMobile ? 2 : 4;
+            return { i: card.id, x: (index % cols), y: Math.floor(index / cols), w: 1, h: 1 };
         });
         setCurrentLayout(finalLayout);
     }
     
     setIsOwner(currentUser?.id === profileData.id);
     setLoading(false);
+    // Recalculate row height after data is loaded
+    setTimeout(updateRowHeight, 100);
 
-  }, [pageUsername]);
+  }, [pageUsername, isMobile, updateRowHeight]);
 
   useEffect(() => {
     const fetchSessionAndProfile = async () => {
@@ -249,7 +259,8 @@ export default function UnifiedUserPage() {
   const addNewCard = async (type: string, extraData: Record<string, any> = {}) => {
     if (!user) return;
     
-    const w = type === 'title' ? 4 : 1;
+    const cols = isMobile ? 2 : 4;
+    const w = type === 'title' ? cols : 1;
     const h = 1;
 
     const finalData: Omit<CardData, 'id'> = {
@@ -420,7 +431,7 @@ export default function UnifiedUserPage() {
                 </div>
             </header>
             
-            <div className="grid grid-cols-12 md:gap-8 flex-1 px-4 md:px-8 py-4">
+            <div className="grid grid-cols-12 md:gap-8 flex-1 px-6 md:px-8 py-4">
                 <aside className="col-span-12 md:col-span-3 md:py-8">
                     <div className="sticky top-24">
                         <div className="relative mb-4 w-32 h-32">
@@ -512,7 +523,7 @@ export default function UnifiedUserPage() {
 
   // RENDER PUBLIC VIEW
   return (
-    <div className="w-full min-h-screen px-4 md:px-8 py-4 md:py-8 relative bg-background">
+    <div className="w-full min-h-screen px-6 md:px-8 py-4 md:py-8 relative bg-background">
         <div className="grid grid-cols-12 md:gap-8">
             <header className="col-span-12 md:col-span-3 md:py-8">
                 <div className="sticky top-8">
@@ -536,7 +547,7 @@ export default function UnifiedUserPage() {
                     isDraggable={false}
                     isResizable={false}
                     compactType="vertical"
-                    margin={[20, 20]}
+                    margin={[10, 10]}
                     containerPadding={[0, 0]}
                     className="min-h-[400px]"
                 >
