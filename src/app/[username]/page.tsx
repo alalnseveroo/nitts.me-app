@@ -66,6 +66,7 @@ export default function UnifiedUserPage() {
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
 
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter()
   const params = useParams()
   const { toast } = useToast();
@@ -81,6 +82,18 @@ export default function UnifiedUserPage() {
     const calculatedRowHeight = (containerWidth - (margin[0] * (cols + 1))) / cols;
     setRowHeight(calculatedRowHeight > 0 ? calculatedRowHeight : 100);
   }, []);
+
+  const adjustTextareaHeight = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto'; // Reset height
+      textarea.style.height = `${textarea.scrollHeight}px`; // Set to scroll height
+    }
+  }, []);
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [profile?.bio, adjustTextareaHeight]);
 
 
   useEffect(() => {
@@ -407,8 +420,8 @@ export default function UnifiedUserPage() {
                 </div>
             </header>
             
-            <div className="grid grid-cols-12 gap-8 flex-1 px-2 py-4 md:p-8">
-                <aside className="col-span-12 md:col-span-3 py-8">
+            <div className="grid grid-cols-12 md:gap-8 flex-1 px-4 md:px-8 py-4">
+                <aside className="col-span-12 md:col-span-3 md:py-8">
                     <div className="sticky top-24">
                         <div className="relative mb-4 w-32 h-32">
                             <Avatar className="w-32 h-32 text-lg">
@@ -427,16 +440,20 @@ export default function UnifiedUserPage() {
                         placeholder="Seu Nome"
                         />
                         <Textarea
-                        className="text-muted-foreground mt-2 border-none focus:ring-0 shadow-none resize-none p-0 bg-transparent"
-                        value={profile?.bio || ''}
-                        onChange={(e) => setProfile(p => p ? { ...p, bio: e.target.value } : null)}
-                        placeholder="Sua biografia..."
-                        rows={5}
+                          ref={textareaRef}
+                          className="text-muted-foreground mt-2 border-none focus:ring-0 shadow-none resize-none p-0 bg-transparent overflow-hidden"
+                          value={profile?.bio || ''}
+                          onChange={(e) => {
+                            setProfile(p => p ? { ...p, bio: e.target.value } : null)
+                            adjustTextareaHeight();
+                          }}
+                          placeholder="Sua biografia..."
+                          rows={1}
                         />
                     </div>
                 </aside>
 
-                <main className="col-span-12 md:col-span-9 mb-24 md:mb-0">
+                <main className="col-span-12 md:col-span-9 mb-24 md:mb-0 mt-6 md:mt-0">
                     {user && cards.length > 0 && currentLayout.length > 0 && (
                     <GridLayoutComponent
                         cards={cards}
@@ -495,9 +512,9 @@ export default function UnifiedUserPage() {
 
   // RENDER PUBLIC VIEW
   return (
-    <div className="w-full min-h-screen px-2 py-4 md:p-8 relative bg-background">
-        <div className="grid grid-cols-12 gap-8">
-            <header className="col-span-12 md:col-span-3 py-8">
+    <div className="w-full min-h-screen px-4 md:px-8 py-4 md:py-8 relative bg-background">
+        <div className="grid grid-cols-12 md:gap-8">
+            <header className="col-span-12 md:col-span-3 md:py-8">
                 <div className="sticky top-8">
                     <Avatar className="w-32 h-32 mb-4">
                         <AvatarImage src={profile?.avatar_url || ''} />
@@ -509,7 +526,7 @@ export default function UnifiedUserPage() {
                 </div>
             </header>
 
-            <main className="col-span-12 md:col-span-9">
+            <main className="col-span-12 md:col-span-9 mt-6 md:mt-0">
                 {cards.length > 0 ? (
                 <ResponsiveGridLayout
                     layouts={{ lg: currentLayout, sm: currentLayout }}
@@ -545,3 +562,4 @@ export default function UnifiedUserPage() {
   );
 }
 
+    
