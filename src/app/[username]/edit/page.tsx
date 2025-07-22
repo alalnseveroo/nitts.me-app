@@ -2,7 +2,7 @@
 
 import { useEffect, useState, ChangeEvent, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 
 import { Button } from "@/components/ui/button"

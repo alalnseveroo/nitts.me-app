@@ -3,7 +3,7 @@
 // Importações
 import { useEffect, useState, ChangeEvent, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/client'
 import { useToast } from "@/hooks/use-toast"
 
 // Componentes UI

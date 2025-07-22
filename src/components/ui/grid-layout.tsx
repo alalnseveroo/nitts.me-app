@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Responsive, WidthProvider } from 'react-grid-layout';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase/client';
 import { GridLayoutCard } from './grid-layout-card';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
