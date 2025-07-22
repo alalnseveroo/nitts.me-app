@@ -85,28 +85,27 @@ export default function UnifiedUserPage() {
     if (cardsError) {
         console.error('Error fetching cards:', cardsError);
         setCards([]);
+        setCurrentLayout([]);
     } else {
         const fetchedCards = cardsData || [];
         setCards(fetchedCards);
 
-        // Ensure layout is always valid and synchronized with cards
         const savedLayout = profileData.layout_config || [];
         const layoutMap = new Map(savedLayout.map(l => [l.i, l]));
         
-        const finalLayout = fetchedCards.map(card => {
+        const finalLayout = fetchedCards.map((card, index) => {
             const existingLayout = layoutMap.get(card.id);
             if (existingLayout) {
                 return {
-                    ...existingLayout,
-                    i: card.id, // ensure `i` is a string
+                    i: String(existingLayout.i),
                     x: existingLayout.x ?? 0,
-                    y: existingLayout.y ?? 0,
+                    y: existingLayout.y ?? index, // Fallback y
                     w: existingLayout.w ?? 1,
                     h: existingLayout.h ?? 2,
                 };
             }
             // Fallback for cards without a layout
-            return { i: card.id, x: 0, y: 0, w: 1, h: 2 };
+            return { i: card.id, x: 0, y: index, w: 1, h: 2 };
         });
         setCurrentLayout(finalLayout);
     }
@@ -128,7 +127,7 @@ export default function UnifiedUserPage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setIsOwner(false); // Update ownership state
+    setIsOwner(false); 
     router.push(`/${pageUsername}`);
   };
 
@@ -209,28 +208,24 @@ export default function UnifiedUserPage() {
     if (type === 'title') finalData.title = 'Novo Título';
     if (type === 'link') finalData.title = 'Novo Link';
 
-    const { data, error } = await supabase.from('cards').insert(finalData).select().single();
+    const { data: newCard, error } = await supabase.from('cards').insert(finalData).select().single();
 
-    if(error || !data) {
+    if(error || !newCard) {
         toast({ title: 'Erro', description: 'Erro ao criar novo card.', variant: 'destructive'});
         console.error('Card creation error:', error);
         return;
     }
     
-    setCards(currentCards => [...currentCards, data]);
-
-    const newLayoutItem = { 
-      i: data.id, 
+    const newLayoutItem: Layout = { 
+      i: newCard.id, 
       x: 0, 
       y: getNextY(currentLayout), 
       w, 
       h 
     };
 
-    setCurrentLayout(currentLayout => [
-        ...currentLayout,
-        newLayoutItem
-    ]);
+    setCards(currentCards => [...currentCards, newCard]);
+    setCurrentLayout(currentLayout => [...currentLayout, newLayoutItem]);
 
     toast({ title: 'Sucesso', description: 'Card adicionado!' });
   }
@@ -378,7 +373,7 @@ export default function UnifiedUserPage() {
                 </aside>
 
                 <main className="col-span-12 md:col-span-9 mb-24">
-                    {user && (
+                    {user && cards.length > 0 && currentLayout.length > 0 && (
                     <GridLayoutComponent
                         cards={cards}
                         layoutConfig={currentLayout}
@@ -386,6 +381,11 @@ export default function UnifiedUserPage() {
                         onDeleteCard={handleDeleteCard}
                         onResizeCard={handleResizeCard}
                     />
+                    )}
+                     {user && cards.length === 0 && (
+                        <div className="flex items-center justify-center h-full min-h-[400px] border-2 border-dashed rounded-lg">
+                            <p className="text-muted-foreground">Seu canvas está vazio. Adicione um card abaixo!</p>
+                        </div>
                     )}
                 </main>
             </div>
@@ -456,6 +456,5 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
-
 
     
