@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useEffect, useState, ChangeEvent, useRef, useCallback } from 'react'
@@ -179,7 +180,8 @@ export default function EditPage() {
   const addNewCard = async (type: string, extraData: Record<string, any> = {}) => {
     if (!user) return;
     
-    const w = 1, h = 1; // Default size: Quadrado Padrão
+    // Default size: Quadrado Padrão (1x2 ratio to appear square with rowHeight=100)
+    const w = 1, h = 2; 
 
     const finalData = {
         user_id: user.id,
@@ -379,3 +381,5 @@ export default function EditPage() {
     </div>
   )
 }
+
+    
