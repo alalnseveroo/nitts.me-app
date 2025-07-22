@@ -34,6 +34,7 @@ interface GridLayoutProps {
     rowHeight: number;
     isMobile: boolean;
     isMenuOpen: boolean;
+    setIsMenuOpen: (isOpen: boolean) => void;
 }
 
 const GridLayoutComponent = ({ 
@@ -63,23 +64,15 @@ const GridLayoutComponent = ({
         }
     }, [isMenuOpen, selectedCardId]);
     
-    if (cards.length === 0) {
-        return (
-            <div className="flex items-center justify-center h-full min-h-[400px] border-2 border-dashed rounded-lg">
-                <p className="text-muted-foreground">Seu canvas está vazio. Adicione um card abaixo!</p>
-            </div>
-        )
-    }
-
-    const handleDragStop = (layout: LayoutItem[]) => {
-        onLayoutChange(layout);
-    };
-
     const handleDragStart = () => {
         if (isMobile && selectedCardId) {
             setSelectedCardId(null);
         }
     }
+
+    const handleDragStop = (layout: LayoutItem[]) => {
+        onLayoutChange(layout);
+    };
 
     return (
         <>
@@ -97,13 +90,12 @@ const GridLayoutComponent = ({
             containerPadding={[0,0]}
             compactType="vertical"
             draggableHandle={isMobile ? ".mobile-drag-handle" : ".drag-handle"}
-            style={{ overflow: 'visible' }} 
         >
             {cards.map(card => {
                 const layoutItem = layoutConfig.find(l => l.i === card.id);
                 if (!layoutItem) return null;
                 return (
-                    <div key={card.id} data-grid={layoutItem} className="bg-transparent overflow-visible">
+                    <div key={card.id} data-grid={layoutItem} className="group/card-wrapper">
                         <GridLayoutCard
                             card={card}
                             onUpdate={onUpdateCard}
@@ -141,3 +133,5 @@ const GridLayoutComponent = ({
 };
 
 export default React.memo(GridLayoutComponent);
+
+    

@@ -1,3 +1,4 @@
+
 'use client'
 
 import Link from 'next/link';
@@ -77,3 +78,5 @@ export const ElementCard = ({ data }: ElementCardProps) => {
             );
     }
 };
+
+    

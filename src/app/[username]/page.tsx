@@ -457,7 +457,7 @@ export default function UnifiedUserPage() {
                 </aside>
 
                 <main className="col-span-12 md:col-span-9 mb-24 md:mb-0 mt-6 md:mt-0">
-                    {user && cards.length > 0 && currentLayout.length > 0 && (
+                    {user && (
                     <GridLayoutComponent
                         cards={cards}
                         layoutConfig={currentLayout}
@@ -469,12 +469,8 @@ export default function UnifiedUserPage() {
                         rowHeight={rowHeight}
                         isMobile={isMobile}
                         isMenuOpen={isMenuOpen}
+                        setIsMenuOpen={setIsMenuOpen}
                     />
-                    )}
-                     {user && cards.length === 0 && (
-                        <div className="flex items-center justify-center h-full min-h-[400px] border-2 border-dashed rounded-lg">
-                            <p className="text-muted-foreground">Seu canvas está vazio. Adicione um card abaixo!</p>
-                        </div>
                     )}
                 </main>
             </div>
@@ -552,5 +548,7 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
+
+    
 
     
