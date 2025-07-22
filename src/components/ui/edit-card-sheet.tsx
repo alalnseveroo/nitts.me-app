@@ -101,7 +101,7 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="title">Título da Imagem (Opcional)</Label>
+              <Label htmlFor="title">Legenda da Imagem (Opcional)</Label>
               <Input
                 id="title"
                 name="title"
