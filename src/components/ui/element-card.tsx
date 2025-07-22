@@ -15,29 +15,27 @@ type CardData = {
 
 interface ElementCardProps {
     data: CardData;
-    isEditable?: boolean; // Mantido para diferenciar contextos, mas a lógica de edição fica em GridLayoutCard
 }
 
 export const ElementCard = ({ data }: ElementCardProps) => {
     
-    // Renderiza a visualização pública do card, que será usada em ambos os contextos (público e edição)
     const renderPublicView = () => {
         switch (data.type) {
             case 'link':
                 return (
-                    <Button asChild className="w-full">
+                    <Button asChild className="w-full h-full text-base">
                         <Link href={data.link || '#'} target="_blank" rel="noopener noreferrer">
                             {data.title || data.link}
                         </Link>
                     </Button>
                 );
             case 'title':
-                return <h2 className="text-xl font-bold text-center">{data.title}</h2>;
+                return <h2 className="text-2xl font-bold text-center p-2">{data.title}</h2>;
             case 'note':
-                return <p className="text-sm text-gray-600 whitespace-pre-wrap">{data.content}</p>;
+                return <p className="text-sm text-gray-600 whitespace-pre-wrap p-4">{data.content}</p>;
             case 'image':
                  return (
-                    <div className="aspect-square w-full rounded-md overflow-hidden">
+                    <div className="aspect-square w-full h-full rounded-md overflow-hidden">
                         <img src={data.background_image || 'https://placehold.co/400x400.png'} alt={data.title || 'image'} className="w-full h-full object-cover" />
                     </div>
                 );
@@ -49,8 +47,8 @@ export const ElementCard = ({ data }: ElementCardProps) => {
     };
 
     return (
-        <Card>
-            <CardContent className="p-4 flex justify-center items-center">
+        <Card className="w-full h-full">
+            <CardContent className="p-0 flex justify-center items-center w-full h-full">
                 {renderPublicView()}
             </CardContent>
         </Card>

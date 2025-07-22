@@ -5,6 +5,10 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from "@/hooks/use-toast"
+import { WidthProvider, Responsive, Layout } from 'react-grid-layout'
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
+
 
 // Componentes UI
 import { Button } from "@/components/ui/button"
@@ -15,6 +19,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ElementCard } from '@/components/ui/element-card'
 import Link from 'next/link'
 
+const ResponsiveGridLayout = WidthProvider(Responsive);
+
 // Tipos
 type Profile = { 
   id: string; 
@@ -22,6 +28,7 @@ type Profile = {
   name: string | null; 
   bio: string | null; 
   avatar_url: string | null; 
+  layout_config: Layout[] | null;
 }
 
 type Card = { 
@@ -38,6 +45,7 @@ export default function UnifiedUserPage() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
+  const [layout, setLayout] = useState<Layout[]>([]);
   const [isOwner, setIsOwner] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -54,7 +62,7 @@ export default function UnifiedUserPage() {
       // Fetch profile data based on username
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, layout_config')
         .eq('username', username)
         .single();
       
@@ -64,13 +72,21 @@ export default function UnifiedUserPage() {
         return; 
       }
       setProfile(profileData);
+      if (profileData.layout_config) {
+        setLayout(profileData.layout_config);
+      }
 
       // Fetch cards for the profile
-      const { data: cardsData } = await supabase
+      const { data: cardsData, error: cardsError } = await supabase
         .from('cards')
         .select('*')
         .eq('user_id', profileData.id);
-      setCards(cardsData || []);
+      
+      if (cardsError) {
+        setCards([]);
+      } else {
+        setCards(cardsData || []);
+      }
       
       // Check if the current user is the owner of the profile
       const { data: { session } } = await supabase.auth.getSession();
@@ -97,9 +113,9 @@ export default function UnifiedUserPage() {
 
   // RENDERIZA A VISÃO PÚBLICA
   return (
-    <main className="flex flex-col items-center min-h-screen bg-white p-4">
+    <main className="flex flex-col items-center min-h-screen bg-gray-50 p-4">
       {isOwner && (
-        <div className="absolute top-4 right-4 flex gap-2">
+        <div className="absolute top-4 right-4 flex gap-2 z-10">
             <DropdownMenu>
               <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><Settings/></Button></DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -110,23 +126,47 @@ export default function UnifiedUserPage() {
                 <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4"/><span>Sair</span></DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" className="bg-white">
               <Link href={`/${username}/edit`}>
                 <Edit className="mr-2 h-4 w-4" /> Editar Página
               </Link>
             </Button>
         </div>
       )}
-      <div className="w-full max-w-md mx-auto">
+      <div className="w-full max-w-4xl mx-auto">
         <header className="flex flex-col items-center text-center py-8">
           <Avatar className="w-24 h-24 mb-4"><AvatarImage src={profile?.avatar_url || ''} /><AvatarFallback>{profile?.name?.charAt(0)}</AvatarFallback></Avatar>
           <h1 className="text-2xl font-bold">{profile?.name || `@${profile?.username}`}</h1>
           <p className="text-gray-500 mt-2">{profile?.bio}</p>
           <Button onClick={handleShare} variant="ghost" size="sm" className="mt-4"><Share className="mr-2 h-4 w-4" /> Compartilhar</Button>
         </header>
-        <section className="space-y-4">
-          {cards.map(c => <ElementCard key={c.id} data={c} isEditable={false} />)}
-        </section>
+
+        {cards.length > 0 && layout.length > 0 ? (
+           <ResponsiveGridLayout
+              layouts={{ lg: layout }}
+              breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+              cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+              rowHeight={50}
+              isDraggable={false}
+              isResizable={false}
+              compactType={null}
+              preventCollision={true}
+           >
+             {cards.map(card => {
+                const cardLayout = layout.find(l => l.i === card.id);
+                return (
+                    <div key={card.id} data-grid={cardLayout || {x:0, y:0, w:2, h:2}}>
+                        <ElementCard data={card} />
+                    </div>
+                )
+             })}
+           </ResponsiveGridLayout>
+        ) : (
+          <section className="space-y-4 max-w-md mx-auto">
+            {cards.map(c => <ElementCard key={c.id} data={c} />)}
+          </section>
+        )}
+
       </div>
     </main>
   );
