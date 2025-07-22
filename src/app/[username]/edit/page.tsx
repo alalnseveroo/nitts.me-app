@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Edit, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Map, StickyNote } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Map, StickyNote } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '@/components/ui/skeleton'
 import GridLayoutComponent from '@/components/ui/grid-layout'
@@ -79,16 +79,22 @@ export default function EditPage() {
         return;
     }
     setProfile(profileData as Profile);
-    if (profileData.layout_config) {
-        setCurrentLayout(profileData.layout_config);
-    }
-    
+
     if (cardsError) {
         console.error('Error fetching cards:', cardsError);
         setCards([]);
     } else {
         setCards(cardsData || []);
     }
+    
+    // Initialize layout
+    const finalLayout = (cardsData || []).map(card => {
+        const existingLayout = profileData.layout_config?.find(l => l.i === card.id);
+        if (existingLayout) return existingLayout;
+        // If no layout is saved for a card, generate a default one.
+        return { i: card.id, x: 0, y: Infinity, w: 1, h: 2 }; // Default size
+    });
+    setCurrentLayout(finalLayout);
 
     setLoading(false);
   }, [pageUsername, router]);
@@ -173,12 +179,7 @@ export default function EditPage() {
   const addNewCard = async (type: string, extraData: Record<string, any> = {}) => {
     if (!user) return;
     
-    let w = 3, h = 3; // Default size
-    if (type === 'title') { w = 6; h = 1; }
-    if (type === 'link') { w = 4; h = 2; }
-    if (type === 'note') { w = 4; h = 5; }
-    if (type === 'image') { w = 4; h = 4; }
-    if (type === 'map') { w = 5; h = 4; }
+    const w = 1, h = 1; // Default size: Quadrado Padrão
 
     const finalData = {
         user_id: user.id,
@@ -200,7 +201,7 @@ export default function EditPage() {
     setCards(currentCards => [...currentCards, data]);
     setCurrentLayout(currentLayout => [
         ...currentLayout,
-        { i: data.id, x: 0, y: Infinity, w: w, h: h }
+        { i: data.id, x: 0, y: Infinity, w, h }
     ]);
 
     toast({ title: 'Sucesso', description: 'Card adicionado!' });
@@ -218,7 +219,6 @@ export default function EditPage() {
         toast({ title: 'Sucesso', description: 'Card deletado.' });
     }
   };
-
 
   const handleImageFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0 || !user) {
@@ -250,6 +250,17 @@ export default function EditPage() {
 
   const handleLayoutChange = (newLayout: Layout[]) => {
     setCurrentLayout(newLayout);
+  };
+  
+  const handleResizeCard = (cardId: string, w: number, h: number) => {
+      setCurrentLayout(prevLayout => {
+          return prevLayout.map(item => {
+              if (item.i === cardId) {
+                  return { ...item, w, h };
+              }
+              return item;
+          });
+      });
   };
 
   if (loading) {
@@ -348,6 +359,7 @@ export default function EditPage() {
                 layoutConfig={currentLayout}
                 onLayoutChange={handleLayoutChange}
                 onDeleteCard={handleDeleteCard}
+                onResizeCard={handleResizeCard}
             />
             )}
         </main>

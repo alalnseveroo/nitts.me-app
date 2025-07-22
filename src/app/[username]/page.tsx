@@ -12,8 +12,7 @@ import 'react-resizable/css/styles.css';
 // Componentes UI
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Settings, LogOut, KeyRound, UserRound, Share, Edit } from 'lucide-react'
+import { Share, Edit } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ElementCard } from '@/components/ui/element-card'
 import Link from 'next/link'
@@ -71,10 +70,7 @@ export default function UnifiedUserPage() {
         return; 
       }
       setProfile(profileData);
-      if (profileData.layout_config) {
-        setLayout(profileData.layout_config);
-      }
-
+      
       // Fetch cards for the profile
       const { data: cardsData, error: cardsError } = await supabase
         .from('cards')
@@ -86,6 +82,14 @@ export default function UnifiedUserPage() {
       } else {
         setCards(cardsData || []);
       }
+
+      // Initialize layout from profile or create default
+      const finalLayout = (cardsData || []).map(card => {
+        const existingLayout = profileData.layout_config?.find(l => l.i === card.id);
+        if (existingLayout) return existingLayout;
+        return { i: card.id, x: 0, y: 0, w: 1, h: 2 }; // Default size
+      });
+      setLayout(finalLayout);
       
       // Check if the current user is the owner of the profile
       const { data: { session } } = await supabase.auth.getSession();
@@ -101,23 +105,20 @@ export default function UnifiedUserPage() {
     toast({ title: "Link Copiado!", description: "O link para sua página foi copiado." });
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/');
-    router.refresh();
-  };
-
   if (loading) return (
     <div className="w-full min-h-screen p-8">
         <div className="grid grid-cols-12 gap-6">
-            <div className="col-span-3">
-                <Skeleton className="h-32 w-32 rounded-full mb-4" />
-                <Skeleton className="h-8 w-48 mb-2" />
-                <Skeleton className="h-5 w-64" />
-            </div>
-            <div className="col-span-9">
+            <aside className="col-span-12 md:col-span-3 py-8">
+                 <div className="sticky top-8">
+                    <Skeleton className="h-32 w-32 rounded-full mb-4" />
+                    <Skeleton className="h-8 w-48 mb-2" />
+                    <Skeleton className="h-5 w-64" />
+                    <Skeleton className="h-8 w-32 mt-4" />
+                </div>
+            </aside>
+            <main className="col-span-12 md:col-span-9">
                 <Skeleton className="h-[600px] w-full" />
-            </div>
+            </main>
         </div>
     </div>
   );
@@ -148,30 +149,29 @@ export default function UnifiedUserPage() {
             </header>
 
             <main className="col-span-12 md:col-span-9">
-                {cards.length > 0 && layout.length > 0 ? (
+                {cards.length > 0 ? (
                 <ResponsiveGridLayout
                     layouts={{ lg: layout }}
                     breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-                    cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-                    rowHeight={50}
+                    cols={{ lg: 4, md: 3, sm: 2, xs: 1, xxs: 1 }}
+                    rowHeight={100}
                     isDraggable={false}
                     isResizable={false}
-                    compactType={null}
-                    preventCollision={true}
+                    compactType="vertical"
                     margin={[20, 20]}
+                    containerPadding={[0, 0]}
                 >
-                    {cards.map(card => {
-                        const cardLayout = layout.find(l => l.i === card.id);
-                        return (
-                            <div key={card.id} data-grid={cardLayout || {x:0, y:0, w:2, h:2}}>
-                                <ElementCard data={card} />
-                            </div>
-                        )
-                    })}
+                    {cards.map(card => (
+                        <div key={card.id} data-grid={layout.find(l => l.i === card.id)}>
+                            <ElementCard data={card} />
+                        </div>
+                    ))}
                 </ResponsiveGridLayout>
                 ) : (
                     <div className="flex items-center justify-center h-64 border-2 border-dashed rounded-lg">
-                        <p className="text-muted-foreground">Este perfil ainda não tem cards.</p>
+                        <p className="text-muted-foreground">
+                          {isOwner ? "Seu canvas está vazio. Adicione alguns cards!" : "Este perfil ainda não tem cards."}
+                        </p>
                     </div>
                 )}
             </main>

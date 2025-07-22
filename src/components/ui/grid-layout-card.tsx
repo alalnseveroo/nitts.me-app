@@ -16,8 +16,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, UploadCloud, Loader2 } from 'lucide-react';
+import { Trash2, UploadCloud, Loader2, Crop, RectangleHorizontal, RectangleVertical, Square } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CardResizeControls } from './card-resize-controls';
 
 type CardData = {
     id: string;
@@ -33,9 +35,10 @@ interface GridLayoutCardProps {
     card: CardData;
     onUpdate: (id: string, updates: Partial<CardData>) => void;
     onDelete: (id: string) => void;
+    onResize: (id: string, w: number, h: number) => void;
 }
 
-export const GridLayoutCard = ({ card, onUpdate, onDelete }: GridLayoutCardProps) => {
+export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize }: GridLayoutCardProps) => {
     const [currentData, setCurrentData] = useState(card);
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -180,8 +183,18 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete }: GridLayoutCardProps
         <Card className={`w-full h-full flex flex-col bg-card border-2 transition-all overflow-hidden ${isFocused ? 'border-primary' : 'border-transparent'}`} onFocus={() => setIsFocused(true)} onBlurCapture={handleBlur}>
             <div className="flex-grow flex items-center justify-center relative">
                 {renderCardContent()}
-                 <div className="absolute top-1 right-1">
-                     <AlertDialog>
+                <div className="absolute top-1 right-1 opacity-0 group-hover/card:opacity-100 transition-opacity flex gap-1 z-20">
+                     <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:bg-secondary hover:text-foreground">
+                                <Crop className="h-4 w-4" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-1">
+                            <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
+                        </PopoverContent>
+                    </Popover>
+                    <AlertDialog>
                         <AlertDialogTrigger asChild>
                              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
                                 <Trash2 className="h-4 w-4" />

@@ -27,9 +27,10 @@ interface GridLayoutProps {
     layoutConfig: LayoutItem[];
     onLayoutChange: (layout: LayoutItem[]) => void;
     onDeleteCard: (cardId: string) => void;
+    onResizeCard: (cardId: string, w: number, h: number) => void;
 }
 
-const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard }: GridLayoutProps) => {
+const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard, onResizeCard }: GridLayoutProps) => {
     const { toast } = useToast();
 
     const handleUpdateCard = async (id: string, updates: Partial<Card>) => {
@@ -58,10 +59,10 @@ const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard
                 }
             }}
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-            cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-            rowHeight={50}
+            cols={{ lg: 4, md: 3, sm: 2, xs: 1, xxs: 1 }}
+            rowHeight={100}
             isDraggable
-            isResizable
+            isResizable={false}
             className="min-h-[400px]"
             margin={[20, 20]}
             compactType="vertical"
@@ -78,6 +79,7 @@ const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard
                             card={card}
                             onUpdate={handleUpdateCard}
                             onDelete={onDeleteCard}
+                            onResize={onResizeCard}
                         />
                     </div>
                 )
