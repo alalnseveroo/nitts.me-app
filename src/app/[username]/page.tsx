@@ -1,34 +1,37 @@
 'use client'
 
 // Importações
-import { useEffect, useState, ChangeEvent, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from "@/hooks/use-toast"
 
 // Componentes UI
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Settings, LogOut, KeyRound, UserRound, Share, Upload, Loader2, Edit } from 'lucide-react'
+import { Settings, LogOut, KeyRound, UserRound, Share, Edit } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ElementCard } from '@/components/ui/element-card'
 import Link from 'next/link'
 
-// Tipos: Adicionando w e h aos cards
-type Profile = { id: string; username: string | null; name: string | null; bio: string | null; avatar_url: string | null; }
+// Tipos
+type Profile = { 
+  id: string; 
+  username: string | null; 
+  name: string | null; 
+  bio: string | null; 
+  avatar_url: string | null; 
+}
+
 type Card = { 
   id: string; 
   user_id: string; 
   type: string; 
   title: string | null; 
-  url?: string | null; 
+  link?: string | null; 
   content?: string | null; 
   background_image?: string | null;
-  w: number; // Largura no grid
-  h: number; // Altura no grid
 }
 
 export default function UnifiedUserPage() {
@@ -49,7 +52,11 @@ export default function UnifiedUserPage() {
       setError(null);
 
       // Fetch profile data based on username
-      const { data: profileData, error: profileError } = await supabase.from('profiles').select('*').eq('username', username).single();
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('username', username)
+        .single();
       
       if (profileError || !profileData) { 
         setError('Usuário não encontrado.'); 
@@ -59,7 +66,10 @@ export default function UnifiedUserPage() {
       setProfile(profileData);
 
       // Fetch cards for the profile
-      const { data: cardsData } = await supabase.from('cards').select('*, w, h').eq('user_id', profileData.id);
+      const { data: cardsData } = await supabase
+        .from('cards')
+        .select('*')
+        .eq('user_id', profileData.id);
       setCards(cardsData || []);
       
       // Check if the current user is the owner of the profile
@@ -115,10 +125,7 @@ export default function UnifiedUserPage() {
           <Button onClick={handleShare} variant="ghost" size="sm" className="mt-4"><Share className="mr-2 h-4 w-4" /> Compartilhar</Button>
         </header>
         <section className="space-y-4">
-          {cards
-            .sort((a, b) => a.position - b.position) // Assuming you add 'position' to cards
-            .map(c => <ElementCard key={c.id} data={c} onUpdate={()=>{}} onDelete={()=>{}} isEditable={false} />)
-          }
+          {cards.map(c => <ElementCard key={c.id} data={c} isEditable={false} />)}
         </section>
       </div>
     </main>
