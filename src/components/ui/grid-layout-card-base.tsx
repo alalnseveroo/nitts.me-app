@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase/client';
 import { Loader2, UploadCloud } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 type CardData = {
     id: string;
@@ -172,15 +173,13 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false }: GridL
 
     return (
         <Card 
-            className={`w-full h-full flex flex-col bg-card overflow-hidden transition-all ${isFocused && !isDisabled ? 'ring-2 ring-primary' : ''}`} 
+            className={`w-full h-full flex flex-col bg-card overflow-hidden ${isFocused && !isDisabled ? 'ring-2 ring-primary' : ''}`} 
             onFocus={() => !isDisabled && setIsFocused(true)}
             onBlurCapture={handleBlur}
         >
-            <div className="flex-grow flex items-center justify-center h-full">
+            <div className={cn("flex-grow flex items-center justify-center h-full", { "pointer-events-none": isDisabled })}>
                 {renderContent()}
             </div>
         </Card>
     );
 };
-
-    
