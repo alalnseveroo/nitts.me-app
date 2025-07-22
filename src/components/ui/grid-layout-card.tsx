@@ -51,7 +51,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
             onClick={() => isMobile && !isSelected && onClick(card.id)}
         >
             <div className={cn(
-                "w-full h-full rounded-lg transition-all border-2",
+                "w-full h-full rounded-lg border-2",
                 isSelected ? "border-foreground" : "border-transparent",
                 isMobile && isSelected && "cursor-default",
                 isMobile && !isSelected && "cursor-pointer"

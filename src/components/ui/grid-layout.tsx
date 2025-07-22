@@ -61,12 +61,16 @@ const GridLayoutComponent = ({
         onLayoutChange(layout);
     };
 
+    const handleDragStart = () => {
+        if (isMobile && selectedCardId) {
+            onSelectCard(selectedCardId); // This will deselect the card by toggling it
+        }
+    }
+
     return (
         <ResponsiveGridLayout
             layouts={{ lg: layoutConfig, sm: layoutConfig }}
-            onDragStart={() => {
-                if (isMobile && selectedCardId) onSelectCard(selectedCardId);
-            }}
+            onDragStart={handleDragStart}
             onDragStop={handleDragStop}
             breakpoints={{ lg: 768, sm: 0 }}
             cols={{ lg: 4, sm: 2 }}
