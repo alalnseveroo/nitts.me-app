@@ -41,6 +41,12 @@ type CardData = {
     background_image: string | null;
 };
 
+const getContainerWidth = () => {
+  if (typeof window === 'undefined') return 1200; // Default for SSR
+  const mainElement = document.querySelector('.col-span-12.md\\:col-span-9');
+  return mainElement ? mainElement.clientWidth : window.innerWidth;
+};
+
 export default function UnifiedUserPage() {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -52,12 +58,29 @@ export default function UnifiedUserPage() {
   const [uploading, setUploading] = useState(false)
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rowHeight, setRowHeight] = useState(100);
 
   const imageInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter()
   const params = useParams()
   const { toast } = useToast();
   const pageUsername = params.username as string
+
+  const updateRowHeight = useCallback(() => {
+    const containerWidth = getContainerWidth();
+    const isMobile = window.innerWidth < 768;
+    const cols = isMobile ? 2 : 4;
+    const margin: [number, number] = [20, 20];
+    const calculatedRowHeight = (containerWidth - (margin[0] * (cols + 1))) / cols;
+    setRowHeight(calculatedRowHeight);
+  }, []);
+
+  useEffect(() => {
+    updateRowHeight();
+    window.addEventListener('resize', updateRowHeight);
+    return () => window.removeEventListener('resize', updateRowHeight);
+  }, [updateRowHeight]);
+
 
   const fetchPageData = useCallback(async (currentUser: User | null) => {
     setLoading(true);
@@ -197,7 +220,7 @@ export default function UnifiedUserPage() {
   const addNewCard = async (type: string, extraData: Record<string, any> = {}) => {
     if (!user) return;
     
-    const w = 1, h = 2; 
+    const w = 1, h = 1; // Default to 1x1 for squares
 
     const finalData = {
         user_id: user.id,
@@ -205,8 +228,12 @@ export default function UnifiedUserPage() {
         title: ``,
         ...extraData
     };
-    if (type === 'title') finalData.title = 'Novo Título';
-    if (type === 'link') finalData.title = 'Novo Link';
+    if (type === 'title') {
+      finalData.title = 'Novo Título';
+    }
+    if (type === 'link') {
+      finalData.title = 'Novo Link';
+    }
 
     const { data: newCard, error } = await supabase.from('cards').insert(finalData).select().single();
 
@@ -380,6 +407,7 @@ export default function UnifiedUserPage() {
                         onLayoutChange={handleLayoutChange}
                         onDeleteCard={handleDeleteCard}
                         onResizeCard={handleResizeCard}
+                        rowHeight={rowHeight}
                     />
                     )}
                      {user && cards.length === 0 && (
@@ -427,7 +455,7 @@ export default function UnifiedUserPage() {
                     layouts={{ lg: currentLayout, sm: currentLayout }}
                     breakpoints={{ lg: 768, sm: 0 }}
                     cols={{ lg: 4, sm: 2 }}
-                    rowHeight={100}
+                    rowHeight={rowHeight}
                     isDraggable={false}
                     isResizable={false}
                     compactType="vertical"
@@ -436,7 +464,7 @@ export default function UnifiedUserPage() {
                     className="min-h-[400px]"
                 >
                     {cards.map(card => {
-                        const layout = currentLayout.find(l => l.i === card.id) || {x:0, y:0, w:1, h:2, i: card.id };
+                        const layout = currentLayout.find(l => l.i === card.id) || {x:0, y:0, w:1, h:1, i: card.id };
                         return (
                             <div key={card.id} data-grid={layout}>
                                 <ElementCard data={card} />
@@ -456,3 +484,5 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
+
+    

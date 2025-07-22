@@ -29,9 +29,10 @@ interface GridLayoutProps {
     onLayoutChange: (layout: LayoutItem[]) => void;
     onDeleteCard: (cardId: string) => void;
     onResizeCard: (cardId: string, w: number, h: number) => void;
+    rowHeight: number;
 }
 
-const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard, onResizeCard }: GridLayoutProps) => {
+const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard, onResizeCard, rowHeight }: GridLayoutProps) => {
     const { toast } = useToast();
 
     const handleUpdateCard = async (id: string, updates: Partial<Card>) => {
@@ -60,7 +61,7 @@ const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard
             }}
             breakpoints={{ lg: 768, sm: 0 }}
             cols={{ lg: 4, sm: 2 }}
-            rowHeight={100}
+            rowHeight={rowHeight}
             isDraggable
             isResizable={false} // Resizing is handled by buttons now
             className="min-h-[400px]"
@@ -87,3 +88,5 @@ const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard
 };
 
 export default GridLayoutComponent;
+
+    
