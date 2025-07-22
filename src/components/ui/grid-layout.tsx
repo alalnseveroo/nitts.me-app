@@ -69,7 +69,8 @@ const GridLayoutComponent = ({
             isDraggable
             isResizable={false} // Resizing is handled by buttons now
             className="min-h-[400px]"
-            margin={[20, 20]}
+            margin={[10, 10]}
+            containerPadding={[0,0]}
             compactType="vertical"
             draggableHandle=".drag-handle"
             style={{ overflow: 'visible' }} 
