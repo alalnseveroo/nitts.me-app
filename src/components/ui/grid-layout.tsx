@@ -36,24 +36,32 @@ const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard
 
     useEffect(() => {
         setInternalCards(cards);
-
-        // Generate layout for cards, ensuring every card has a layout.
-        const newLayout = cards.map((card, index) => {
+        
+        const generatedLayout = cards.map((card, index) => {
             const existingLayout = layoutConfig?.find(l => l.i === card.id);
             if (existingLayout) {
                 return existingLayout;
             }
-            // Assign a default position if not found in layout config
+            
+            let w = 2, h = 2; // Default (quadrado padrão)
+            if (card.type === 'title') { w = 4; h = 1; }
+            if (card.type === 'link') { w = 4; h = 1; }
+            if (card.type === 'note') { w = 2; h = 3; }
+            if (card.type === 'image') { w = 2; h = 2; }
+            if (card.type === 'map') { w = 4; h = 4; }
+
+            // Place new cards in a default position
             return {
                 i: card.id,
-                x: (index * 2) % 12, // Default horizontal stacking
-                y: Math.floor((index * 2) / 12), // Default vertical stacking
-                w: 2,
-                h: 2,
+                x: (index * w) % 12,
+                y: Infinity, // This tells react-grid-layout to place it at the bottom
+                w: w,
+                h: h,
             };
         });
 
-        setLayouts({ lg: newLayout });
+        setLayouts({ lg: generatedLayout });
+
     }, [cards, layoutConfig]);
 
     const handleUpdateCard = async (id: string, updates: Partial<Card>) => {
@@ -66,11 +74,10 @@ const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard
         }
     };
 
-    // This check is crucial to prevent rendering before layout is calculated.
-    if (!layouts.lg || layouts.lg.length === 0 && internalCards.length > 0) {
-        return <div className="min-h-[400px]">Calculando layout...</div>;
+    if (internalCards.length > 0 && layouts.lg.length === 0) {
+        return <div className="flex items-center justify-center h-full text-gray-500">Calculando layout...</div>;
     }
-
+    
     return (
         <ResponsiveGridLayout
             layouts={layouts}
@@ -85,17 +92,22 @@ const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard
             rowHeight={50}
             isDraggable
             isResizable
-            className="min-h-[400px]"
+            className="min-h-[400px] bg-gray-50 rounded-md"
+            margin={[15, 15]}
+            compactType="vertical"
         >
-            {internalCards.map(card => (
-                <div key={card.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                    <GridLayoutCard
-                        card={card}
-                        onUpdate={handleUpdateCard}
-                        onDelete={onDeleteCard}
-                    />
-                </div>
-            ))}
+            {internalCards.map(card => {
+                const layoutItem = layouts.lg.find(l => l.i === card.id);
+                return (
+                    <div key={card.id} data-grid={layoutItem} className="bg-white rounded-lg shadow-md overflow-hidden border">
+                        <GridLayoutCard
+                            card={card}
+                            onUpdate={handleUpdateCard}
+                            onDelete={onDeleteCard}
+                        />
+                    </div>
+                )
+            })}
         </ResponsiveGridLayout>
     );
 };
