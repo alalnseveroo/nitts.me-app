@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout';
 import { supabase } from '@/lib/supabase/client';
 import { GridLayoutCard } from './grid-layout-card';
@@ -24,56 +24,24 @@ type LayoutItem = Layout;
 
 interface GridLayoutProps {
     cards: Card[];
-    layoutConfig: LayoutItem[] | null;
+    layoutConfig: LayoutItem[];
     onLayoutChange: (layout: LayoutItem[]) => void;
     onDeleteCard: (cardId: string) => void;
 }
 
 const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard }: GridLayoutProps) => {
-    const [layouts, setLayouts] = useState<{ lg: LayoutItem[] }>({ lg: [] });
-    const [internalCards, setInternalCards] = useState<Card[]>(cards);
     const { toast } = useToast();
-
-    useEffect(() => {
-        setInternalCards(cards);
-        
-        const generatedLayout = cards.map((card, index) => {
-            const existingLayout = layoutConfig?.find(l => l.i === card.id);
-            if (existingLayout) {
-                return existingLayout;
-            }
-            
-            let w = 3, h = 3; // Default size
-            if (card.type === 'title') { w = 6; h = 1; }
-            if (card.type === 'link') { w = 4; h = 2; }
-            if (card.type === 'note') { w = 4; h = 5; }
-            if (card.type === 'image') { w = 4; h = 4; }
-            if (card.type === 'map') { w = 5; h = 4; }
-            
-            return {
-                i: card.id,
-                x: (index * w) % 12,
-                y: Infinity,
-                w: w,
-                h: h,
-            };
-        });
-
-        setLayouts({ lg: generatedLayout });
-
-    }, [cards, layoutConfig]);
 
     const handleUpdateCard = async (id: string, updates: Partial<Card>) => {
         const { error } = await supabase.from('cards').update(updates).eq('id', id);
         if (error) {
             toast({ title: 'Erro', description: 'Falha ao atualizar o card.', variant: 'destructive' });
         } else {
-            setInternalCards(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
-            // Do not show toast on every auto-save
+           // Do not show toast on every auto-save
         }
     };
-
-    if (internalCards.length === 0) {
+    
+    if (cards.length === 0) {
         return (
             <div className="flex items-center justify-center h-full min-h-[400px] border-2 border-dashed rounded-lg">
                 <p className="text-muted-foreground">Seu canvas está vazio. Adicione um card abaixo!</p>
@@ -83,11 +51,10 @@ const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard
 
     return (
         <ResponsiveGridLayout
-            layouts={layouts}
+            layouts={{ lg: layoutConfig }}
             onLayoutChange={(layout, allLayouts) => {
                 if (allLayouts.lg) {
                     onLayoutChange(allLayouts.lg);
-                    setLayouts(allLayouts);
                 }
             }}
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
@@ -100,8 +67,8 @@ const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard
             compactType="vertical"
             draggableHandle=".drag-handle"
         >
-            {internalCards.map(card => {
-                const layoutItem = layouts.lg.find(l => l.i === card.id);
+            {cards.map(card => {
+                const layoutItem = layoutConfig.find(l => l.i === card.id);
                 return (
                     <div key={card.id} data-grid={layoutItem} className="group/card rounded-lg shadow-md overflow-hidden bg-card">
                         <div className="drag-handle absolute top-2 left-2 z-20 cursor-move opacity-0 group-hover/card:opacity-100 transition-opacity p-1 bg-background/50 rounded-full">
