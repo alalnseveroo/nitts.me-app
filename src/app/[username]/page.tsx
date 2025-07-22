@@ -152,8 +152,8 @@ export default function UnifiedUserPage() {
                 {cards.length > 0 ? (
                 <ResponsiveGridLayout
                     layouts={{ lg: layout }}
-                    breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-                    cols={{ lg: 4, md: 3, sm: 2, xs: 1, xxs: 1 }}
+                    breakpoints={{ lg: 768, md: 480, sm: 0 }}
+                    cols={{ lg: 4, md: 2, sm: 1 }}
                     rowHeight={100}
                     isDraggable={false}
                     isResizable={false}

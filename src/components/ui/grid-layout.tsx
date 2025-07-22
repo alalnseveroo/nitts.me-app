@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout';
 import { supabase } from '@/lib/supabase/client';
 import { GridLayoutCard } from './grid-layout-card';
@@ -58,8 +58,8 @@ const GridLayoutComponent = ({ cards, layoutConfig, onLayoutChange, onDeleteCard
                     onLayoutChange(allLayouts.lg);
                 }
             }}
-            breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-            cols={{ lg: 4, md: 3, sm: 2, xs: 1, xxs: 1 }}
+            breakpoints={{ lg: 768, md: 480, sm: 0 }}
+            cols={{ lg: 4, md: 2, sm: 1 }}
             rowHeight={100}
             isDraggable
             isResizable={false}
