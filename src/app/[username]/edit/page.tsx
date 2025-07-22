@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, ChangeEvent, useRef } from 'react'
+import { useEffect, useState, ChangeEvent, useRef, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
@@ -12,26 +12,77 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Settings, Bug, BarChart2, Share, Laptop, Smartphone, Upload, Loader2 } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import GridLayout from '@/components/ui/grid-layout'
+import { useToast } from '@/hooks/use-toast'
 
 type Profile = {
   username: string | null
   name: string | null
   bio: string | null
   avatar_url: string | null
-  layout_config: any | null // Adicionando layout_config
+  layout_config: any | null
 }
+
+type Card = {
+    id: string;
+    user_id: string;
+    type: string;
+    title: string | null;
+    content: string | null;
+    link: string | null;
+    background_image: string | null;
+};
+
 export default function EditPage() {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
-  const [cardCount, setCardCount] = useState(0);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter()
   const params = useParams()
+  const { toast } = useToast();
   const pageUsername = params.username as string
+
+  const fetchPageData = useCallback(async (currentUser: User) => {
+    setLoading(true);
+    const profilePromise = supabase
+      .from('profiles')
+      .select(`username, name, bio, avatar_url, layout_config`)
+      .eq('id', currentUser.id)
+      .single();
+
+    const cardsPromise = supabase
+      .from('cards')
+      .select('*')
+      .eq('user_id', currentUser.id);
+
+    const [profileResult, cardsResult] = await Promise.all([profilePromise, cardsPromise]);
+
+    const { data: profileData, error: profileError } = profileResult;
+    const { data: cardsData, error: cardsError } = cardsResult;
+
+    if (profileError || !profileData) {
+      console.error('Error fetching profile:', profileError);
+      // Fallback or error handling
+    } else {
+      if (profileData.username !== pageUsername) {
+        router.push(`/${profileData.username}/edit`);
+        return;
+      }
+      setProfile(profileData as Profile);
+    }
+    
+    if (cardsError) {
+        console.error('Error fetching cards:', cardsError);
+    } else {
+        setCards(cardsData || []);
+    }
+
+    setLoading(false);
+  }, [pageUsername, router]);
 
   useEffect(() => {
     const fetchSessionAndProfile = async () => {
@@ -43,32 +94,11 @@ export default function EditPage() {
         return
       }
       setUser(session.user)
-
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select(`username, name, bio, avatar_url, layout_config`) // Incluindo layout_config na busca
-        .eq('id', session.user.id)
-        .single()
-
-      if (profileError || !profileData) {
-        console.error('Error fetching profile:', profileError)
-        // This might happen if profile creation failed. Let's not sign out, but handle gracefully.
-        // Maybe redirect to a profile setup page or show an error.
-        // For now, we'll just log it and show a limited state.
-      } else {
-         if (profileData.username !== pageUsername) {
-            // If the user is logged in but trying to edit someone else's page
-            router.push(`/${profileData.username}/edit`);
-            return;
-         }
-         setProfile(profileData as Profile)
-      }
-
-      setLoading(false)
+      fetchPageData(session.user);
     }
-
     fetchSessionAndProfile()
-  }, [router, pageUsername])
+  }, [router, fetchPageData])
+
 
   const handleUpdateProfile = async () => {
     if (!user || !profile) return
@@ -82,10 +112,10 @@ export default function EditPage() {
       .eq('id', user.id)
 
     if (error) {
-      alert('Erro ao atualizar o perfil.')
+      toast({ title: 'Erro', description: 'Erro ao atualizar o perfil.', variant: 'destructive' });
       console.error(error);
     } else {
-      alert('Perfil atualizado com sucesso!')
+      toast({ title: 'Sucesso', description: 'Perfil atualizado com sucesso!' });
     }
   }
 
@@ -107,32 +137,47 @@ export default function EditPage() {
 
         if (profile) setProfile({ ...profile, avatar_url: publicUrl })
     } catch (error) {
-        alert('Erro ao fazer upload do avatar.')
+        toast({ title: 'Erro', description: 'Erro ao fazer upload do avatar.', variant: 'destructive'});
         console.error(error);
     } finally {
         setUploading(false)
     }
   }
 
-  // Modificando addNewCard para receber user como argumento
-  const addNewCard = async (currentUser: User, type: string, extraData: Record<string, any> = {}) => {
+  const addNewCard = async (type: string, extraData: Record<string, any> = {}) => {
+    if (!user) return;
     const finalData = {
-        user_id: currentUser.id,
+        user_id: user.id,
         type: type,
         title: `Novo ${type}`,
         ...extraData
     };
 
-    const { error } = await supabase.from('cards').insert(finalData);
+    const { data, error } = await supabase.from('cards').insert(finalData).select().single();
 
-    if(error) {
-        alert('Erro ao criar novo card.');
+    if(error || !data) {
+        toast({ title: 'Erro', description: 'Erro ao criar novo card.', variant: 'destructive'});
         console.error('Card creation error:', error);
         return;
     }
-
-    setCardCount(prev => prev + 1);
+    
+    // Re-fetch data to update UI
+    if (user) await fetchPageData(user);
+    toast({ title: 'Sucesso', description: 'Card adicionado!' });
   }
+
+  const handleDeleteCard = async (cardId: string) => {
+    if (!user) return;
+    const { error } = await supabase.from('cards').delete().eq('id', cardId);
+    if (error) {
+        toast({ title: 'Erro', description: 'Não foi possível deletar o card.', variant: 'destructive' });
+        console.error("Error deleting card:", error);
+    } else {
+        setCards(prev => prev.filter(c => c.id !== cardId));
+        toast({ title: 'Sucesso', description: 'Card deletado.' });
+    }
+  };
+
 
   const handleImageFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0 || !user) {
@@ -149,11 +194,10 @@ export default function EditPage() {
         if (uploadError) throw uploadError;
 
         const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
-
-        // Passando user para addNewCard
-        if (user) await addNewCard(user, 'image', { background_image: publicUrl, title: 'Nova Imagem' });
+        
+        await addNewCard('image', { background_image: publicUrl, title: 'Nova Imagem' });
     } catch (error) {
-        alert('Falha no upload da imagem.');
+        toast({ title: 'Erro', description: 'Falha no upload da imagem.', variant: 'destructive' });
         console.error(error);
     } finally {
         setIsUploadingImage(false);
@@ -173,6 +217,9 @@ export default function EditPage() {
 
     if (error) {
       console.error('Erro ao salvar layout:', error);
+      toast({ title: 'Erro', description: 'Não foi possível salvar o layout.', variant: 'destructive' });
+    } else {
+      toast({ title: 'Sucesso', description: 'Layout salvo!' });
     }
   };
 
@@ -219,7 +266,15 @@ export default function EditPage() {
                 <Textarea className="text-center text-gray-500 mt-2 border-none focus:ring-0 max-w-xl" value={profile?.bio || ''} onChange={(e) => setProfile(p => p ? { ...p, bio: e.target.value } : null)} placeholder="Uma breve biografia sobre você."/>
             </div>
 
-            {user && <GridLayout key={cardCount} userId={user.id} onAddCard={(type) => user && addNewCard(user, type)} onLayoutChange={handleLayoutChange} initialLayout={profile?.layout_config}/>} {/* Passando onLayoutChange e initialLayout */}
+            {user && (
+              <GridLayout
+                userId={user.id}
+                cards={cards}
+                layoutConfig={profile?.layout_config}
+                onLayoutChange={handleLayoutChange}
+                onDeleteCard={handleDeleteCard}
+              />
+            )}
 
         </div>
       </main>
@@ -229,12 +284,14 @@ export default function EditPage() {
             <Button title="Adicionar Imagem" variant="ghost" size="icon" className="rounded-full" onClick={() => imageInputRef.current?.click()} disabled={isUploadingImage}>
                 {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : '🖼️'}
             </Button>
-            <Button title="Adicionar Título" variant="ghost" size="icon" className="rounded-full" onClick={() => user && addNewCard(user, 'title')}>T</Button>
-            <Button title="Adicionar Nota" variant="ghost" size="icon" className="rounded-full" onClick={() => user && addNewCard(user, 'note')}>📝</Button>
-            <Button title="Adicionar Link" variant="ghost" size="icon" className="rounded-full" onClick={() => user && addNewCard(user, 'link')}>🔗</Button>
-            <Button title="Adicionar Mapa" variant="ghost" size="icon" className="rounded-full" onClick={() => user && addNewCard(user, 'map')}>🗺️</Button>
+            <Button title="Adicionar Título" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('title')}>T</Button>
+            <Button title="Adicionar Nota" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('note')}>📝</Button>
+            <Button title="Adicionar Link" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('link')}>🔗</Button>
+            <Button title="Adicionar Mapa" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('map')}>🗺️</Button>
         </div>
       </footer>
     </div>
   )
 }
+
+    
