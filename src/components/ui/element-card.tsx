@@ -27,7 +27,7 @@ export const ElementCard = ({ data }: ElementCardProps) => {
                     <Link href={data.link || '#'} target="_blank" rel="noopener noreferrer" className="flex flex-col justify-between p-4">
                         <div>
                             <CardTitle className="text-base font-semibold">{data.title}</CardTitle>
-                            <CardDescription className="text-sm truncate">{data.link}</CardDescription>
+                            {data.link && <CardDescription className="text-sm truncate">{data.link}</CardDescription>}
                         </div>
                         <LinkIcon className="h-4 w-4 text-muted-foreground self-end"/>
                     </Link>
