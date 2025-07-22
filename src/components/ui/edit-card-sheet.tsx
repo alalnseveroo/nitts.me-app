@@ -20,8 +20,6 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
   const [formData, setFormData] = useState<Partial<CardData>>({});
 
   useEffect(() => {
-    // Only update form data when the card ID changes (a new card is selected)
-    // or when the sheet is opened.
     if (card) {
       setFormData({
         title: card.title,
@@ -29,7 +27,7 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
         content: card.content,
       });
     }
-  }, [card?.id, isOpen]); // Depend on card.id and isOpen
+  }, [card?.id, isOpen]); 
 
   if (!card) return null;
 
