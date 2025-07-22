@@ -97,14 +97,14 @@ export default function UnifiedUserPage() {
             const existingLayout = layoutMap.get(card.id);
             if (existingLayout) {
                 return {
-                    i: String(existingLayout.i),
+                    ...existingLayout,
+                    i: String(existingLayout.i), 
                     x: existingLayout.x ?? 0,
-                    y: existingLayout.y ?? index, // Fallback y
+                    y: existingLayout.y ?? index,
                     w: existingLayout.w ?? 1,
                     h: existingLayout.h ?? 2,
                 };
             }
-            // Fallback for cards without a layout
             return { i: card.id, x: 0, y: index, w: 1, h: 2 };
         });
         setCurrentLayout(finalLayout);
@@ -343,7 +343,7 @@ export default function UnifiedUserPage() {
                 </div>
             </header>
             
-            <div className="grid grid-cols-12 gap-8 flex-1 p-8">
+            <div className="grid grid-cols-12 gap-8 flex-1 p-4 md:p-8">
                 <aside className="col-span-12 md:col-span-3 py-8">
                     <div className="sticky top-24">
                         <div className="relative mb-4 w-32 h-32">
@@ -407,7 +407,7 @@ export default function UnifiedUserPage() {
 
   // RENDER PUBLIC VIEW
   return (
-    <div className="w-full min-h-screen p-8 relative bg-background">
+    <div className="w-full min-h-screen p-4 md:p-8 relative bg-background">
         <div className="grid grid-cols-12 gap-8">
             <header className="col-span-12 md:col-span-3 py-8">
                 <div className="sticky top-8">
@@ -424,9 +424,9 @@ export default function UnifiedUserPage() {
             <main className="col-span-12 md:col-span-9">
                 {cards.length > 0 ? (
                 <ResponsiveGridLayout
-                    layouts={{ lg: currentLayout }}
-                    breakpoints={{ lg: 768, md: 768, sm: 0 }}
-                    cols={{ lg: 4, md: 4, sm: 1 }}
+                    layouts={{ lg: currentLayout, sm: currentLayout }}
+                    breakpoints={{ lg: 768, sm: 0 }}
+                    cols={{ lg: 4, sm: 2 }}
                     rowHeight={100}
                     isDraggable={false}
                     isResizable={false}
@@ -456,5 +456,3 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
-
-    

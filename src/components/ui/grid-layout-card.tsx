@@ -44,38 +44,41 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize }: GridLayou
                 onUpdate={onUpdate}
             />
 
-            {/* Delete Button */}
-            <AlertDialog>
-                <AlertDialogTrigger asChild>
-                    <Button
-                        title="Deletar"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-[-10px] left-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
-                    >
-                        <Trash2 className="h-4 w-4" />
-                    </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Isso deletará o card permanentemente. Esta ação não pode ser desfeita.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => onDelete(card.id)} className="bg-destructive hover:bg-destructive/90">
-                            Deletar
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            {/* Mobile does not get hover controls */}
+            <div className="hidden md:block">
+                {/* Delete Button */}
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button
+                            title="Deletar"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-[-10px] left-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Isso deletará o card permanentemente. Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => onDelete(card.id)} className="bg-destructive hover:bg-destructive/90">
+                                Deletar
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
 
-            {/* Resize Controls Toolbar */}
-            <div className="absolute bottom-[-50px] left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                <div className="bg-black text-white rounded-lg shadow-xl p-1">
-                    <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
+                {/* Resize Controls Toolbar */}
+                <div className="absolute bottom-[-50px] left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                    <div className="bg-black text-white rounded-lg shadow-xl p-1">
+                        <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
+                    </div>
                 </div>
             </div>
         </div>
