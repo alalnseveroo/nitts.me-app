@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, memo } from "react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,10 +16,12 @@ interface EditCardSheetProps {
   onUpdate: (id: string, updates: Partial<CardData>) => void;
 }
 
-export const EditCardSheet = ({ isOpen, onOpenChange, card, onUpdate }: EditCardSheetProps) => {
+const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCardSheetProps) => {
   const [formData, setFormData] = useState<Partial<CardData>>({});
 
   useEffect(() => {
+    // Only update form data when the card ID changes (a new card is selected)
+    // or when the sheet is opened.
     if (card) {
       setFormData({
         title: card.title,
@@ -26,7 +29,7 @@ export const EditCardSheet = ({ isOpen, onOpenChange, card, onUpdate }: EditCard
         content: card.content,
       });
     }
-  }, [card]);
+  }, [card?.id, isOpen]); // Depend on card.id and isOpen
 
   if (!card) return null;
 
@@ -122,4 +125,5 @@ export const EditCardSheet = ({ isOpen, onOpenChange, card, onUpdate }: EditCard
   )
 }
 
-    
+// Memoize the component to prevent unnecessary re-renders
+export const EditCardSheet = memo(EditCardSheetComponent);
