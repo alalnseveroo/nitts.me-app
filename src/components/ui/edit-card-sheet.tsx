@@ -98,7 +98,26 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
             </div>
           </div>
         );
-      // Add cases for 'image' and 'map' when their editable fields are defined
+      case 'image':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="title">Título da Imagem</Label>
+              <Input
+                id="title"
+                name="title"
+                placeholder="Ex: Minha Viagem"
+                value={formData.title || ''}
+                onChange={handleChange}
+              />
+               <p className="text-sm text-muted-foreground mt-2">
+                  Este título aparecerá sobre a imagem.
+               </p>
+            </div>
+          </div>
+        );
+      case 'map':
+        return <p>Este tipo de card não tem conteúdo editável.</p>;
       default:
         return <p>Este tipo de card não tem conteúdo editável.</p>;
     }
@@ -111,7 +130,7 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
           <SheetTitle>Editar Card</SheetTitle>
           <SheetDescription>
             Faça alterações no conteúdo do seu card aqui. Clique em salvar quando terminar.
-          </SheetDescription>
+          </Sheet-Description>
         </SheetHeader>
         <div className="py-4">
           {renderFormContent()}

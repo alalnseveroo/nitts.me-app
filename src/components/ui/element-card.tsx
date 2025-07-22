@@ -47,13 +47,20 @@ export const ElementCard = ({ data }: ElementCardProps) => {
             );
         case 'image':
             return (
-                <Card className="w-full h-full overflow-hidden">
+                <Card className="w-full h-full overflow-hidden relative">
                     <img 
                         src={data.background_image || 'https://placehold.co/400x400.png'} 
                         alt={data.title || 'image'} 
                         className="w-full h-full object-cover" 
                         data-ai-hint="abstract background"
                     />
+                    {data.title && (
+                        <div className="absolute bottom-0 left-0 p-4">
+                            <h3 className="text-white text-lg font-bold" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.7)' }}>
+                                {data.title}
+                            </h3>
+                        </div>
+                    )}
                 </Card>
             );
         case 'map':
