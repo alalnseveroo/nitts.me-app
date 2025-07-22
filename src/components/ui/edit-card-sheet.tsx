@@ -27,7 +27,7 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
         content: card.content,
       });
     }
-  }, [card?.id, isOpen]); 
+  }, [card?.id, isOpen]); // card?.id dependency ensures it runs when card changes
 
   if (!card) return null;
 
@@ -139,8 +139,7 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
         </SheetFooter>
       </SheetContent>
     </Sheet>
-  )
-}
+  );
+};
 
-// Memoize the component to prevent unnecessary re-renders
 export const EditCardSheet = memo(EditCardSheetComponent);
