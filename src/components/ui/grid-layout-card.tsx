@@ -1,3 +1,4 @@
+
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -16,7 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, UploadCloud, Loader2, Crop, RectangleHorizontal, RectangleVertical, Square } from 'lucide-react';
+import { Trash2, UploadCloud, Loader2, Crop } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CardResizeControls } from './card-resize-controls';
@@ -57,7 +58,9 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize }: GridLayou
     const handleBlur = () => {
         setIsFocused(false);
         const { id, type, user_id, ...updates } = currentData;
-        onUpdate(id, updates);
+        if (JSON.stringify(updates) !== JSON.stringify({ title: card.title, content: card.content, link: card.link, background_image: card.background_image })) {
+            onUpdate(id, updates);
+        }
     };
 
     const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,7 +94,7 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize }: GridLayou
         switch (card.type) {
             case 'image':
                 return (
-                    <div className="w-full h-full relative group">
+                    <div className="w-full h-full relative">
                         <input
                             type="file"
                             ref={fileInputRef}
@@ -100,7 +103,7 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize }: GridLayou
                             onChange={handleImageUpload}
                             disabled={uploading}
                         />
-                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10">
+                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/card:opacity-100 flex items-center justify-center transition-opacity z-10">
                             <Button
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={uploading}
@@ -131,7 +134,7 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize }: GridLayou
                             value={currentData.title || ''}
                             onChange={handleChange}
                             onBlur={handleBlur}
-                            className="font-semibold"
+                            className="font-semibold border-none focus:ring-0 shadow-none p-0 h-auto"
                         />
                         <Input
                             name="link"
@@ -139,6 +142,7 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize }: GridLayou
                             value={currentData.link || ''}
                             onChange={handleChange}
                             onBlur={handleBlur}
+                             className="border-none focus:ring-0 shadow-none p-0 h-auto text-muted-foreground"
                         />
                     </div>
                 );
@@ -148,7 +152,7 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize }: GridLayou
                         <Input
                             name="title"
                             placeholder="Título Principal"
-                            className="text-4xl font-bold border-none focus:ring-0 p-0 h-full w-full"
+                            className="text-4xl font-bold border-none focus:ring-0 p-0 h-full w-full shadow-none bg-transparent"
                             value={currentData.title || ''}
                             onChange={handleChange}
                             onBlur={handleBlur}
@@ -180,23 +184,15 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize }: GridLayou
     };
 
     return (
-        <Card className={`w-full h-full flex flex-col bg-card border-2 transition-all overflow-hidden ${isFocused ? 'border-primary' : 'border-transparent'}`} onFocus={() => setIsFocused(true)} onBlurCapture={handleBlur}>
-            <div className="flex-grow flex items-center justify-center relative">
+        <Card className={`w-full h-full flex flex-col bg-card border-2 transition-all overflow-visible ${isFocused ? 'border-primary' : 'border-transparent'}`} onFocus={() => setIsFocused(true)} onBlurCapture={handleBlur}>
+            <div className="flex-grow flex items-center justify-center relative group/card h-full">
                 {renderCardContent()}
-                <div className="absolute top-1 right-1 opacity-0 group-hover/card:opacity-100 transition-opacity flex gap-1 z-20">
-                     <Popover>
-                        <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:bg-secondary hover:text-foreground">
-                                <Crop className="h-4 w-4" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-1">
-                            <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
-                        </PopoverContent>
-                    </Popover>
+                
+                {/* Delete and Resize Controls - Appear on Hover */}
+                <div className="absolute top-[-10px] left-[-10px] z-20 flex items-center gap-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
-                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+                             <Button variant="default" size="icon" className="h-7 w-7 rounded-full shadow-lg">
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                         </AlertDialogTrigger>
@@ -215,6 +211,17 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize }: GridLayou
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
+                </div>
+                
+                <div className="absolute bottom-[-20px] z-20 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <div className="bg-black text-white rounded-lg shadow-xl p-1">
+                                <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
+                            </div>
+                        </PopoverTrigger>
+                        {/* No PopoverContent needed if controls are directly in the trigger styling */}
+                    </Popover>
                 </div>
             </div>
         </Card>
