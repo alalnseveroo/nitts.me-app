@@ -77,12 +77,10 @@ export default function UnifiedUserPage() {
 
     setProfile(profileData as Profile);
 
-    const cardsPromise = supabase
+    const { data: cardsData, error: cardsError } = await supabase
       .from('cards')
       .select('*')
       .eq('user_id', profileData.id);
-
-    const { data: cardsData, error: cardsError } = await cardsPromise;
 
     if (cardsError) {
         console.error('Error fetching cards:', cardsError);
@@ -94,7 +92,8 @@ export default function UnifiedUserPage() {
     const finalLayout = (cardsData || []).map(card => {
         const existingLayout = profileData.layout_config?.find(l => l.i === card.id);
         if (existingLayout) return existingLayout;
-        return { i: card.id, x: 0, y: Infinity, w: 1, h: 2 };
+        // Fallback for cards without a layout
+        return { i: card.id, x: 0, y: 0, w: 1, h: 2 };
     });
     setCurrentLayout(finalLayout);
     
@@ -116,7 +115,7 @@ export default function UnifiedUserPage() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setIsOwner(false); // Update ownership state
-    router.refresh(); // Refresh to get public view
+    router.push(`/${pageUsername}`);
   };
 
   const handleShare = () => {
@@ -174,6 +173,13 @@ export default function UnifiedUserPage() {
         setUploading(false)
     }
   }
+  
+  const getNextY = (layout: Layout[]): number => {
+    if (!layout || layout.length === 0) {
+        return 0;
+    }
+    return layout.reduce((maxY, item) => Math.max(maxY, item.y + item.h), 0);
+  };
 
   const addNewCard = async (type: string, extraData: Record<string, any> = {}) => {
     if (!user) return;
@@ -198,9 +204,18 @@ export default function UnifiedUserPage() {
     }
     
     setCards(currentCards => [...currentCards, data]);
+
+    const newLayoutItem = { 
+      i: data.id, 
+      x: 0, 
+      y: getNextY(currentLayout), 
+      w, 
+      h 
+    };
+
     setCurrentLayout(currentLayout => [
         ...currentLayout,
-        { i: data.id, x: 0, y: Infinity, w, h }
+        newLayoutItem
     ]);
 
     toast({ title: 'Sucesso', description: 'Card adicionado!' });
@@ -297,7 +312,7 @@ export default function UnifiedUserPage() {
 
             <header className="flex justify-between items-center p-4 sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b">
                 <div className="flex items-center space-x-2">
-                    <Button onClick={handleShare} variant="ghost"><Share className="mr-2 h-4 w-4" /> Compartilhar</Button>
+                     <Button onClick={handleShare} variant="ghost"><Share className="mr-2 h-4 w-4" /> Compartilhar</Button>
                 </div>
 
                 <div className="flex items-center space-x-2">
@@ -379,14 +394,6 @@ export default function UnifiedUserPage() {
   // RENDER PUBLIC VIEW
   return (
     <div className="w-full min-h-screen p-8 relative bg-background">
-        {user && isOwner && (
-            // This button should not be necessary anymore, but leaving as a fallback
-             <div className="absolute top-4 right-4 flex gap-2 z-10">
-                <Button onClick={() => router.refresh()} variant="default" className="bg-primary text-primary-foreground">
-                    <Edit className="mr-2 h-4 w-4" /> Editar Página
-                </Button>
-            </div>
-        )}
         <div className="grid grid-cols-12 gap-8">
             <header className="col-span-12 md:col-span-3 py-8">
                 <div className="sticky top-8">
@@ -415,7 +422,7 @@ export default function UnifiedUserPage() {
                     className="min-h-[400px]"
                 >
                     {cards.map(card => (
-                        <div key={card.id} data-grid={currentLayout.find(l => l.i === card.id)}>
+                        <div key={card.id} data-grid={currentLayout.find(l => l.i === card.id) || {x:0, y:0, w:1, h:1}}>
                             <ElementCard data={card} />
                         </div>
                     ))}
@@ -432,3 +439,5 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
+
+    
