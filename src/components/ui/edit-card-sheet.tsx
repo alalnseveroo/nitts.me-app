@@ -20,6 +20,7 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
   const [formData, setFormData] = useState<Partial<CardData>>({});
 
   useEffect(() => {
+    // When a new card is selected or the sheet opens, reset the form data
     if (card) {
       setFormData({
         title: card.title,
