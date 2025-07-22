@@ -86,16 +86,22 @@ export default function UnifiedUserPage() {
         console.error('Error fetching cards:', cardsError);
         setCards([]);
     } else {
-        setCards(cardsData || []);
+        const fetchedCards = cardsData || [];
+        setCards(fetchedCards);
+
+        // Ensure layout is always valid
+        const savedLayout = profileData.layout_config || [];
+        const layoutMap = new Map(savedLayout.map(l => [l.i, l]));
+        
+        const finalLayout = fetchedCards.map(card => {
+            if (layoutMap.has(card.id)) {
+                return layoutMap.get(card.id)!;
+            }
+            // Fallback for cards without a layout
+            return { i: card.id, x: 0, y: 0, w: 1, h: 2 };
+        });
+        setCurrentLayout(finalLayout);
     }
-    
-    const finalLayout = (cardsData || []).map(card => {
-        const existingLayout = profileData.layout_config?.find(l => l.i === card.id);
-        if (existingLayout) return existingLayout;
-        // Fallback for cards without a layout
-        return { i: card.id, x: 0, y: 0, w: 1, h: 2 };
-    });
-    setCurrentLayout(finalLayout);
     
     setIsOwner(currentUser?.id === profileData.id);
     setLoading(false);
@@ -107,7 +113,7 @@ export default function UnifiedUserPage() {
       setLoading(true)
       const { data: { session } } = await supabase.auth.getSession()
       setUser(session?.user ?? null)
-      fetchPageData(session?.user ?? null);
+      await fetchPageData(session?.user ?? null);
     }
     fetchSessionAndProfile()
   }, [fetchPageData])
@@ -422,9 +428,9 @@ export default function UnifiedUserPage() {
                     className="min-h-[400px]"
                 >
                     {cards.map(card => {
-                        const layout = currentLayout.find(l => l.i === card.id);
+                        const layout = currentLayout.find(l => l.i === card.id) || {x:0, y:0, w:1, h:2};
                         return (
-                            <div key={card.id} data-grid={layout || {x:0, y:0, w:1, h:2}}>
+                            <div key={card.id} data-grid={layout}>
                                 <ElementCard data={card} />
                             </div>
                         )
@@ -442,7 +448,3 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
-
-    
-
-    
