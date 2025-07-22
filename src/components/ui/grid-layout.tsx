@@ -4,7 +4,6 @@
 import React from 'react';
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout';
 import { GridLayoutCard } from './grid-layout-card';
-import { useToast } from '@/hooks/use-toast';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
@@ -49,7 +48,6 @@ const GridLayoutComponent = ({
     rowHeight,
     isMobile
 }: GridLayoutProps) => {
-    const { toast } = useToast();
     
     if (cards.length === 0) {
         return (
@@ -59,16 +57,17 @@ const GridLayoutComponent = ({
         )
     }
 
+    const handleDragStop = (layout: LayoutItem[]) => {
+        onLayoutChange(layout);
+    };
+
     return (
         <ResponsiveGridLayout
             layouts={{ lg: layoutConfig, sm: layoutConfig }}
-            onLayoutChange={(layout, allLayouts) => {
-                const newLayout = allLayouts.lg || allLayouts.sm || [];
-                onLayoutChange(newLayout);
-            }}
             onDragStart={() => {
-                if (isMobile && selectedCardId) onSelectCard(selectedCardId); // Deselect on drag
+                if (isMobile && selectedCardId) onSelectCard(selectedCardId);
             }}
+            onDragStop={handleDragStop}
             breakpoints={{ lg: 768, sm: 0 }}
             cols={{ lg: 4, sm: 2 }}
             rowHeight={rowHeight}
@@ -103,6 +102,4 @@ const GridLayoutComponent = ({
     );
 };
 
-export default GridLayoutComponent;
-
-    
+export default React.memo(GridLayoutComponent);
