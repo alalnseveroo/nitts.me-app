@@ -263,7 +263,7 @@ export default function UnifiedUserPage() {
     const w = type === 'title' ? cols : 1;
     const h = 1;
 
-    const finalData: Omit<CardData, 'id'> = {
+    const finalData: Omit<CardData, 'id' | 'user_id'> & { user_id: string } = {
         user_id: user.id,
         type: type,
         title: ``,
@@ -572,3 +572,5 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
+
+    
