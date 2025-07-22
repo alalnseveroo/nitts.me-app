@@ -62,7 +62,7 @@ export default function UnifiedUserPage() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rowHeight, setRowHeight] = useState(100);
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [editingCard, setEditingCard] = useState<CardData | undefined>(undefined);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
 
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -72,7 +72,6 @@ export default function UnifiedUserPage() {
   const { toast } = useToast();
   const pageUsername = params.username as string
   const isMobile = useIsMobile();
-  const selectedCard = cards.find(c => c.id === selectedCardId);
 
   const updateRowHeight = useCallback(() => {
     if (typeof window === 'undefined') return;
@@ -306,7 +305,6 @@ export default function UnifiedUserPage() {
 
     setCards(prev => prev.filter(c => c.id !== cardId));
     setCurrentLayout(prev => prev.filter(l => l.i !== cardId));
-    setSelectedCardId(null); 
     
     const { error } = await supabase.from('cards').delete().eq('id', cardId);
     if (error) {
@@ -348,7 +346,6 @@ export default function UnifiedUserPage() {
 
   const handleLayoutChange = useCallback((newLayout: Layout[]) => {
     setCurrentLayout(newLayout);
-    setSelectedCardId(null);
   }, []);
   
   const handleResizeCard = useCallback((cardId: string, w: number, h: number) => {
@@ -362,14 +359,10 @@ export default function UnifiedUserPage() {
       });
   }, []);
 
-  const handleSelectCard = useCallback((cardId: string) => {
-      setSelectedCardId(currentId => currentId === cardId ? null : cardId);
-  }, []);
-
   const handleEditCard = useCallback((cardId: string) => {
-      setSelectedCardId(cardId);
+      setEditingCard(cards.find(c => c.id === cardId));
       setIsEditSheetOpen(true);
-  }, []);
+  }, [cards]);
 
 
   if (loading) {
@@ -396,12 +389,7 @@ export default function UnifiedUserPage() {
   // RENDER EDIT MODE
   if (isOwner) {
     return (
-        <div className="flex flex-col min-h-screen bg-background" onClick={(e) => {
-             if (isMobile) return;
-             if (!(e.target as HTMLElement).closest('.react-grid-layout, .sheet-content, footer, [role=dialog]')) {
-                setSelectedCardId(null);
-             }
-        }}>
+        <div className="flex flex-col min-h-screen bg-background">
             <input
                 type="file"
                 ref={imageInputRef}
@@ -476,9 +464,7 @@ export default function UnifiedUserPage() {
                         onUpdateCard={handleUpdateCard}
                         onDeleteCard={handleDeleteCard}
                         onResizeCard={handleResizeCard}
-                        onSelectCard={handleSelectCard}
                         onEditCard={handleEditCard}
-                        selectedCardId={selectedCardId}
                         rowHeight={rowHeight}
                         isMobile={isMobile}
                     />
@@ -503,26 +489,10 @@ export default function UnifiedUserPage() {
                 </div>
             </footer>
             
-            {isMobile && selectedCardId && (
-                 <div className="fixed bottom-0 left-0 w-full p-4 z-50">
-                     <div className="bg-black/90 backdrop-blur-sm rounded-xl shadow-2xl flex justify-between items-center p-2 gap-2">
-                        <div className="flex-1">
-                            <CardResizeControls onResize={(w, h) => handleResizeCard(selectedCardId, w, h)} />
-                        </div>
-                        <Button 
-                          onClick={() => setSelectedCardId(null)}
-                          className="bg-green-500 text-white font-bold hover:bg-green-600 px-6"
-                        >
-                            Done
-                        </Button>
-                    </div>
-                 </div>
-            )}
-
             <EditCardSheet
                 isOpen={isEditSheetOpen}
                 onOpenChange={setIsEditSheetOpen}
-                card={selectedCard}
+                card={editingCard}
                 onUpdate={handleUpdateCard}
             />
         </div>

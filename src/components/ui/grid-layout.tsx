@@ -1,9 +1,11 @@
 
 'use client'
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout';
 import { GridLayoutCard } from './grid-layout-card';
+import { CardResizeControls } from '@/components/ui/card-resize-controls';
+import { Button } from '@/components/ui/button';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
@@ -28,9 +30,7 @@ interface GridLayoutProps {
     onUpdateCard: (id: string, updates: Partial<Card>) => void;
     onDeleteCard: (cardId: string) => void;
     onResizeCard: (cardId: string, w: number, h: number) => void;
-    onSelectCard: (cardId: string) => void;
     onEditCard: (cardId: string) => void;
-    selectedCardId: string | null;
     rowHeight: number;
     isMobile: boolean;
 }
@@ -42,12 +42,16 @@ const GridLayoutComponent = ({
     onUpdateCard, 
     onDeleteCard, 
     onResizeCard,
-    onSelectCard,
     onEditCard,
-    selectedCardId,
     rowHeight,
     isMobile
 }: GridLayoutProps) => {
+
+    const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+
+    const handleSelectCard = useCallback((cardId: string) => {
+        setSelectedCardId(currentId => currentId === cardId ? null : cardId);
+    }, []);
     
     if (cards.length === 0) {
         return (
@@ -63,11 +67,12 @@ const GridLayoutComponent = ({
 
     const handleDragStart = () => {
         if (isMobile && selectedCardId) {
-            onSelectCard(selectedCardId); // This will deselect the card by toggling it
+            setSelectedCardId(null);
         }
     }
 
     return (
+        <>
         <ResponsiveGridLayout
             layouts={{ lg: layoutConfig, sm: layoutConfig }}
             onDragStart={handleDragStart}
@@ -92,9 +97,12 @@ const GridLayoutComponent = ({
                         <GridLayoutCard
                             card={card}
                             onUpdate={onUpdateCard}
-                            onDelete={onDeleteCard}
-                            onResize={onResizeCard}
-                            onClick={onSelectCard}
+                            onDelete={() => {
+                                handleDeleteCard(card.id);
+                                setSelectedCardId(null);
+                            }}
+                            onResize={(w, h) => onResizeCard(card.id, w, h)}
+                            onClick={handleSelectCard}
                             onEdit={onEditCard}
                             isSelected={selectedCardId === card.id}
                             isMobile={isMobile}
@@ -103,6 +111,22 @@ const GridLayoutComponent = ({
                 )
             })}
         </ResponsiveGridLayout>
+        {isMobile && selectedCardId && (
+            <div className="fixed bottom-0 left-0 w-full p-4 z-50" onClick={(e) => e.stopPropagation()}>
+                <div className="bg-black/90 backdrop-blur-sm rounded-xl shadow-2xl flex justify-between items-center p-2 gap-2">
+                <div className="flex-1">
+                    <CardResizeControls onResize={(w, h) => onResizeCard(selectedCardId, w, h)} />
+                </div>
+                <Button 
+                    onClick={() => setSelectedCardId(null)}
+                    className="bg-green-500 text-white font-bold hover:bg-green-600 px-6"
+                >
+                    Done
+                </Button>
+            </div>
+            </div>
+        )}
+        </>
     );
 };
 
