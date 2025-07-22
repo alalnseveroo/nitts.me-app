@@ -28,10 +28,11 @@ export default function Home() {
         .single();
 
       if (profile?.username) {
-        // CORRIGIDO: Redirecionando para /[username] em vez de /[username]/edit
         router.push(`/${profile.username}`);
       } else {
-        console.error("Estado inconsistente: Usuário logado sem perfil ou username.", { userId: session.user.id });
+        // This case can happen if profile creation failed after signup.
+        // For robustness, sign out and let them try again.
+        await supabase.auth.signOut();
         setLoading(false);
       }
     };

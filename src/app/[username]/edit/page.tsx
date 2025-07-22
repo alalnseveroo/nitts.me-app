@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useEffect, useState, ChangeEvent, useRef, useCallback } from 'react'
@@ -11,13 +10,19 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Map, StickyNote } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Map, StickyNote, Edit } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '@/components/ui/skeleton'
 import GridLayoutComponent from '@/components/ui/grid-layout'
+import { ElementCard } from '@/components/ui/element-card'
 import { useToast } from '@/hooks/use-toast'
+import Link from 'next/link'
+import { Responsive, WidthProvider } from 'react-grid-layout'
+
+const ResponsiveGridLayout = WidthProvider(Responsive);
 
 type Profile = {
+  id: string;
   username: string | null
   name: string | null
   bio: string | null
@@ -25,7 +30,7 @@ type Profile = {
   layout_config: Layout[] | null
 }
 
-type Card = {
+type CardData = {
     id: string;
     user_id: string;
     type: string;
@@ -35,51 +40,48 @@ type Card = {
     background_image: string | null;
 };
 
-export default function EditPage() {
+export default function UnifiedUserPage() {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [cards, setCards] = useState<Card[]>([]);
+  const [cards, setCards] = useState<CardData[]>([]);
   const [currentLayout, setCurrentLayout] = useState<Layout[]>([]);
   const [loading, setLoading] = useState(true)
+  const [isOwner, setIsOwner] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false)
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string | null>(null);
 
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter()
   const params = useParams()
   const { toast } = useToast();
   const pageUsername = params.username as string
 
-  const fetchPageData = useCallback(async (currentUser: User) => {
+  const fetchPageData = useCallback(async (currentUser: User | null) => {
     setLoading(true);
-    const profilePromise = supabase
-      .from('profiles')
-      .select(`username, name, bio, avatar_url, layout_config`)
-      .eq('id', currentUser.id)
-      .single();
+    setError(null);
+
+    const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('username', pageUsername)
+        .single();
+
+    if (profileError || !profileData) {
+      setError('Usuário não encontrado.');
+      setLoading(false);
+      return;
+    }
+
+    setProfile(profileData as Profile);
 
     const cardsPromise = supabase
       .from('cards')
       .select('*')
-      .eq('user_id', currentUser.id);
+      .eq('user_id', profileData.id);
 
-    const [profileResult, cardsResult] = await Promise.all([profilePromise, cardsPromise]);
-
-    const { data: profileData, error: profileError } = profileResult;
-    const { data: cardsData, error: cardsError } = cardsResult;
-
-    if (profileError || !profileData) {
-      console.error('Error fetching profile:', profileError);
-      router.push('/login');
-      return;
-    }
-    
-    if (profileData.username !== pageUsername) {
-        router.push(`/${profileData.username}/edit`);
-        return;
-    }
-    setProfile(profileData as Profile);
+    const { data: cardsData, error: cardsError } = await cardsPromise;
 
     if (cardsError) {
         console.error('Error fetching cards:', cardsError);
@@ -88,37 +90,32 @@ export default function EditPage() {
         setCards(cardsData || []);
     }
     
-    // Initialize layout
     const finalLayout = (cardsData || []).map(card => {
         const existingLayout = profileData.layout_config?.find(l => l.i === card.id);
         if (existingLayout) return existingLayout;
-        // If no layout is saved for a card, generate a default one.
-        return { i: card.id, x: 0, y: Infinity, w: 1, h: 2 }; // Default size
+        return { i: card.id, x: 0, y: Infinity, w: 1, h: 2 };
     });
     setCurrentLayout(finalLayout);
-
+    
+    setIsOwner(currentUser?.id === profileData.id);
     setLoading(false);
-  }, [pageUsername, router]);
+
+  }, [pageUsername]);
 
   useEffect(() => {
     const fetchSessionAndProfile = async () => {
       setLoading(true)
       const { data: { session } } = await supabase.auth.getSession()
-
-      if (!session) {
-        router.push('/login')
-        return
-      }
-      setUser(session.user)
-      fetchPageData(session.user);
+      setUser(session?.user ?? null)
+      fetchPageData(session?.user ?? null);
     }
     fetchSessionAndProfile()
-  }, [router, fetchPageData])
+  }, [fetchPageData])
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push('/');
-    router.refresh();
+    setIsOwner(false); // Update ownership state
+    router.refresh(); // Refresh to get public view
   };
 
   const handleShare = () => {
@@ -180,7 +177,6 @@ export default function EditPage() {
   const addNewCard = async (type: string, extraData: Record<string, any> = {}) => {
     if (!user) return;
     
-    // Default size: Quadrado Padrão (1x2 ratio to appear square with rowHeight=100)
     const w = 1, h = 2; 
 
     const finalData = {
@@ -267,119 +263,171 @@ export default function EditPage() {
 
   if (loading) {
     return (
-     <div className="w-full min-h-screen p-8">
-        <header className="flex justify-between items-center mb-8">
-            <Skeleton className="h-10 w-48" />
-            <div className="flex items-center gap-4">
-                <Skeleton className="h-10 w-32" />
-                <Skeleton className="h-10 w-32" />
-                <Skeleton className="h-10 w-10" />
-            </div>
-        </header>
-        <div className="grid grid-cols-12 gap-6">
-            <div className="col-span-3">
-                <Skeleton className="h-32 w-32 rounded-full mb-4" />
-                <Skeleton className="h-8 w-48 mb-2" />
-                <Skeleton className="h-20 w-full" />
-            </div>
-            <div className="col-span-9">
+     <div className="w-full min-h-screen p-8 bg-background">
+        <div className="grid grid-cols-12 gap-8">
+            <aside className="col-span-12 md:col-span-3 py-8">
+                 <div className="sticky top-8">
+                    <Skeleton className="h-32 w-32 rounded-full mb-4" />
+                    <Skeleton className="h-8 w-48 mb-2" />
+                    <Skeleton className="h-20 w-full" />
+                </div>
+            </aside>
+            <main className="col-span-12 md:col-span-9">
                 <Skeleton className="h-[600px] w-full" />
-            </div>
+            </main>
         </div>
       </div>
     )
   }
 
-  return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <input
-        type="file"
-        ref={imageInputRef}
-        onChange={handleImageFileSelected}
-        className="hidden"
-        accept="image/*"
-      />
+  if (error) return <div className="flex flex-col justify-center items-center h-screen text-center p-4"><h1>{error}</h1> <Link href="/"><Button variant="link">Voltar para a página inicial</Button></Link></div>;
 
-      <header className="flex justify-between items-center p-4 sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b">
-        <Button variant="outline" onClick={() => router.push(`/${pageUsername}`)}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Voltar para a página
-        </Button>
-
-        <div className="flex items-center space-x-2">
-          <Button onClick={handleShare} variant="ghost"><Share className="mr-2 h-4 w-4" /> Compartilhar</Button>
-          <Button onClick={handleSaveChanges} disabled={saving}>
-            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Salvar
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><Settings/></Button></DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Opções</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem disabled><UserRound className="mr-2 h-4 w-4"/><span>Alterar Usuário</span></DropdownMenuItem>
-              <DropdownMenuItem disabled><KeyRound className="mr-2 h-4 w-4"/><span>Alterar Senha</span></DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4"/><span>Sair</span></DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
-      
-      <div className="grid grid-cols-12 gap-8 flex-1 p-8">
-        <aside className="col-span-12 md:col-span-3 py-8">
-            <div className="sticky top-24">
-                <div className="relative mb-4 w-32 h-32">
-                    <Avatar className="w-32 h-32 text-lg">
-                        <AvatarImage src={profile?.avatar_url || ''} alt={profile?.username || 'avatar'} />
-                        <AvatarFallback>{profile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <label htmlFor="avatar-upload" className="absolute bottom-1 right-1 bg-primary text-primary-foreground rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-all">
-                        {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                    </label>
-                    <input id="avatar-upload" type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={uploading}/>
-                </div>
-                <Input
-                  className="text-4xl font-bold border-none focus:ring-0 shadow-none p-0 h-auto mb-2"
-                  value={profile?.name || ''}
-                  onChange={(e) => setProfile(p => p ? { ...p, name: e.target.value } : null)}
-                  placeholder="Seu Nome"
-                />
-                <Textarea
-                  className="text-muted-foreground mt-2 border-none focus:ring-0 shadow-none resize-none p-0"
-                  value={profile?.bio || ''}
-                  onChange={(e) => setProfile(p => p ? { ...p, bio: e.target.value } : null)}
-                  placeholder="Sua biografia..."
-                  rows={3}
-                />
-            </div>
-        </aside>
-
-        <main className="col-span-12 md:col-span-9 mb-24">
-            {user && (
-            <GridLayoutComponent
-                cards={cards}
-                layoutConfig={currentLayout}
-                onLayoutChange={handleLayoutChange}
-                onDeleteCard={handleDeleteCard}
-                onResizeCard={handleResizeCard}
+  // RENDER EDIT MODE
+  if (isOwner) {
+    return (
+        <div className="flex flex-col min-h-screen bg-background">
+            <input
+                type="file"
+                ref={imageInputRef}
+                onChange={handleImageFileSelected}
+                className="hidden"
+                accept="image/*"
             />
-            )}
-        </main>
-      </div>
 
-      <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-auto p-4 z-50">
-        <div className="bg-card/90 backdrop-blur-sm rounded-full shadow-lg border flex justify-around items-center p-2 gap-2">
-            <Button title="Adicionar Imagem" variant="ghost" size="icon" className="rounded-full" onClick={() => imageInputRef.current?.click()} disabled={isUploadingImage}>
-                {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon />}
-            </Button>
-            <Button title="Adicionar Título" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('title')}><Type /></Button>
-            <Button title="Adicionar Nota" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('note')}><StickyNote /></Button>
-            <Button title="Adicionar Link" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('link')}><LinkIcon /></Button>
-            <Button title="Adicionar Mapa" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('map')}><Map /></Button>
+            <header className="flex justify-between items-center p-4 sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b">
+                <div className="flex items-center space-x-2">
+                    <Button onClick={handleShare} variant="ghost"><Share className="mr-2 h-4 w-4" /> Compartilhar</Button>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                <Button onClick={handleSaveChanges} disabled={saving}>
+                    {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Salvar Alterações
+                </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><Settings/></Button></DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Opções</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem disabled><UserRound className="mr-2 h-4 w-4"/><span>Alterar Usuário</span></DropdownMenuItem>
+                    <DropdownMenuItem disabled><KeyRound className="mr-2 h-4 w-4"/><span>Alterar Senha</span></DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4"/><span>Sair</span></DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                </div>
+            </header>
+            
+            <div className="grid grid-cols-12 gap-8 flex-1 p-8">
+                <aside className="col-span-12 md:col-span-3 py-8">
+                    <div className="sticky top-24">
+                        <div className="relative mb-4 w-32 h-32">
+                            <Avatar className="w-32 h-32 text-lg">
+                                <AvatarImage src={profile?.avatar_url || ''} alt={profile?.username || 'avatar'} />
+                                <AvatarFallback>{profile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <label htmlFor="avatar-upload" className="absolute bottom-1 right-1 bg-primary text-primary-foreground rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-all">
+                                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                            </label>
+                            <input id="avatar-upload" type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={uploading}/>
+                        </div>
+                        <Input
+                        className="text-4xl font-bold border-none focus:ring-0 shadow-none p-0 h-auto mb-2 bg-transparent"
+                        value={profile?.name || ''}
+                        onChange={(e) => setProfile(p => p ? { ...p, name: e.target.value } : null)}
+                        placeholder="Seu Nome"
+                        />
+                        <Textarea
+                        className="text-muted-foreground mt-2 border-none focus:ring-0 shadow-none resize-none p-0 bg-transparent"
+                        value={profile?.bio || ''}
+                        onChange={(e) => setProfile(p => p ? { ...p, bio: e.target.value } : null)}
+                        placeholder="Sua biografia..."
+                        rows={5}
+                        />
+                    </div>
+                </aside>
+
+                <main className="col-span-12 md:col-span-9 mb-24">
+                    {user && (
+                    <GridLayoutComponent
+                        cards={cards}
+                        layoutConfig={currentLayout}
+                        onLayoutChange={handleLayoutChange}
+                        onDeleteCard={handleDeleteCard}
+                        onResizeCard={handleResizeCard}
+                    />
+                    )}
+                </main>
+            </div>
+
+            <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-auto p-4 z-50">
+                <div className="bg-card/90 backdrop-blur-sm rounded-full shadow-lg border flex justify-around items-center p-2 gap-2">
+                    <Button title="Adicionar Imagem" variant="ghost" size="icon" className="rounded-full" onClick={() => imageInputRef.current?.click()} disabled={isUploadingImage}>
+                        {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon />}
+                    </Button>
+                    <Button title="Adicionar Título" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('title')}><Type /></Button>
+                    <Button title="Adicionar Nota" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('note')}><StickyNote /></Button>
+                    <Button title="Adicionar Link" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('link')}><LinkIcon /></Button>
+                    <Button title="Adicionar Mapa" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('map')}><Map /></Button>
+                </div>
+            </footer>
         </div>
-      </footer>
-    </div>
-  )
-}
+    )
+  }
 
-    
+  // RENDER PUBLIC VIEW
+  return (
+    <div className="w-full min-h-screen p-8 relative bg-background">
+        {user && isOwner && (
+            // This button should not be necessary anymore, but leaving as a fallback
+             <div className="absolute top-4 right-4 flex gap-2 z-10">
+                <Button onClick={() => router.refresh()} variant="default" className="bg-primary text-primary-foreground">
+                    <Edit className="mr-2 h-4 w-4" /> Editar Página
+                </Button>
+            </div>
+        )}
+        <div className="grid grid-cols-12 gap-8">
+            <header className="col-span-12 md:col-span-3 py-8">
+                <div className="sticky top-8">
+                    <Avatar className="w-32 h-32 mb-4">
+                        <AvatarImage src={profile?.avatar_url || ''} />
+                        <AvatarFallback>{profile?.name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <h1 className="text-4xl font-bold">{profile?.name || `@${profile?.username}`}</h1>
+                    <p className="text-muted-foreground mt-2">{profile?.bio}</p>
+                     <Button onClick={handleShare} variant="ghost" size="sm" className="mt-4 -ml-4"><Share className="mr-2 h-4 w-4" /> Compartilhar</Button>
+                </div>
+            </header>
+
+            <main className="col-span-12 md:col-span-9">
+                {cards.length > 0 ? (
+                <ResponsiveGridLayout
+                    layouts={{ lg: currentLayout }}
+                    breakpoints={{ lg: 768, md: 768, sm: 0 }}
+                    cols={{ lg: 4, md: 4, sm: 1 }}
+                    rowHeight={100}
+                    isDraggable={false}
+                    isResizable={false}
+                    compactType="vertical"
+                    margin={[20, 20]}
+                    containerPadding={[0, 0]}
+                    className="min-h-[400px]"
+                >
+                    {cards.map(card => (
+                        <div key={card.id} data-grid={currentLayout.find(l => l.i === card.id)}>
+                            <ElementCard data={card} />
+                        </div>
+                    ))}
+                </ResponsiveGridLayout>
+                ) : (
+                    <div className="flex items-center justify-center h-64 border-2 border-dashed rounded-lg">
+                        <p className="text-muted-foreground">
+                          {isOwner ? "Seu canvas está vazio. Adicione alguns cards!" : "Este perfil ainda não tem cards."}
+                        </p>
+                    </div>
+                )}
+            </main>
+        </div>
+    </div>
+  );
+}
