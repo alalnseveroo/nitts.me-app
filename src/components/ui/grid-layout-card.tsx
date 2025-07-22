@@ -1,11 +1,11 @@
 
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import React, 'react';
+import { GridLayoutCardBase } from './grid-layout-card-base';
+import { CardResizeControls } from './card-resize-controls';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/lib/supabase/client';
+import { Trash2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,10 +17,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, UploadCloud, Loader2, Crop } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CardResizeControls } from './card-resize-controls';
 
 type CardData = {
     id: string;
@@ -40,190 +36,48 @@ interface GridLayoutCardProps {
 }
 
 export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize }: GridLayoutCardProps) => {
-    const [currentData, setCurrentData] = useState(card);
-    const [uploading, setUploading] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [isFocused, setIsFocused] = useState(false);
-
-    useEffect(() => {
-        setCurrentData(card);
-    }, [card]);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setCurrentData(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleBlur = () => {
-        setIsFocused(false);
-        const { id, type, user_id, ...updates } = currentData;
-        if (JSON.stringify(updates) !== JSON.stringify({ title: card.title, content: card.content, link: card.link, background_image: card.background_image })) {
-            onUpdate(id, updates);
-        }
-    };
-
-    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!event.target.files || event.target.files.length === 0) return;
-        
-        const file = event.target.files[0];
-        const fileExt = file.name.split('.').pop();
-        const filePath = `${card.user_id}/${card.id}-${Date.now()}.${fileExt}`;
-
-        try {
-            setUploading(true);
-            const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
-
-            if (uploadError) throw uploadError;
-
-            const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
-            
-            const updates = { background_image: publicUrl };
-            setCurrentData(prev => ({ ...prev, ...updates }));
-            onUpdate(card.id, updates);
-
-        } catch (error) {
-            alert('Falha no upload da imagem.');
-            console.error(error);
-        } finally {
-            setUploading(false);
-        }
-    };
-    
-    const renderCardContent = () => {
-        switch (card.type) {
-            case 'image':
-                return (
-                    <div className="w-full h-full relative">
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            className="hidden"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            disabled={uploading}
-                        />
-                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/card:opacity-100 flex items-center justify-center transition-opacity z-10">
-                            <Button
-                                onClick={() => fileInputRef.current?.click()}
-                                disabled={uploading}
-                                variant="outline"
-                            >
-                                {uploading ? (
-                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                ) : (
-                                    <UploadCloud className="h-4 w-4 mr-2" />
-                                )}
-                                Alterar Imagem
-                            </Button>
-                        </div>
-                        <img 
-                            src={currentData.background_image || 'https://placehold.co/400x400.png'} 
-                            alt={currentData.title || 'Card image'}
-                            className="w-full h-full object-cover"
-                            data-ai-hint="abstract background"
-                        />
-                    </div>
-                );
-            case 'link':
-                return (
-                    <div className="space-y-2 p-4">
-                        <Input
-                            name="title"
-                            placeholder="Título"
-                            value={currentData.title || ''}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            className="font-semibold border-none focus:ring-0 shadow-none p-0 h-auto"
-                        />
-                        <Input
-                            name="link"
-                            placeholder="https://exemplo.com"
-                            value={currentData.link || ''}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                             className="border-none focus:ring-0 shadow-none p-0 h-auto text-muted-foreground"
-                        />
-                    </div>
-                );
-            case 'title':
-                 return (
-                    <div className="p-4 w-full h-full">
-                        <Input
-                            name="title"
-                            placeholder="Título Principal"
-                            className="text-4xl font-bold border-none focus:ring-0 p-0 h-full w-full shadow-none bg-transparent"
-                            value={currentData.title || ''}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                        />
-                    </div>
-                );
-            case 'note':
-                return (
-                    <div className="p-4 h-full">
-                        <Textarea
-                            name="content"
-                            placeholder="Escreva sua nota aqui..."
-                            value={currentData.content || ''}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            className="border-none focus:ring-0 p-0 h-full resize-none bg-transparent"
-                        />
-                    </div>
-                );
-            case 'map':
-                return (
-                    <div className="p-4 flex items-center justify-center text-muted-foreground">
-                        🗺️ Elemento de Mapa (WIP)
-                    </div>
-                )
-            default:
-                return <p className="p-4">Tipo de card desconhecido</p>;
-        }
-    };
-
     return (
-        <Card className={`w-full h-full flex flex-col bg-card border-2 transition-all overflow-visible ${isFocused ? 'border-primary' : 'border-transparent'}`} onFocus={() => setIsFocused(true)} onBlurCapture={handleBlur}>
-            <div className="flex-grow flex items-center justify-center relative group/card h-full">
-                {renderCardContent()}
-                
-                <div className="absolute top-[-14px] left-2 z-20 flex items-center opacity-0 group-hover/card:opacity-100 transition-opacity">
-                    <div className="flex items-center gap-1 bg-black rounded-lg shadow-xl p-1">
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button title="Deletar" variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-neutral-700 hover:text-white">
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Isso deletará o card permanentemente. Esta ação não pode ser desfeita.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => onDelete(card.id)} className="bg-destructive hover:bg-destructive/90">
-                                        Deletar
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
+        <div className="w-full h-full relative group/card">
+            {/* Card Base */}
+            <GridLayoutCardBase
+                card={card}
+                onUpdate={onUpdate}
+            />
 
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button title="Redimensionar" variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-neutral-700 hover:text-white">
-                                    <Crop className="h-4 w-4" />
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-1 bg-black border-neutral-700" side="bottom" align="start">
-                                <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
-                            </PopoverContent>
-                        </Popover>
-                    </div>
+            {/* Delete Button */}
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button
+                        title="Deletar"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-[-10px] left-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Isso deletará o card permanentemente. Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => onDelete(card.id)} className="bg-destructive hover:bg-destructive/90">
+                            Deletar
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Resize Controls Toolbar */}
+            <div className="absolute bottom-[-50px] left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                <div className="bg-black text-white rounded-lg shadow-xl p-1">
+                    <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
                 </div>
             </div>
-        </Card>
+        </div>
     );
 };
