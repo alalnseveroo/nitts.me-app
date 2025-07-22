@@ -1,3 +1,4 @@
+
 'use client'
 
 import React from 'react';
@@ -77,7 +78,7 @@ const GridLayoutComponent = ({
             margin={[10, 10]}
             containerPadding={[0,0]}
             compactType="vertical"
-            draggableHandle=".drag-handle"
+            draggableHandle={isMobile ? ".mobile-drag-handle" : ".drag-handle"}
             style={{ overflow: 'visible' }} 
         >
             {cards.map(card => {
@@ -103,3 +104,5 @@ const GridLayoutComponent = ({
 };
 
 export default GridLayoutComponent;
+
+    

@@ -102,6 +102,15 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                             <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
                         </div>
                     </div>
+                     <Button
+                        title="Editar conteúdo"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onEdit(card.id)}
+                        className="absolute bottom-[-10px] left-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
+                    >
+                        <Edit className="h-4 w-4" />
+                    </Button>
                 </>
             )}
 
@@ -141,7 +150,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                     </Button>
                     
                      {/* Drag Handle */}
-                    <div className="drag-handle absolute bottom-[-15px] left-1/2 -translate-x-1/2 z-30 cursor-move bg-black text-white rounded-full p-2 shadow-lg">
+                    <div className="mobile-drag-handle absolute bottom-[-15px] left-1/2 -translate-x-1/2 z-30 cursor-move bg-black text-white rounded-full p-2 shadow-lg">
                         <Grip className="h-5 w-5" />
                     </div>
                 </>
@@ -153,3 +162,4 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
 
 export const GridLayoutCard = React.memo(GridLayoutCardComponent);
 
+    
