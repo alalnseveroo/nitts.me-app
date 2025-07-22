@@ -100,16 +100,16 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="title">Título da Imagem</Label>
+              <Label htmlFor="title">Título da Imagem (Opcional)</Label>
               <Input
                 id="title"
                 name="title"
-                placeholder="Ex: Minha Viagem"
+                placeholder="Ex: Minha Viagem ao Rio de Janeiro"
                 value={formData.title || ''}
                 onChange={handleChange}
               />
                <p className="text-sm text-muted-foreground mt-2">
-                  Este título aparecerá sobre a imagem.
+                  Este texto aparecerá sobre a imagem no canto inferior esquerdo.
                </p>
             </div>
           </div>

@@ -55,7 +55,7 @@ export const ElementCard = ({ data }: ElementCardProps) => {
                         data-ai-hint="abstract background"
                     />
                     {data.title && (
-                        <div className="absolute bottom-0 left-0 p-4">
+                        <div className="absolute bottom-0 left-0 p-4 w-full bg-gradient-to-t from-black/50 to-transparent">
                             <h3 className="text-white text-lg font-bold" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.7)' }}>
                                 {data.title}
                             </h3>
