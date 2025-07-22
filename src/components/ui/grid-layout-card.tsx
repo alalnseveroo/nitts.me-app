@@ -45,7 +45,6 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize }: GridLayou
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isFocused, setIsFocused] = useState(false);
 
-    // Update internal state if the card prop changes from parent
     useEffect(() => {
         setCurrentData(card);
     }, [card]);
@@ -188,40 +187,41 @@ export const GridLayoutCard = ({ card, onUpdate, onDelete, onResize }: GridLayou
             <div className="flex-grow flex items-center justify-center relative group/card h-full">
                 {renderCardContent()}
                 
-                {/* Delete and Resize Controls - Appear on Hover */}
-                <div className="absolute top-[-10px] left-[-10px] z-20 flex items-center gap-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                             <Button variant="default" size="icon" className="h-7 w-7 rounded-full shadow-lg">
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Isso deletará o card permanentemente. Esta ação não pode ser desfeita.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => onDelete(card.id)} className="bg-destructive hover:bg-destructive/90">
-                                    Deletar
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </div>
-                
-                <div className="absolute bottom-[-20px] z-20 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <div className="bg-black text-white rounded-lg shadow-xl p-1">
+                <div className="absolute top-[-14px] left-2 z-20 flex items-center opacity-0 group-hover/card:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1 bg-black rounded-lg shadow-xl p-1">
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button title="Deletar" variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-neutral-700 hover:text-white">
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Isso deletará o card permanentemente. Esta ação não pode ser desfeita.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => onDelete(card.id)} className="bg-destructive hover:bg-destructive/90">
+                                        Deletar
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button title="Redimensionar" variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-neutral-700 hover:text-white">
+                                    <Crop className="h-4 w-4" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-1 bg-black border-neutral-700" side="bottom" align="start">
                                 <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
-                            </div>
-                        </PopoverTrigger>
-                        {/* No PopoverContent needed if controls are directly in the trigger styling */}
-                    </Popover>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
                 </div>
             </div>
         </Card>
