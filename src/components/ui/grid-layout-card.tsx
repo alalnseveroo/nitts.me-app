@@ -4,7 +4,7 @@
 import React from 'react';
 import { GridLayoutCardBase } from './grid-layout-card-base';
 import { Button } from '@/components/ui/button';
-import { Move, Trash2, Edit } from 'lucide-react';
+import { Move, Trash2, Edit, Square, RectangleHorizontal, RectangleVertical, Crop } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +16,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { cn } from '@/lib/utils';
 import type { CardData } from '@/app/[username]/page';
 
@@ -92,7 +98,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={(e) => { e.stopPropagation(); onDelete(card.id); }} className="bg-destructive hover:bg-destructive/90">
+                                <AlertDialogAction onClick={() => onDelete(card.id)} className="bg-destructive hover:bg-destructive/90">
                                     Deletar
                                 </AlertDialogAction>
                             </AlertDialogFooter>
@@ -100,11 +106,27 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                     </AlertDialog>
                     
                     {!isTitleCard && (
-                        <div className="absolute bottom-[-50px] left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                            <div className="bg-black text-white rounded-lg shadow-xl p-1">
-                                <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
-                            </div>
-                        </div>
+                        <DropdownMenu onOpenChange={onMenuStateChange}>
+                            <DropdownMenuTrigger asChild>
+                                 <Button
+                                    title="Redimensionar"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                    }}
+                                    className="absolute bottom-[-10px] right-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
+                                >
+                                    <Crop className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                             <DropdownMenuContent>
+                                <DropdownMenuItem onSelect={() => onResize(card.id, 1, 1)}><Square className="mr-2" /> Quadrado (1x1)</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => onResize(card.id, 2, 1)}><RectangleHorizontal className="mr-2"/> Retângulo (2x1)</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => onResize(card.id, 1, 2)}><RectangleVertical className="mr-2"/> Retângulo (1x2)</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => onResize(card.id, 2, 2)}><Crop className="mr-2"/> Grande (2x2)</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     )}
                     <Button
                         title="Editar conteúdo"
@@ -142,7 +164,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                             <AlertDialogFooter>
                                 <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction 
-                                  onClick={(e) => { e.stopPropagation(); onDelete(card.id); }}
+                                  onClick={() => onDelete(card.id)}
                                   className="bg-destructive hover:bg-destructive/90"
                                 >
                                   Deletar
@@ -177,3 +199,4 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
 
 
 export const GridLayoutCard = React.memo(GridLayoutCardComponent);
+
