@@ -62,7 +62,7 @@ export const ElementCard = ({ data }: ElementCardProps) => {
             return (
                  <CardWrapper data={data}>
                     <Card
-                        className="w-full h-full p-4 overflow-y-auto flex items-center justify-center text-center"
+                        className="w-full h-full p-4 flex items-center justify-center text-center"
                         style={{ backgroundColor: data.background_color ?? '#FFFFFF' }}
                     >
                         <p className="text-xl font-medium text-foreground whitespace-pre-wrap">{data.content}</p>
