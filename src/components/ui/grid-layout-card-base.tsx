@@ -109,7 +109,7 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
                 );
             case 'link':
                 return (
-                    <div className={cn("space-y-2 p-4", isDisabled && "pointer-events-none")}>
+                    <div className={cn("space-y-2 p-4 w-full", isDisabled && "pointer-events-none")}>
                         <Input
                             name="title"
                             placeholder="Título"
@@ -167,7 +167,6 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
             className={cn(
                 'w-full h-full flex flex-col overflow-hidden',
                 isTitleCard ? 'bg-transparent border-none shadow-none' : 'bg-card',
-                isNoteCard ? 'items-center justify-center p-4' : '',
                 isFocused && !isDisabled && !isTitleCard ? 'ring-2 ring-primary' : '',
             )}
             style={{ 
@@ -176,7 +175,11 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
             onFocus={() => !isDisabled && setIsFocused(true)}
             onBlurCapture={handleBlur}
         >
-            <div className={cn("flex-grow w-full", isNoteCard ? '' : 'flex items-center justify-center h-full', { "pointer-events-none": isDisabled })}>
+             <div className={cn(
+                "w-full h-full", 
+                isNoteCard ? 'flex items-center justify-center p-4' : 'p-0', 
+                { "pointer-events-none": isDisabled }
+            )}>
                 {renderContent()}
             </div>
         </Card>
