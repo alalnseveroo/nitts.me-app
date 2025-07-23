@@ -14,7 +14,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
@@ -60,13 +59,13 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
     
     const handleDeleteTriggerClick = (e: React.MouseEvent) => {
         e.stopPropagation();
+        setIsDeleteDialogOpen(true);
     }
 
     const handleDeleteConfirm = () => {
         onDelete(card.id);
         setIsDeleteDialogOpen(false);
     }
-
 
     return (
         <div 
@@ -107,7 +106,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                                 title="Deletar"
                                 variant="ghost"
                                 size="icon"
-                                onClick={(e) => { e.stopPropagation(); setIsDeleteDialogOpen(true); }}
+                                onClick={handleDeleteTriggerClick}
                                 className="absolute top-[-10px] left-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
                             >
                                 <Trash2 className="h-4 w-4" />
@@ -161,7 +160,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                                 title="Deletar"
                                 variant="default"
                                 size="icon"
-                                onClick={(e) => { e.stopPropagation(); setIsDeleteDialogOpen(true); }}
+                                onClick={handleDeleteTriggerClick}
                                 className="absolute top-[-12px] left-[-12px] z-30 h-8 w-8 rounded-full bg-white text-black shadow-lg hover:bg-gray-200"
                             >
                                 <Trash2 className="h-4 w-4" />
@@ -175,7 +174,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
                                     Deletar
                                 </AlertDialogAction>
@@ -225,5 +224,3 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
 
 
 export const GridLayoutCard = React.memo(GridLayoutCardComponent);
-
-    
