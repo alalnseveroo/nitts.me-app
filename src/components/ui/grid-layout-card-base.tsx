@@ -170,7 +170,9 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
                 isTitleCard ? 'bg-transparent border-none shadow-none' : 'bg-card',
                 isFocused && !isDisabled && !isTitleCard ? 'ring-2 ring-primary' : '',
             )}
-            style={{ backgroundColor: card.type === 'note' ? currentData.background_color ?? '#FFFFFF' : undefined }}
+            style={{ 
+                backgroundColor: card.type === 'note' ? currentData.background_color ?? '#FFFFFF' : undefined 
+            }}
             onFocus={() => !isDisabled && setIsFocused(true)}
             onBlurCapture={handleBlur}
         >
