@@ -60,12 +60,18 @@ const GridLayoutComponent = ({
     }, [selectedCard]);
 
     const handleSelectCard = useCallback((cardId: string, e?: React.MouseEvent) => {
-        // Prevent selection if click is on drag handle or an already selected card to avoid conflicts
-        if (e && ((e.target as HTMLElement).closest('.mobile-drag-handle') || (e.target as HTMLElement).closest('.react-resizable-handle'))) {
+        const target = e?.target as HTMLElement;
+        if (target && (target.closest('.mobile-drag-handle') || target.closest('.react-resizable-handle'))) {
             return;
         }
+
+        if (isMobile && selectedCardId !== cardId) {
+             e?.preventDefault();
+             e?.stopPropagation();
+        }
+
         setSelectedCardId(currentId => (currentId === cardId ? null : cardId));
-    }, []);
+    }, [isMobile, selectedCardId]);
 
     const handleDragStart = useCallback(() => {
         if (isMobile) {
@@ -93,7 +99,7 @@ const GridLayoutComponent = ({
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             const target = event.target as HTMLElement;
-            if (selectedCardId && !target.closest('.react-grid-layout') && !target.closest('[data-mobile-menu]')) {
+            if (selectedCardId && !target.closest('.react-grid-item') && !target.closest('[data-mobile-menu]')) {
                  setSelectedCardId(null);
             }
         };
@@ -127,6 +133,7 @@ const GridLayoutComponent = ({
             containerPadding={[0,0]}
             compactType="vertical"
             draggableHandle={isMobile ? ".mobile-drag-handle" : ".drag-handle"}
+            preventCollision={true}
         >
             {cards.map(card => {
                 const layoutItem = layoutConfig.find(l => l.i === card.id);
@@ -143,11 +150,7 @@ const GridLayoutComponent = ({
                             onResize={(w, h) => onResizeCard(card.id, w, h)}
                             onClick={handleSelectCard}
                             onEdit={(cardId) => {
-                                if (card.type !== 'note') {
-                                    onEditCard(cardId)
-                                } else {
-                                     if(isMobile) handleSelectCard(cardId);
-                                }
+                                onEditCard(cardId);
                             }}
                             isSelected={selectedCardId === card.id}
                             isMobile={isMobile}
