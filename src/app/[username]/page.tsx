@@ -24,15 +24,6 @@ import { ElementCard } from '@/components/ui/element-card'
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-type Profile = {
-  id: string;
-  username: string | null
-  name: string | null
-  bio: string | null
-  avatar_url: string | null
-  layout_config: Layout[] | null
-}
-
 export type CardData = {
     id: string;
     user_id: string;
@@ -539,7 +530,6 @@ export default function UnifiedUserPage() {
                         onDeleteCard={handleDeleteCard}
                         onResizeCard={handleResizeCard}
                         onEditCard={handleEditCard}
-                        rowHeight={rowHeight}
                         isMobile={isMobile}
                         onMenuStateChange={setIsCardMenuOpen}
                         selectedCardId={selectedCardId}

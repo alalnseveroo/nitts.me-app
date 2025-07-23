@@ -83,7 +83,7 @@ const GridLayoutComponent = ({
                             onMenuStateChange={onMenuStateChange}
                             isMobile={isMobile}
                             isSelected={selectedCardId === card.id}
-                            onClick={onSelectCard}
+                            onSelectCard={onSelectCard}
                         />
                     </div>
                 )

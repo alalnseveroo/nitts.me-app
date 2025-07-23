@@ -26,21 +26,19 @@ interface GridLayoutCardProps {
     onDelete: (id: string) => void;
     onResize: (id: string, w: number, h: number) => void;
     onEdit: (id: string) => void;
-    onClick: (id: string, e: React.MouseEvent) => void;
+    onSelectCard: (id: string, e: React.MouseEvent) => void;
     isSelected: boolean;
     isMobile: boolean;
 }
 
-const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, onClick, isSelected, isMobile }: GridLayoutCardProps) => {
+const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, onSelectCard, isSelected, isMobile }: GridLayoutCardProps) => {
     
     const showDesktopControls = !isMobile;
     const showMobileControls = isMobile && isSelected;
     const isTitleCard = card.type === 'title';
 
     const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (onClick) {
-            onClick(card.id, e);
-        }
+        onSelectCard(card.id, e);
     };
 
     return (
