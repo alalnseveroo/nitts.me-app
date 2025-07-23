@@ -17,7 +17,9 @@ const CardWrapper = ({ data, children }: { data: CardData, children: React.React
         <div className="relative w-full h-full">
             {children}
             {data.link && (
-                <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-muted-foreground" />
+                 <div className="absolute top-2 right-2 p-1 bg-black/10 dark:bg-white/10 rounded-full backdrop-blur-sm">
+                    <ArrowUpRight className="h-4 w-4" />
+                </div>
             )}
         </div>
     );
