@@ -80,8 +80,8 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
         switch (card.type) {
             case 'image':
                 return (
-                    <div className="w-full h-full relative group/image-card pointer-events-none">
-                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/image-card:opacity-100 flex items-center justify-center transition-opacity z-10 pointer-events-auto">
+                    <div className="w-full h-full relative group/image-card">
+                         <div className={cn("absolute inset-0 bg-black/40 opacity-0 group-hover/image-card:opacity-100 flex items-center justify-center transition-opacity z-10", isDisabled ? 'pointer-events-none' : 'pointer-events-auto')}>
                             <Button
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={uploading || isDisabled}
@@ -141,14 +141,14 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
                 );
             case 'title':
                  return (
-                    <div className={cn("p-0 w-full h-full flex items-center", isDisabled && isMobile && "pointer-events-none")}>
+                    <div className={cn("p-0 w-full h-full flex items-center", isMobile && !isDisabled && "pointer-events-none")}>
                         <Input
                             name="title"
                             placeholder="Título Principal"
                             className={cn(
                                 "text-4xl font-bold border-none focus:ring-0 w-full shadow-none bg-transparent",
-                                isMobile && "p-2 h-auto",
-                                !isMobile && "p-0 h-full"
+                                isMobile ? "h-auto p-2" : "p-0 h-full",
+                                isMobile && !isDisabled && "bg-background border rounded-lg shadow-sm"
                             )}
                             value={currentData.title || ''}
                             onChange={handleChange}
@@ -182,7 +182,7 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
         }
     };
 
-    const isTitleCardOnMobile = card.type === 'title' && isMobile;
+    const isTitleCardOnMobile = card.type === 'title' && isMobile && !isDisabled;
 
     return (
         <Card 
@@ -194,7 +194,7 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
             onFocus={() => !isDisabled && setIsFocused(true)}
             onBlurCapture={handleBlur}
         >
-            <div className={cn("flex-grow flex items-center justify-center h-full", { "pointer-events-none": isDisabled })}>
+            <div className={cn("flex-grow flex items-center justify-center h-full", { "pointer-events-none": isDisabled && !isMobile })}>
                 {renderContent()}
             </div>
         </Card>
