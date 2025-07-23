@@ -44,6 +44,21 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
   
   const renderFormContent = () => {
     switch (card.type) {
+      case 'title':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="title">Título</Label>
+              <Input
+                id="title"
+                name="title"
+                value={formData.title || ''}
+                onChange={handleChange}
+                className="text-2xl font-bold h-auto p-2"
+              />
+            </div>
+          </div>
+        );
       case 'link':
         return (
           <div className="space-y-4">
@@ -78,21 +93,6 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
                 value={formData.content || ''}
                 onChange={handleChange}
                 rows={8}
-              />
-            </div>
-          </div>
-        );
-       case 'title':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="title">Título</Label>
-              <Input
-                id="title"
-                name="title"
-                value={formData.title || ''}
-                onChange={handleChange}
-                className="text-2xl font-bold h-auto"
               />
             </div>
           </div>

@@ -141,20 +141,8 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
                 );
             case 'title':
                  return (
-                    <div className={cn("p-0 w-full h-full flex items-center", isDisabled && "pointer-events-none")}>
-                        <Input
-                            name="title"
-                            placeholder="Título Principal"
-                            className={cn(
-                                "text-4xl font-bold border-none focus:ring-0 w-full shadow-none bg-transparent",
-                                isMobile ? "h-auto p-2" : "p-0 h-full",
-                                isMobile && !isDisabled && "bg-transparent border rounded-lg shadow-sm"
-                            )}
-                            value={currentData.title || ''}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            disabled={isDisabled}
-                        />
+                    <div className={cn("w-full h-full flex items-center p-2", isDisabled && "pointer-events-none")}>
+                        <h2 className="text-4xl font-bold">{currentData.title}</h2>
                     </div>
                 );
             case 'note':
@@ -182,19 +170,16 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
         }
     };
 
-    const isTitleCardOnMobile = card.type === 'title' && isMobile && !isDisabled;
-
     return (
         <Card 
             className={cn(
-                'w-full h-full flex flex-col overflow-hidden',
+                'w-full h-full flex flex-col overflow-hidden bg-card',
                 isFocused && !isDisabled ? 'ring-2 ring-primary' : '',
-                isTitleCardOnMobile ? 'bg-transparent border-none shadow-none' : 'bg-card'
             )} 
             onFocus={() => !isDisabled && setIsFocused(true)}
             onBlurCapture={handleBlur}
         >
-            <div className={cn("flex-grow flex items-center justify-center h-full", { "pointer-events-none": isDisabled })}>
+            <div className={cn("flex-grow flex items-center justify-center h-full", { "pointer-events-none": isDisabled && card.type !== 'title' })}>
                 {renderContent()}
             </div>
         </Card>

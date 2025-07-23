@@ -45,25 +45,30 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
     const showDesktopControls = !isMobile;
     const showMobileControls = isMobile && isSelected;
     const isTitleCard = card.type === 'title';
-    const isTitleOnMobile = isMobile && isTitleCard;
+
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (isMobile) {
+            e.stopPropagation();
+            if (isTitleCard) {
+                onEdit(card.id); // Open sheet for title editing
+            } else if (!isSelected) {
+                onClick(card.id);
+            }
+        }
+    };
 
     return (
         <div 
             className={cn(
                 "w-full h-full relative group/card",
-                isTitleOnMobile && '!h-fit'
+                isMobile && isTitleCard && '!h-fit'
             )}
-            onClick={(e) => {
-                if (isMobile && !isSelected) {
-                    e.stopPropagation();
-                    onClick(card.id);
-                }
-            }}
+            onClick={handleClick}
             data-card-id={card.id}
         >
             <div className={cn(
                 "w-full h-full rounded-lg transition-all",
-                isSelected && !isTitleOnMobile ? "border-2 border-foreground" : "border-2 border-transparent",
+                isSelected && !isTitleCard ? "border-2 border-foreground" : "border-2 border-transparent",
                 isMobile && !isSelected && "cursor-pointer"
             )}>
                  <GridLayoutCardBase
@@ -115,7 +120,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                                     <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
                                 </div>
                             </div>
-                            <Button
+                             <Button
                                 title="Editar conteúdo"
                                 variant="ghost"
                                 size="icon"
