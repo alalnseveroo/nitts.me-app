@@ -126,7 +126,7 @@ const GridLayoutComponent = ({
             breakpoints={{ lg: 768, sm: 0 }}
             cols={{ lg: 4, sm: 2 }}
             rowHeight={rowHeight}
-            isDraggable
+            isDraggable={!isMobile}
             isResizable={!isMobile}
             className="min-h-[400px]"
             margin={[10, 10]}
