@@ -39,30 +39,17 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
   };
 
   const handleSaveChanges = () => {
-    onUpdate(card.id, formData);
+    // We only update the data that can be edited in this sheet.
+    // The link is now edited elsewhere.
+    const updatesToSave: Partial<CardData> = {};
+    if (formData.title !== undefined) updatesToSave.title = formData.title;
+    if (formData.content !== undefined) updatesToSave.content = formData.content;
+    
+    onUpdate(card.id, updatesToSave);
     onOpenChange(false);
   };
   
   const renderFormContent = () => {
-    const linkInput = (
-       <div className="space-y-4">
-          <Separator />
-          <div>
-            <Label htmlFor="link">URL do Link (Opcional)</Label>
-             <Input
-                id="link"
-                name="link"
-                placeholder="https://exemplo.com"
-                value={formData.link || ''}
-                onChange={handleChange}
-              />
-               <p className="text-sm text-muted-foreground mt-2">
-                  Se preenchido, o card inteiro se tornará um link.
-               </p>
-          </div>
-       </div>
-    );
-
     switch (card.type) {
       case 'title':
         return (
@@ -77,7 +64,6 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
                 className="text-2xl font-bold h-auto p-2"
               />
             </div>
-            {linkInput}
           </div>
         );
       case 'link':
@@ -116,7 +102,6 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
                 rows={8}
               />
             </div>
-            {linkInput}
           </div>
         );
       case 'image':
@@ -135,14 +120,12 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
                   Este texto aparecerá sobre a imagem no canto inferior esquerdo.
                </p>
             </div>
-            {linkInput}
           </div>
         );
       case 'map':
         return (
           <>
-            <p className="mb-4">Este tipo de card não tem conteúdo editável, mas pode ter um link.</p>
-            {linkInput}
+            <p className="mb-4">Este tipo de card não tem conteúdo editável, mas pode ter um link gerenciado no menu rápido.</p>
           </>
         );
       default:
