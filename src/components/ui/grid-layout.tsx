@@ -1,7 +1,7 @@
 
 'use client'
 
-import React, 'react';
+import React from 'react';
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout';
 import { GridLayoutCard } from './grid-layout-card';
 import 'react-grid-layout/css/styles.css';
@@ -17,6 +17,7 @@ interface GridLayoutProps {
     onDeleteCard: (cardId: string) => void;
     onResizeCard: (cardId: string, w: number, h: number) => void;
     onEditCard: (cardId: string) => void;
+    onMenuStateChange: (isOpen: boolean) => void;
     isMobile: boolean;
 }
 
@@ -30,6 +31,7 @@ const GridLayoutComponent = ({
     onDeleteCard, 
     onResizeCard,
     onEditCard,
+    onMenuStateChange,
     isMobile
 }: GridLayoutProps) => {
 
@@ -52,7 +54,6 @@ const GridLayoutComponent = ({
             onLayoutChange={onLayoutChange}
             onDragStart={handleDragStart}
             onDragStop={handleDragStop}
-            onResizeStop={onLayoutChange}
             breakpoints={{ lg: 768, sm: 0 }}
             cols={{ lg: 4, sm: 2 }}
             rowHeight={100}
@@ -74,6 +75,7 @@ const GridLayoutComponent = ({
                             onDelete={() => onDeleteCard(card.id)}
                             onResize={(w, h) => onResizeCard(card.id, w, h)}
                             onEdit={onEditCard}
+                            onMenuStateChange={onMenuStateChange}
                             isMobile={isMobile}
                         />
                     </div>
