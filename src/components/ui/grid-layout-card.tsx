@@ -39,7 +39,14 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
     const isTitleCard = card.type === 'title';
 
     const handleClick = () => {
-        onSelectCard(card.id);
+        if (isMobile) {
+            onSelectCard(card.id);
+        }
+    };
+
+    const handleDeleteConfirm = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onDelete(card.id);
     };
 
     return (
@@ -91,7 +98,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => onDelete(card.id)} className="bg-destructive hover:bg-destructive/90">
+                                <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
                                     Deletar
                                 </AlertDialogAction>
                             </AlertDialogFooter>
@@ -141,10 +148,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onDelete(card.id);
-                                  }}
+                                  onClick={handleDeleteConfirm}
                                   className="bg-destructive hover:bg-destructive/90"
                                 >
                                   Deletar
@@ -179,5 +183,3 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
 
 
 export const GridLayoutCard = React.memo(GridLayoutCardComponent);
-
-    
