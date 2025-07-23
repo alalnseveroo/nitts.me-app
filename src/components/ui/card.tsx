@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cn } from "@/lib/utils"
@@ -11,7 +12,7 @@ const Card = React.forwardRef<
     <Comp
       ref={ref}
       className={cn(
-        "rounded-2xl border bg-card text-card-foreground shadow-sm md:rounded-lg",
+        "rounded-3xl border bg-card text-card-foreground shadow-sm md:rounded-lg",
         className
       )}
       {...props}
