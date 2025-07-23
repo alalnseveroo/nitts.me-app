@@ -5,7 +5,7 @@ import React from 'react';
 import { GridLayoutCardBase } from './grid-layout-card-base';
 import { CardResizeControls } from './card-resize-controls';
 import { Button } from '@/components/ui/button';
-import { Grip, Trash2, Edit, GripVertical } from 'lucide-react';
+import { Move, Trash2, Edit } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,16 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from '@/lib/utils';
-
-type CardData = {
-    id: string;
-    user_id: string;
-    type: string;
-    title: string | null;
-    content: string | null;
-    link: string | null;
-    background_image: string | null;
-};
+import type { CardData } from '@/app/[username]/page';
 
 interface GridLayoutCardProps {
     card: CardData;
@@ -35,7 +26,7 @@ interface GridLayoutCardProps {
     onDelete: (id: string) => void;
     onResize: (id: string, w: number, h: number) => void;
     onEdit: (id: string) => void;
-    onClick: (id: string) => void;
+    onClick: (id: string, e: React.MouseEvent) => void;
     isSelected: boolean;
     isMobile: boolean;
 }
@@ -47,9 +38,8 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
     const isTitleCard = card.type === 'title';
 
     const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (isMobile && !isSelected) {
-            e.stopPropagation();
-            onClick(card.id);
+        if (isMobile) {
+           onClick(card.id, e);
         }
     };
 
@@ -61,6 +51,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
             )}
             onClick={handleClick}
             data-card-id={card.id}
+            onDragStart={(e) => e.preventDefault()}
         >
             <div className={cn(
                 "w-full h-full rounded-lg transition-all",
@@ -79,7 +70,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
             {showDesktopControls && (
                 <>
                     <div className="drag-handle absolute top-2 right-2 z-20 cursor-move text-white bg-black/30 rounded-full p-1 md:opacity-0 group-hover/card:opacity-100 transition-opacity">
-                        <GripVertical className="h-5 w-5" />
+                        <Move className="h-5 w-5" />
                     </div>
 
                     <AlertDialog>
@@ -120,7 +111,10 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                         title="Editar conteúdo"
                         variant="ghost"
                         size="icon"
-                        onClick={() => onEdit(card.id)}
+                        onClick={(e) => {
+                            e.stopPropagation(); // Prevent card selection
+                            onEdit(card.id)
+                        }}
                         className="absolute bottom-[-10px] left-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
                     >
                         <Edit className="h-4 w-4" />
@@ -157,7 +151,10 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                         title="Editar conteúdo"
                         variant="default"
                         size="icon"
-                        onClick={() => onEdit(card.id)}
+                        onClick={(e) => {
+                            e.stopPropagation(); // Prevent card deselection
+                            onEdit(card.id)
+                        }}
                         className="absolute top-[-12px] right-[-12px] z-30 h-8 w-8 rounded-full bg-black text-white shadow-lg hover:bg-gray-800"
                     >
                         <Edit className="h-4 w-4" />
@@ -165,7 +162,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                     
                      {/* Drag Handle */}
                     <div className="mobile-drag-handle absolute bottom-[-15px] left-1/2 -translate-x-1/2 z-30 cursor-move bg-black text-white rounded-full p-2 shadow-lg">
-                        <Grip className="h-5 w-5" />
+                        <Move className="h-5 w-5" />
                     </div>
                 </>
             )}

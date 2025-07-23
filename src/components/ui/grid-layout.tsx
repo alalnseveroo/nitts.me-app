@@ -106,8 +106,6 @@ const GridLayoutComponent = ({
 
     const handleColorChange = (cardId: string, color: string) => {
         onUpdateCard(cardId, { background_color: color });
-        // Don't close the menu on color change, let user decide
-        // setSelectedCardId(null);
     };
     
     return (
@@ -116,7 +114,7 @@ const GridLayoutComponent = ({
             layouts={{ lg: layoutConfig, sm: layoutConfig }}
             onDragStart={handleDragStart}
             onDragStop={handleDragStop}
-            onResizeStop={!isMobile ? onDragStop : undefined}
+            onResizeStop={!isMobile ? handleDragStop : undefined}
             breakpoints={{ lg: 768, sm: 0 }}
             cols={{ lg: 4, sm: 2 }}
             rowHeight={rowHeight}
@@ -142,11 +140,7 @@ const GridLayoutComponent = ({
                             }}
                             onResize={(w, h) => onResizeCard(card.id, w, h)}
                             onClick={handleSelectCard}
-                            onEdit={(cardId) => {
-                                if (card.type !== 'note') {
-                                    onEditCard(cardId);
-                                }
-                            }}
+                            onEdit={onEditCard}
                             isSelected={selectedCardId === card.id}
                             isMobile={isMobile}
                         />
@@ -162,7 +156,7 @@ const GridLayoutComponent = ({
                          <CardColorControls onColorChange={(color) => handleColorChange(selectedCardId, color)} />
                     )}
 
-                    {selectedCard?.type !== 'title' && selectedCard?.type !== 'note' && (
+                    {selectedCard?.type !== 'title' && (
                         <div className="bg-white/10 rounded-lg p-1">
                             <CardResizeControls onResize={(w, h) => {
                                 onResizeCard(selectedCardId, w, h);
