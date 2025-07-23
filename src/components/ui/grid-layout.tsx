@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { Input } from './input';
-import { LinkIcon, Move } from 'lucide-react';
+import { LinkIcon } from 'lucide-react';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -28,7 +28,7 @@ type LayoutItem = Layout;
 interface GridLayoutProps {
     cards: Card[];
     layoutConfig: LayoutItem[];
-    onLayoutChange: (layout: LayoutItem[]) => void;
+    onDragStop: (layout: LayoutItem[]) => void;
     onUpdateCard: (id: string, updates: Partial<Card>) => void;
     onDeleteCard: (cardId: string) => void;
     onResizeCard: (cardId: string, w: number, h: number) => void;
@@ -41,7 +41,7 @@ interface GridLayoutProps {
 const GridLayoutComponent = ({ 
     cards, 
     layoutConfig, 
-    onLayoutChange,
+    onDragStop,
     onUpdateCard, 
     onDeleteCard, 
     onResizeCard,
@@ -80,8 +80,8 @@ const GridLayoutComponent = ({
         if (isMobile) {
             document.body.classList.remove('no-scroll');
         }
-        onLayoutChange(layout);
-    }, [isMobile, onLayoutChange]);
+        onDragStop(layout);
+    }, [isMobile, onDragStop]);
 
     const handleDoneClick = () => {
         if (selectedCardId && selectedCard && linkInputValue !== selectedCard.link) {
@@ -117,8 +117,7 @@ const GridLayoutComponent = ({
             layouts={{ lg: layoutConfig, sm: layoutConfig }}
             onDragStart={handleDragStart}
             onDragStop={handleDragStop}
-            onResizeStop={!isMobile ? onLayoutChange : undefined}
-            onLayoutChange={onLayoutChange}
+            onResizeStop={!isMobile ? onDragStop : undefined}
             breakpoints={{ lg: 768, sm: 0 }}
             cols={{ lg: 4, sm: 2 }}
             rowHeight={rowHeight}
@@ -186,4 +185,5 @@ const GridLayoutComponent = ({
 };
 
 export default React.memo(GridLayoutComponent);
+
 
