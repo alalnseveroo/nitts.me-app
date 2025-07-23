@@ -370,18 +370,22 @@ export default function UnifiedUserPage() {
   const handleDeleteCard = useCallback(async (cardId: string) => {
     if (!user) return;
 
+    // First, try to delete from the database
+    const { error } = await supabase.from('cards').delete().eq('id', cardId);
+
+    // If there's an error, show a toast and stop
+    if (error) {
+        toast({ title: 'Erro', description: 'Não foi possível deletar o card.', variant: 'destructive' });
+        console.error("Error deleting card:", error);
+        return;
+    }
+
+    // If successful, update the local state
     setCards(prev => prev.filter(c => c.id !== cardId));
     setCurrentLayout(prev => prev.filter(l => l.i !== cardId));
-    
-    const { error } = await supabase.from('cards').delete().eq('id', cardId);
-    if (error) {
-        toast({ title: 'Erro', description: 'Não foi possível deletar o card no servidor.', variant: 'destructive' });
-        console.error("Error deleting card:", error);
-        fetchPageData(user);
-    } else {
-        toast({ title: 'Sucesso', description: 'Card deletado.' });
-    }
-  }, [user, fetchPageData]);
+    toast({ title: 'Sucesso', description: 'Card deletado.' });
+
+  }, [user, toast]);
 
   const handleImageFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0 || !user) {

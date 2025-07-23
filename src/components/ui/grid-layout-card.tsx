@@ -3,7 +3,6 @@
 
 import React from 'react';
 import { GridLayoutCardBase } from './grid-layout-card-base';
-import { CardResizeControls } from './card-resize-controls';
 import { Button } from '@/components/ui/button';
 import { Move, Trash2, Edit } from 'lucide-react';
 import {
