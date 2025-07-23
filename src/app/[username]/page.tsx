@@ -512,7 +512,7 @@ export default function UnifiedUserPage() {
                     <GridLayoutComponent
                         cards={cards}
                         layoutConfig={currentLayout}
-                        onDragStop={handleLayoutChange}
+                        onLayoutChange={handleLayoutChange}
                         onUpdateCard={handleUpdateCard}
                         onDeleteCard={handleDeleteCard}
                         onResizeCard={handleResizeCard}

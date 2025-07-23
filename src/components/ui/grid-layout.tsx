@@ -20,7 +20,7 @@ type LayoutItem = Layout;
 interface GridLayoutProps {
     cards: CardData[];
     layoutConfig: LayoutItem[];
-    onDragStop: (layout: LayoutItem[]) => void;
+    onLayoutChange: (layout: LayoutItem[]) => void;
     onUpdateCard: (id: string, updates: Partial<CardData>) => void;
     onDeleteCard: (cardId: string) => void;
     onResizeCard: (cardId: string, w: number, h: number) => void;
@@ -33,7 +33,7 @@ interface GridLayoutProps {
 const GridLayoutComponent = ({ 
     cards, 
     layoutConfig, 
-    onDragStop,
+    onLayoutChange,
     onUpdateCard, 
     onDeleteCard, 
     onResizeCard,
@@ -86,8 +86,8 @@ const GridLayoutComponent = ({
         if (isMobile) {
             document.body.classList.remove('no-scroll');
         }
-        onDragStop(layout);
-    }, [isMobile, onDragStop]);
+        onLayoutChange(layout);
+    }, [isMobile, onLayoutChange]);
 
     const handleDoneClick = () => {
         if (selectedCardId && selectedCard && linkInputValue !== selectedCard.link) {
@@ -122,7 +122,7 @@ const GridLayoutComponent = ({
             layouts={{ lg: layoutConfig, sm: layoutConfig }}
             onDragStart={handleDragStart}
             onDragStop={handleDragStop}
-            onResizeStop={!isMobile ? handleDragStop : undefined}
+            onLayoutChange={onLayoutChange}
             breakpoints={{ lg: 768, sm: 0 }}
             cols={{ lg: 4, sm: 2 }}
             rowHeight={rowHeight}
