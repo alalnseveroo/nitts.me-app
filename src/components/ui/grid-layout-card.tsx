@@ -38,9 +38,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
     const isTitleCard = card.type === 'title';
 
     const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (isMobile) {
-           onClick(card.id, e);
-        }
+        onClick(card.id, e);
     };
 
     return (
@@ -48,7 +46,6 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
             className="w-full h-full relative group/card"
             onClick={handleClick}
             data-card-id={card.id}
-            onDragStart={(e) => e.preventDefault()}
         >
             <div className={cn(
                 "w-full h-full rounded-lg transition-all",
@@ -158,7 +155,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                     </Button>
                     
                      {/* Drag Handle */}
-                    <div className="mobile-drag-handle absolute bottom-[-15px] left-1/2 -translate-x-1/2 z-30 cursor-move bg-black text-white rounded-full p-2 shadow-lg">
+                    <div className="drag-handle absolute bottom-[-15px] left-1/2 -translate-x-1/2 z-30 cursor-move bg-black text-white rounded-full p-2 shadow-lg">
                         <Move className="h-5 w-5" />
                     </div>
                 </>

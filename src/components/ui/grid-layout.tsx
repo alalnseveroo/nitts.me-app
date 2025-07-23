@@ -61,7 +61,7 @@ const GridLayoutComponent = ({
 
     const handleSelectCard = useCallback((cardId: string, e?: React.MouseEvent) => {
         const target = e?.target as HTMLElement;
-        if (target && (target.closest('.mobile-drag-handle') || target.closest('.react-resizable-handle'))) {
+        if (target && (target.closest('.drag-handle') || target.closest('.react-resizable-handle'))) {
             return;
         }
 
@@ -126,13 +126,12 @@ const GridLayoutComponent = ({
             breakpoints={{ lg: 768, sm: 0 }}
             cols={{ lg: 4, sm: 2 }}
             rowHeight={rowHeight}
-            isDraggable={!isMobile}
             isResizable={!isMobile}
             className="min-h-[400px]"
             margin={[10, 10]}
             containerPadding={[0,0]}
             compactType="vertical"
-            draggableHandle={isMobile ? ".mobile-drag-handle" : ".drag-handle"}
+            draggableHandle=".drag-handle"
             preventCollision={true}
         >
             {cards.map(card => {
