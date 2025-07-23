@@ -81,6 +81,21 @@ const GridLayoutComponent = ({
     };
 
     useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            // Se o card já está selecionado E o clique foi fora do grid E fora do menu de edição.
+            if (selectedCardId && !target.closest('.react-grid-layout') && !target.closest('[data-mobile-menu]')) {
+                 setSelectedCardId(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [selectedCardId]);
+
+    useEffect(() => {
         if(isMenuOpen && selectedCardId) {
             setSelectedCardId(null);
         }
@@ -127,26 +142,28 @@ const GridLayoutComponent = ({
             })}
         </ResponsiveGridLayout>
         {isMobile && selectedCardId && (
-            <div className="fixed bottom-24 left-0 w-full p-4 z-50" onClick={(e) => e.stopPropagation()}>
-                <div className="bg-black/90 backdrop-blur-sm rounded-xl shadow-2xl flex flex-col p-2 gap-3">
+            <div data-mobile-menu className="fixed bottom-24 left-0 w-full px-4 z-50" onClick={(e) => e.stopPropagation()}>
+                <div className="bg-black/90 backdrop-blur-sm rounded-xl shadow-2xl flex flex-wrap items-center justify-center p-2 gap-3">
                     {selectedCard?.type !== 'title' && (
-                        <CardResizeControls onResize={(w, h) => {
-                            onResizeCard(selectedCardId, w, h);
-                            setSelectedCardId(null);
-                        }} />
+                        <div className="bg-white/10 rounded-lg p-1">
+                            <CardResizeControls onResize={(w, h) => {
+                                onResizeCard(selectedCardId, w, h);
+                                setSelectedCardId(null);
+                            }} />
+                        </div>
                     )}
-                    <div className="relative w-full px-2">
-                        <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <div className="relative flex-1 min-w-[150px]">
+                        <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <Input 
                             placeholder="Cole o link"
-                            className="bg-white/10 border-white/20 text-white pl-10 h-11"
+                            className="bg-white/10 border-white/20 text-white pl-10 h-10 w-full"
                             value={linkInputValue}
                             onChange={(e) => setLinkInputValue(e.target.value)}
                         />
                     </div>
                     <Button 
                         onClick={handleDoneClick}
-                        className="bg-green-500 text-white font-bold hover:bg-green-600 px-6 w-full"
+                        className="bg-green-500 text-white font-bold hover:bg-green-600 px-4 h-10"
                     >
                         Feito
                     </Button>
