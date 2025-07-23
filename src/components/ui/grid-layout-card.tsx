@@ -74,6 +74,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                                 title="Deletar"
                                 variant="ghost"
                                 size="icon"
+                                onClick={(e) => e.stopPropagation()}
                                 className="absolute top-[-10px] left-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
                             >
                                 <Trash2 className="h-4 w-4" />
@@ -127,6 +128,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                                 title="Deletar"
                                 variant="default"
                                 size="icon"
+                                onClick={(e) => e.stopPropagation()}
                                 className="absolute top-[-12px] left-[-12px] z-30 h-8 w-8 rounded-full bg-white text-black shadow-lg hover:bg-gray-200"
                             >
                                 <Trash2 className="h-4 w-4" />
