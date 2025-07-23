@@ -118,6 +118,7 @@ const GridLayoutComponent = ({
             containerPadding={[0,0]}
             compactType="vertical"
             draggableHandle={isMobile ? ".mobile-drag-handle" : ".drag-handle"}
+            preventCollision={true}
         >
             {cards.map(card => {
                 const layoutItem = layoutConfig.find(l => l.i === card.id);
