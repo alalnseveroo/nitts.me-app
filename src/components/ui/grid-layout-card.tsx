@@ -38,7 +38,9 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
     const isTitleCard = card.type === 'title';
 
     const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        onClick(card.id, e);
+        if (onClick) {
+            onClick(card.id, e);
+        }
     };
 
     return (

@@ -19,6 +19,8 @@ interface GridLayoutProps {
     onEditCard: (cardId: string) => void;
     onMenuStateChange: (isOpen: boolean) => void;
     isMobile: boolean;
+    selectedCardId: string | null;
+    onSelectCard: (id: string, e: React.MouseEvent) => void;
 }
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -32,7 +34,9 @@ const GridLayoutComponent = ({
     onResizeCard,
     onEditCard,
     onMenuStateChange,
-    isMobile
+    isMobile,
+    selectedCardId,
+    onSelectCard,
 }: GridLayoutProps) => {
 
     const handleDragStart = (layout: Layout[], oldItem: Layout, newItem: Layout, placeholder: Layout, e: MouseEvent | TouchEvent, element: HTMLElement) => {
@@ -54,6 +58,7 @@ const GridLayoutComponent = ({
             onLayoutChange={onLayoutChange}
             onDragStart={handleDragStart}
             onDragStop={handleDragStop}
+            onResizeStop={onLayoutChange}
             breakpoints={{ lg: 768, sm: 0 }}
             cols={{ lg: 4, sm: 2 }}
             rowHeight={100}
@@ -77,6 +82,8 @@ const GridLayoutComponent = ({
                             onEdit={onEditCard}
                             onMenuStateChange={onMenuStateChange}
                             isMobile={isMobile}
+                            isSelected={selectedCardId === card.id}
+                            onClick={onSelectCard}
                         />
                     </div>
                 )

@@ -109,6 +109,7 @@ export default function UnifiedUserPage() {
   const [editingCard, setEditingCard] = useState<CardData | undefined>(undefined);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [isCardMenuOpen, setIsCardMenuOpen] = useState(false);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   
   const imageInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -131,6 +132,27 @@ export default function UnifiedUserPage() {
     setRowHeight(calculatedRowHeight > 0 ? calculatedRowHeight : 100);
   }, [isMobile]);
 
+  const handleSelectCard = useCallback((cardId: string, e: React.MouseEvent) => {
+    if (isMobile) {
+      e.stopPropagation();
+      setSelectedCardId(prevId => (prevId === cardId ? null : cardId));
+    }
+  }, [isMobile]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        if (!target.closest('[data-card-id]')) {
+            setSelectedCardId(null);
+        }
+    };
+    if (isMobile) {
+        document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMobile]);
 
   const adjustTextareaHeight = useCallback(() => {
     const textarea = textareaRef.current;
@@ -520,6 +542,8 @@ export default function UnifiedUserPage() {
                         rowHeight={rowHeight}
                         isMobile={isMobile}
                         onMenuStateChange={setIsCardMenuOpen}
+                        selectedCardId={selectedCardId}
+                        onSelectCard={handleSelectCard}
                     />
                     )}
                 </main>
