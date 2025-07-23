@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { GridLayoutCardBase } from './grid-layout-card-base';
 import { Button } from '@/components/ui/button';
-import { Move, Trash2, Edit, Crop } from 'lucide-react';
+import { Move, Trash2, Edit } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,16 +16,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuGroup,
-} from "@/components/ui/dropdown-menu"
 import { cn } from '@/lib/utils';
 import type { CardData } from '@/app/[username]/page';
-import { CardResizeControls } from './card-resize-controls';
 
 interface GridLayoutCardProps {
     card: CardData;
@@ -36,19 +28,19 @@ interface GridLayoutCardProps {
     onSelectCard: (id: string) => void;
     isSelected: boolean;
     isMobile: boolean;
-    onMenuStateChange: (isOpen: boolean) => void;
 }
 
-const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, onSelectCard, isSelected, isMobile, onMenuStateChange }: GridLayoutCardProps) => {
+const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, onSelectCard, isSelected, isMobile }: GridLayoutCardProps) => {
     
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-    const showDesktopControls = !isMobile;
     const isTitleCard = card.type === 'title';
 
     const handleClick = () => {
         if (isMobile) {
             onSelectCard(card.id);
+        } else {
+            onEdit(card.id);
         }
     };
 
@@ -62,10 +54,17 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
         setIsDeleteDialogOpen(true);
     }
 
-    const handleDeleteConfirm = () => {
+    const handleDeleteConfirm = (e: React.MouseEvent) => {
+        e.stopPropagation();
         onDelete(card.id);
         setIsDeleteDialogOpen(false);
     }
+    
+    const handleCancelDelete = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsDeleteDialogOpen(false);
+    }
+
 
     return (
         <div 
@@ -85,17 +84,9 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                     isMobile={isMobile}
                 />
             </div>
-
-            { !isMobile &&
-              <button 
-                  className="absolute inset-0 z-10"
-                  onClick={() => onEdit(card.id)}
-                  aria-label={`Editar card ${card.title}`}
-              />
-            }
             
              {/* --- DESKTOP CONTROLS --- */}
-            {showDesktopControls && (
+            {!isMobile && (
                 <>
                     <div className="drag-handle absolute top-2 right-2 z-20 cursor-move text-white bg-black/30 rounded-full p-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
                         <Move className="h-5 w-5" />
@@ -120,34 +111,13 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogCancel onClick={handleCancelDelete}>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
                                     Deletar
                                 </AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
-                    
-                    {!isTitleCard && (
-                        <DropdownMenu onOpenChange={onMenuStateChange}>
-                            <DropdownMenuTrigger asChild>
-                                 <Button
-                                    title="Redimensionar"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={(e) => { e.stopPropagation(); }}
-                                    className="absolute bottom-[-10px] right-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
-                                >
-                                    <Crop className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                             <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
-                                <DropdownMenuGroup>
-                                    <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
-                                </DropdownMenuGroup>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    )}
                 </>
             )}
 
@@ -174,7 +144,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                                <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>Cancelar</AlertDialogCancel>
+                                <AlertDialogCancel onClick={handleCancelDelete}>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
                                     Deletar
                                 </AlertDialogAction>
@@ -195,27 +165,6 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                      <div className="drag-handle absolute bottom-[-15px] left-1/2 -translate-x-1/2 z-30 cursor-move bg-black text-white rounded-full p-2 shadow-lg">
                         <Move className="h-5 w-5" />
                     </div>
-
-                    {!isTitleCard && (
-                        <DropdownMenu onOpenChange={onMenuStateChange}>
-                            <DropdownMenuTrigger asChild>
-                                 <Button
-                                    title="Redimensionar"
-                                    variant="default"
-                                    size="icon"
-                                    onClick={(e) => { e.stopPropagation(); }}
-                                    className="absolute bottom-[-15px] right-[-15px] z-30 h-8 w-8 rounded-full bg-black text-white shadow-lg hover:bg-gray-800"
-                                >
-                                    <Crop className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                             <DropdownMenuContent onClick={(e) => e.stopPropagation()} side="top" align="end">
-                                <DropdownMenuGroup>
-                                    <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
-                                </DropdownMenuGroup>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    )}
                 </>
             )}
         </div>

@@ -16,7 +16,6 @@ interface GridLayoutProps {
     onDeleteCard: (cardId: string) => void;
     onResizeCard: (cardId: string, w: number, h: number) => void;
     onEditCard: (cardId: string) => void;
-    onMenuStateChange: (isOpen: boolean) => void;
     isMobile: boolean;
     selectedCardId: string | null;
     onSelectCard: (id: string) => void;
@@ -33,7 +32,6 @@ const GridLayoutComponent = ({
     onDeleteCard, 
     onResizeCard,
     onEditCard,
-    onMenuStateChange,
     isMobile,
     selectedCardId,
     onSelectCard,
@@ -81,7 +79,6 @@ const GridLayoutComponent = ({
                             onDelete={onDeleteCard}
                             onResize={onResizeCard}
                             onEdit={onEditCard}
-                            onMenuStateChange={onMenuStateChange}
                             isMobile={isMobile}
                             isSelected={selectedCardId === card.id}
                             onSelectCard={onSelectCard}

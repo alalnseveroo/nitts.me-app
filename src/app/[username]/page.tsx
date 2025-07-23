@@ -21,6 +21,8 @@ import Link from 'next/link'
 import { Responsive, WidthProvider } from 'react-grid-layout'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { ElementCard } from '@/components/ui/element-card'
+import { CardEditControls } from '@/components/ui/card-edit-controls'
+
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -102,7 +104,6 @@ export default function UnifiedUserPage() {
   const [rowHeight, setRowHeight] = useState(100);
   const [editingCard, setEditingCard] = useState<CardData | undefined>(undefined);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
-  const [isCardMenuOpen, setIsCardMenuOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -135,7 +136,7 @@ export default function UnifiedUserPage() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
         const target = event.target as HTMLElement;
-        if (!target.closest('[data-card-id]')) {
+        if (!target.closest('[data-card-id]') && !target.closest('[data-card-edit-controls]')) {
             setSelectedCardId(null);
         }
     };
@@ -380,6 +381,7 @@ export default function UnifiedUserPage() {
 
     setCards(prev => prev.filter(c => c.id !== cardId));
     setCurrentLayout(prev => prev.filter(l => l.i !== cardId));
+    setSelectedCardId(null);
     toast({ title: 'Sucesso', description: 'Card deletado.' });
 
   }, [user, toast]);
@@ -432,6 +434,7 @@ export default function UnifiedUserPage() {
       setIsEditSheetOpen(true);
   }, [cards]);
 
+  const selectedEditingCard = selectedCardId ? cards.find(c => c.id === selectedCardId) : undefined;
 
   if (loading) {
     return (
@@ -533,7 +536,6 @@ export default function UnifiedUserPage() {
                         onDeleteCard={handleDeleteCard}
                         onResizeCard={handleResizeCard}
                         onEditCard={handleEditCard}
-                        onMenuStateChange={setIsCardMenuOpen}
                         isMobile={isMobile}
                         selectedCardId={selectedCardId}
                         onSelectCard={handleSelectCard}
@@ -543,7 +545,7 @@ export default function UnifiedUserPage() {
                 </main>
             </div>
 
-            {!isCardMenuOpen && (
+            {isMobile && !selectedCardId && (
               <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-auto p-4 z-50">
                   <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border flex justify-around items-center p-1 gap-1">
                       <Button title="Adicionar Link" variant="ghost" size="icon" onClick={() => addNewCard('link')}><AddLinkIcon /></Button>
@@ -555,6 +557,15 @@ export default function UnifiedUserPage() {
                       <Button title="Adicionar Título" variant="ghost" size="icon" onClick={() => addNewCard('title')}><AddTitleIcon /></Button>
                   </div>
               </footer>
+            )}
+
+            {isMobile && selectedEditingCard && (
+                <CardEditControls 
+                    card={selectedEditingCard}
+                    onUpdate={handleUpdateCard}
+                    onResize={handleResizeCard}
+                    onDone={() => setSelectedCardId(null)}
+                />
             )}
             
             <EditCardSheet
