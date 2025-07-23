@@ -46,11 +46,11 @@ const GridLayoutComponent = ({
         }
     };
     
-    const handleDragStop = (layout: Layout[]) => {
+    const handleDragOrResizeStop = (newLayout: Layout[]) => {
         if (isMobile) {
             document.body.classList.remove('no-scroll');
         }
-        onLayoutChange(layout);
+        onLayoutChange(newLayout);
     };
 
     return (
@@ -58,8 +58,8 @@ const GridLayoutComponent = ({
             layouts={{ lg: layoutConfig, sm: layoutConfig }}
             onLayoutChange={onLayoutChange}
             onDragStart={handleDragStart}
-            onDragStop={handleDragStop}
-            onResizeStop={onLayoutChange}
+            onDragStop={handleDragOrResizeStop}
+            onResizeStop={handleDragOrResizeStop}
             breakpoints={{ lg: 768, sm: 0 }}
             cols={{ lg: 4, sm: 2 }}
             rowHeight={rowHeight}
@@ -78,8 +78,8 @@ const GridLayoutComponent = ({
                         <GridLayoutCard
                             card={card}
                             onUpdate={onUpdateCard}
-                            onDelete={() => onDeleteCard(card.id)}
-                            onResize={(w, h) => onResizeCard(card.id, w, h)}
+                            onDelete={onDeleteCard}
+                            onResize={onResizeCard}
                             onEdit={onEditCard}
                             onMenuStateChange={onMenuStateChange}
                             isMobile={isMobile}
