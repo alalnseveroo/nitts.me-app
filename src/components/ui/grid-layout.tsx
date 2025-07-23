@@ -26,28 +26,25 @@ type LayoutItem = Layout;
 interface GridLayoutProps {
     cards: Card[];
     layoutConfig: LayoutItem[];
-    onLayoutChange: (layout: LayoutItem[]) => void;
+    onDragStop: (layout: LayoutItem[]) => void;
     onUpdateCard: (id: string, updates: Partial<Card>) => void;
     onDeleteCard: (cardId: string) => void;
     onResizeCard: (cardId: string, w: number, h: number) => void;
     onEditCard: (cardId: string) => void;
     rowHeight: number;
     isMobile: boolean;
-    isMenuOpen: boolean;
-    setIsMenuOpen: (isOpen: boolean) => void;
 }
 
 const GridLayoutComponent = ({ 
     cards, 
     layoutConfig, 
-    onLayoutChange,
+    onDragStop,
     onUpdateCard, 
     onDeleteCard, 
     onResizeCard,
     onEditCard,
     rowHeight,
-    isMobile,
-    isMenuOpen
+    isMobile
 }: GridLayoutProps) => {
 
     const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
@@ -57,12 +54,6 @@ const GridLayoutComponent = ({
             setSelectedCardId(currentId => (currentId === cardId ? null : cardId));
         }
     }, [isMobile]);
-
-    useEffect(() => {
-        if (isMenuOpen && selectedCardId) {
-            setSelectedCardId(null);
-        }
-    }, [isMenuOpen, selectedCardId]);
     
     const handleDragStart = () => {
         if (isMobile && selectedCardId) {
@@ -70,16 +61,13 @@ const GridLayoutComponent = ({
         }
     }
 
-    const handleDragStop = (layout: LayoutItem[]) => {
-        onLayoutChange(layout);
-    };
-
     return (
         <>
         <ResponsiveGridLayout
             layouts={{ lg: layoutConfig, sm: layoutConfig }}
             onDragStart={handleDragStart}
-            onDragStop={handleDragStop}
+            onDragStop={onDragStop}
+            onResizeStop={onDragStop}
             breakpoints={{ lg: 768, sm: 0 }}
             cols={{ lg: 4, sm: 2 }}
             rowHeight={rowHeight}
@@ -123,7 +111,7 @@ const GridLayoutComponent = ({
                     onClick={() => setSelectedCardId(null)}
                     className="bg-green-500 text-white font-bold hover:bg-green-600 px-6"
                 >
-                    Done
+                    Feito
                 </Button>
             </div>
             </div>
@@ -133,5 +121,3 @@ const GridLayoutComponent = ({
 };
 
 export default React.memo(GridLayoutComponent);
-
-    

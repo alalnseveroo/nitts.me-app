@@ -56,10 +56,8 @@ export const ElementCard = ({ data }: ElementCardProps) => {
                         data-ai-hint="abstract background"
                     />
                     {data.title && (
-                         <div className="absolute bottom-2 left-2">
-                            <div className="bg-white text-black rounded-lg shadow-md px-3 py-1.5">
-                                <p className="text-sm font-medium">{data.title}</p>
-                            </div>
+                         <div className="absolute bottom-2 left-2 bg-white text-black rounded-lg shadow-md px-3 py-1.5">
+                            <p className="text-sm font-medium">{data.title}</p>
                         </div>
                     )}
                 </Card>
@@ -78,5 +76,3 @@ export const ElementCard = ({ data }: ElementCardProps) => {
             );
     }
 };
-
-    

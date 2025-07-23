@@ -1,3 +1,4 @@
+
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -23,9 +24,10 @@ interface GridLayoutCardBaseProps {
     card: CardData;
     onUpdate: (id: string, updates: Partial<CardData>) => void;
     isDisabled?: boolean;
+    isMobile: boolean;
 }
 
-export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false }: GridLayoutCardBaseProps) => {
+export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobile }: GridLayoutCardBaseProps) => {
     const [currentData, setCurrentData] = useState(card);
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -134,15 +136,18 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false }: GridL
                 );
             case 'title':
                  return (
-                    <div className="p-4 w-full h-full">
+                    <div className="p-0 w-full h-full">
                         <Input
                             name="title"
                             placeholder="Título Principal"
-                            className="text-4xl font-bold border-none focus:ring-0 p-0 h-full w-full shadow-none bg-transparent"
+                            className={cn(
+                                "text-4xl font-bold border-none focus:ring-0 p-0 h-full w-full shadow-none bg-transparent",
+                                isMobile && "p-2 border focus:ring-2"
+                            )}
                             value={currentData.title || ''}
                             onChange={handleChange}
                             onBlur={handleBlur}
-                            disabled={isDisabled}
+                            disabled={isDisabled && !isMobile}
                         />
                     </div>
                 );
@@ -171,13 +176,19 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false }: GridL
         }
     };
 
+    const isTitleCardOnMobile = card.type === 'title' && isMobile;
+
     return (
         <Card 
-            className={`w-full h-full flex flex-col bg-card overflow-hidden ${isFocused && !isDisabled ? 'ring-2 ring-primary' : ''}`} 
+            className={cn(
+                'w-full h-full flex flex-col overflow-hidden',
+                isFocused && !isDisabled ? 'ring-2 ring-primary' : '',
+                isTitleCardOnMobile ? 'bg-transparent border-none shadow-none' : 'bg-card'
+            )} 
             onFocus={() => !isDisabled && setIsFocused(true)}
             onBlurCapture={handleBlur}
         >
-            <div className={cn("flex-grow flex items-center justify-center h-full", { "pointer-events-none": isDisabled })}>
+            <div className={cn("flex-grow flex items-center justify-center h-full", { "pointer-events-none": isDisabled && !isTitleCardOnMobile })}>
                 {renderContent()}
             </div>
         </Card>

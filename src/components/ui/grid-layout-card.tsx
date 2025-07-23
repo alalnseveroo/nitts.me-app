@@ -45,21 +45,23 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
     const showDesktopControls = !isMobile;
     const showMobileControls = isMobile && isSelected;
 
+    const isTitleOnMobile = isMobile && card.type === 'title';
+
     return (
         <div 
-            className="w-full h-full relative group/card"
+            className="w-full h-full relative group/card transition-all"
             onClick={() => isMobile && !isSelected && onClick(card.id)}
         >
             <div className={cn(
-                "w-full h-full rounded-lg border-2",
-                isSelected ? "border-foreground" : "border-transparent",
-                isMobile && isSelected && "cursor-default",
+                "w-full h-full rounded-lg",
+                isSelected && !isTitleOnMobile ? "border-2 border-foreground" : "border-2 border-transparent",
                 isMobile && !isSelected && "cursor-pointer"
             )}>
                  <GridLayoutCardBase
                     card={card}
                     onUpdate={onUpdate}
                     isDisabled={isMobile}
+                    isMobile={isMobile}
                 />
             </div>
             
@@ -115,7 +117,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
             )}
 
             {/* --- MOBILE CONTROLS --- */}
-            {showMobileControls && (
+            {showMobileControls && !isTitleOnMobile && (
                  <>
                     {/* Delete Icon */}
                     <AlertDialog>
@@ -161,5 +163,3 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
 
 
 export const GridLayoutCard = React.memo(GridLayoutCardComponent);
-
-    
