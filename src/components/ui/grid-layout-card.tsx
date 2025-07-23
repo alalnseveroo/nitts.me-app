@@ -14,6 +14,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
@@ -43,7 +44,6 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     const showDesktopControls = !isMobile;
-    const showMobileControls = isMobile && isSelected;
     const isTitleCard = card.type === 'title';
 
     const handleClick = () => {
@@ -152,7 +152,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
             )}
 
             {/* --- MOBILE CONTROLS --- */}
-            {showMobileControls && (
+            { isMobile && isSelected && (
                  <>
                     <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                         <AlertDialogTrigger asChild>
