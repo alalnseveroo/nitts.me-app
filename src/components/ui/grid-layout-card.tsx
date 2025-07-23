@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { GridLayoutCardBase } from './grid-layout-card-base';
 import { Button } from '@/components/ui/button';
-import { Move, Trash2, Edit } from 'lucide-react';
+import { Move, Trash2, Edit, Crop, Square, RectangleHorizontal, RectangleVertical } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +16,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { CardResizeControls } from './card-resize-controls';
 import { cn } from '@/lib/utils';
 import type { CardData } from '@/app/[username]/page';
 
@@ -59,12 +61,6 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
         onDelete(card.id);
         setIsDeleteDialogOpen(false);
     }
-    
-    const handleCancelDelete = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setIsDeleteDialogOpen(false);
-    }
-
 
     return (
         <div 
@@ -111,7 +107,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                                <AlertDialogCancel onClick={handleCancelDelete}>Cancelar</AlertDialogCancel>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
                                     Deletar
                                 </AlertDialogAction>
@@ -144,7 +140,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                                <AlertDialogCancel onClick={handleCancelDelete}>Cancelar</AlertDialogCancel>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
                                     Deletar
                                 </AlertDialogAction>
