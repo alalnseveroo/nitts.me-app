@@ -36,7 +36,13 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
 
     const isTitleCard = card.type === 'title';
 
-    const handleClick = () => {
+    const handleClick = (e: React.MouseEvent) => {
+        // Prevent edit sheet from opening if clicking on delete/drag controls on desktop
+        if (!isMobile && (e.target as HTMLElement).closest('.drag-handle, [data-alert-dialog-trigger]')) {
+             e.stopPropagation();
+             return;
+        }
+
         if (isMobile) {
             onSelectCard(card.id);
         } else {
@@ -79,15 +85,17 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
                 />
             </div>
             
-             {/* --- DESKTOP CONTROLS --- */}
-            {!isMobile && (
-                <>
-                    <div className="drag-handle absolute top-2 right-2 z-20 cursor-move text-white bg-black/30 rounded-full p-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                        <Move className="h-5 w-5" />
-                    </div>
-                     <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+
+                {/* --- DESKTOP CONTROLS --- */}
+                {!isMobile && (
+                    <>
+                        <div className="drag-handle absolute top-2 right-2 z-20 cursor-move text-white bg-black/30 rounded-full p-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                            <Move className="h-5 w-5" />
+                        </div>
                         <AlertDialogTrigger asChild>
                             <Button
+                                data-alert-dialog-trigger
                                 title="Deletar"
                                 variant="ghost"
                                 size="icon"
@@ -97,30 +105,14 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                         </AlertDialogTrigger>
-                         <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Isso deletará o card permanentemente. Esta ação não pode ser desfeita.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
-                                    Deletar
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </>
-            )}
+                    </>
+                )}
 
-            {/* --- MOBILE CONTROLS --- */}
-            { isMobile && isSelected && (
-                 <>
-                    <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                {/* --- MOBILE CONTROLS --- */}
+                { isMobile && isSelected && (
+                    <>
                         <AlertDialogTrigger asChild>
-                             <Button
+                            <Button
                                 title="Deletar"
                                 variant="default"
                                 size="icon"
@@ -130,40 +122,44 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                         </AlertDialogTrigger>
-                         <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Isso deletará o card permanentemente. Esta ação não pode ser desfeita.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
-                                    Deletar
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
 
-                     <Button
-                        title="Editar conteúdo"
-                        variant="default"
-                        size="icon"
-                        onClick={handleEditClick}
-                        className="absolute top-[-12px] right-[-12px] z-30 h-8 w-8 rounded-full bg-black text-white shadow-lg hover:bg-gray-800"
-                    >
-                        <Edit className="h-4 w-4" />
-                    </Button>
-                    
-                     <div className="drag-handle absolute bottom-[-15px] left-1/2 -translate-x-1/2 z-30 cursor-move bg-black text-white rounded-full p-2 shadow-lg">
-                        <Move className="h-5 w-5" />
-                    </div>
-                </>
-            )}
+                        <Button
+                            title="Editar conteúdo"
+                            variant="default"
+                            size="icon"
+                            onClick={handleEditClick}
+                            className="absolute top-[-12px] right-[-12px] z-30 h-8 w-8 rounded-full bg-black text-white shadow-lg hover:bg-gray-800"
+                        >
+                            <Edit className="h-4 w-4" />
+                        </Button>
+                        
+                        <div className="drag-handle absolute bottom-[-15px] left-1/2 -translate-x-1/2 z-30 cursor-move bg-black text-white rounded-full p-2 shadow-lg">
+                            <Move className="h-5 w-5" />
+                        </div>
+                    </>
+                )}
+
+                <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Isso deletará o card permanentemente. Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
+                            Deletar
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+
+            </AlertDialog>
         </div>
     );
 };
 
 
 export const GridLayoutCard = React.memo(GridLayoutCardComponent);
+
+    

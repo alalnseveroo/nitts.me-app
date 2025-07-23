@@ -26,11 +26,15 @@ export const CardEditControls = ({ card, onUpdate, onResize, onDone }: CardEditC
         onUpdate(card.id, { link });
         onDone();
     };
+    
+    const handleResize = (w: number, h: number) => {
+        onResize(card.id, w, h);
+    };
 
     return (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm z-50">
+        <div data-card-edit-controls className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm z-50">
             <div className="bg-neutral-900 text-white rounded-2xl shadow-lg border border-neutral-700 flex justify-between items-center p-2 gap-2">
-                <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
+                <CardResizeControls onResize={handleResize} />
                 <div className="flex-1 flex items-center gap-2">
                      <Link className="h-5 w-5 text-neutral-400" />
                     <Input
@@ -52,3 +56,5 @@ export const CardEditControls = ({ card, onUpdate, onResize, onDone }: CardEditC
         </div>
     );
 };
+
+    

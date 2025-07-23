@@ -376,12 +376,14 @@ export default function UnifiedUserPage() {
     if (error) {
         toast({ title: 'Erro', description: 'Não foi possível deletar o card.', variant: 'destructive' });
         console.error("Error deleting card:", error);
-    } else {
-        setCards(prev => prev.filter(c => c.id !== cardId));
-        setCurrentLayout(prev => prev.filter(l => l.i !== cardId));
-        setSelectedCardId(null);
-        toast({ title: 'Sucesso', description: 'Card deletado.' });
+        return; // Important: stop if DB deletion fails
     }
+    
+    setCards(prev => prev.filter(c => c.id !== cardId));
+    setCurrentLayout(prev => prev.filter(l => l.i !== cardId));
+    setSelectedCardId(null);
+    toast({ title: 'Sucesso', description: 'Card deletado.' });
+
   }, [user, toast]);
 
   const handleImageFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -627,5 +629,7 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
+
+    
 
     
