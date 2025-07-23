@@ -139,7 +139,7 @@ const GridLayoutComponent = ({
                 const layoutItem = layoutConfig.find(l => l.i === card.id);
                 if (!layoutItem) return null;
                 return (
-                    <div key={card.id} data-grid={layoutItem} className={card.type === 'title' && isMobile ? '!h-fit' : ''}>
+                    <div key={card.id} data-grid={layoutItem}>
                         <GridLayoutCard
                             card={card}
                             onUpdate={onUpdateCard}

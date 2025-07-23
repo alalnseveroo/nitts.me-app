@@ -132,9 +132,9 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
                 );
             case 'title':
                  return (
-                    <div className={cn("w-full h-full flex items-center p-2 pointer-events-none", isDisabled && "pointer-events-none")}>
-                        <h2 className="text-4xl font-bold">{currentData.title}</h2>
-                    </div>
+                    <h2 className={cn("w-full h-full flex items-center p-2 text-4xl font-bold pointer-events-none", isDisabled && "pointer-events-none")}>
+                        {currentData.title}
+                    </h2>
                 );
             case 'note':
                 return (
@@ -176,9 +176,9 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
             onBlurCapture={handleBlur}
         >
              <div className={cn(
-                "w-full h-full", 
-                isNoteCard ? 'flex items-center justify-center p-4' : 'p-0', 
-                { "pointer-events-none": isDisabled }
+                "w-full h-full p-0", 
+                { "pointer-events-none": isDisabled },
+                isNoteCard && 'flex items-center justify-center p-4'
             )}>
                 {renderContent()}
             </div>
