@@ -38,7 +38,7 @@ interface GridLayoutCardProps {
     onMenuStateChange: (isOpen: boolean) => void;
 }
 
-const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, onSelectCard, isSelected, isMobile }: GridLayoutCardProps) => {
+const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, onSelectCard, isSelected, isMobile, onMenuStateChange }: GridLayoutCardProps) => {
     
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -49,18 +49,14 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
     const handleClick = () => {
         if (isMobile) {
             onSelectCard(card.id);
+        } else {
+            onEdit(card.id);
         }
     };
 
     const handleDeleteClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         setIsDeleteDialogOpen(true);
-    };
-    
-    const handleConfirmDelete = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onDelete(card.id);
-        setIsDeleteDialogOpen(false);
     };
 
     return (
@@ -72,7 +68,8 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
             <div className={cn(
                 "w-full h-full rounded-lg transition-all",
                 isSelected && !isTitleCard ? "border-2 border-foreground" : "border-2 border-transparent",
-                isMobile && !isSelected && "cursor-pointer"
+                isMobile && !isSelected && "cursor-pointer",
+                 !isMobile && "cursor-pointer"
             )}>
                  <GridLayoutCardBase
                     card={card}
@@ -85,7 +82,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
              {/* --- DESKTOP CONTROLS --- */}
             {showDesktopControls && (
                 <>
-                    <div className="drag-handle absolute top-2 right-2 z-20 cursor-move text-white bg-black/30 rounded-full p-1 md:opacity-0 group-hover/card:opacity-100 transition-opacity">
+                    <div className="drag-handle absolute top-2 right-2 z-20 cursor-move text-white bg-black/30 rounded-full p-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
                         <Move className="h-5 w-5" />
                     </div>
 
@@ -119,18 +116,6 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                             </DropdownMenuContent>
                         </DropdownMenu>
                     )}
-                    <Button
-                        title="Editar conteúdo"
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onEdit(card.id)
-                        }}
-                        className="absolute bottom-[-10px] left-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
-                    >
-                        <Edit className="h-4 w-4" />
-                    </Button>
                 </>
             )}
 
@@ -167,7 +152,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
             )}
             
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                <AlertDialogContent>
+                <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                         <AlertDialogDescription>
@@ -175,8 +160,8 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive hover:bg-destructive/90">
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => onDelete(card.id)} className="bg-destructive hover:bg-destructive/90">
                             Deletar
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -188,5 +173,3 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
 
 
 export const GridLayoutCard = React.memo(GridLayoutCardComponent);
-
-    
