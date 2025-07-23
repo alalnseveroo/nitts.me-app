@@ -471,6 +471,7 @@ export default function UnifiedUserPage() {
                         rowHeight={rowHeight}
                         isMobile={isMobile}
                         isMenuOpen={isMenuOpen}
+                        setIsMenuOpen={setIsMenuOpen}
                     />
                     )}
                 </main>
@@ -549,3 +550,4 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
+

@@ -44,12 +44,12 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
     
     const showDesktopControls = !isMobile;
     const showMobileControls = isMobile && isSelected;
-
-    const isTitleOnMobile = isMobile && card.type === 'title';
+    const isTitleCard = card.type === 'title';
+    const isTitleOnMobile = isMobile && isTitleCard;
 
     return (
         <div 
-            className="w-full h-full relative group/card transition-all"
+            className="w-full h-full relative group/card"
             onClick={() => isMobile && !isSelected && onClick(card.id)}
         >
             <div className={cn(
@@ -60,7 +60,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                  <GridLayoutCardBase
                     card={card}
                     onUpdate={onUpdate}
-                    isDisabled={isMobile}
+                    isDisabled={isMobile && !isSelected}
                     isMobile={isMobile}
                 />
             </div>
@@ -98,21 +98,25 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
-
-                    <div className="absolute bottom-[-50px] left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                        <div className="bg-black text-white rounded-lg shadow-xl p-1">
-                            <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
-                        </div>
-                    </div>
-                     <Button
-                        title="Editar conteúdo"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onEdit(card.id)}
-                        className="absolute bottom-[-10px] left-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
-                    >
-                        <Edit className="h-4 w-4" />
-                    </Button>
+                    
+                    {!isTitleCard && (
+                        <>
+                            <div className="absolute bottom-[-50px] left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                                <div className="bg-black text-white rounded-lg shadow-xl p-1">
+                                    <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
+                                </div>
+                            </div>
+                            <Button
+                                title="Editar conteúdo"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => onEdit(card.id)}
+                                className="absolute bottom-[-10px] left-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
+                            >
+                                <Edit className="h-4 w-4" />
+                            </Button>
+                        </>
+                    )}
                 </>
             )}
 
@@ -163,3 +167,4 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
 
 
 export const GridLayoutCard = React.memo(GridLayoutCardComponent);
+

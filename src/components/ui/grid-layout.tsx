@@ -34,6 +34,7 @@ interface GridLayoutProps {
     rowHeight: number;
     isMobile: boolean;
     isMenuOpen: boolean;
+    setIsMenuOpen: (isOpen: boolean) => void;
 }
 
 const GridLayoutComponent = ({ 
@@ -46,7 +47,8 @@ const GridLayoutComponent = ({
     onEditCard,
     rowHeight,
     isMobile,
-    isMenuOpen
+    isMenuOpen,
+    setIsMenuOpen
 }: GridLayoutProps) => {
 
     const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
@@ -61,16 +63,13 @@ const GridLayoutComponent = ({
         setSelectedCardId(currentId => (currentId === cardId ? null : cardId));
     }, []);
     
-    const handleDragStart = useCallback(() => {
+    const handleDragStart = useCallback((layout: LayoutItem[], oldItem: LayoutItem, newItem: LayoutItem, placeholder: LayoutItem, e: MouseEvent | TouchEvent, element: HTMLElement) => {
         if (isMobile && selectedCardId) {
-            setSelectedCardId(null);
+            if(element.contains(e.target as Node)) {
+              setSelectedCardId(null);
+            }
         }
     }, [isMobile, selectedCardId]);
-
-    const handleLayoutChange = useCallback((layout: LayoutItem[]) => {
-      // Used for resize, which is rare.
-      onDragStop(layout);
-    }, [onDragStop]);
 
     return (
         <>
@@ -78,7 +77,7 @@ const GridLayoutComponent = ({
             layouts={{ lg: layoutConfig, sm: layoutConfig }}
             onDragStart={handleDragStart}
             onDragStop={onDragStop}
-            onResizeStop={handleLayoutChange}
+            onResizeStop={onDragStop}
             breakpoints={{ lg: 768, sm: 0 }}
             cols={{ lg: 4, sm: 2 }}
             rowHeight={rowHeight}
@@ -115,19 +114,19 @@ const GridLayoutComponent = ({
         {isMobile && selectedCardId && (
             <div className="fixed bottom-24 left-0 w-full p-4 z-50" onClick={(e) => e.stopPropagation()}>
                 <div className="bg-black/90 backdrop-blur-sm rounded-xl shadow-2xl flex justify-between items-center p-2 gap-2">
-                <div className="flex-1">
-                    <CardResizeControls onResize={(w, h) => {
-                        onResizeCard(selectedCardId, w, h);
-                        setSelectedCardId(null);
-                    }} />
+                    <div className="flex-1">
+                        <CardResizeControls onResize={(w, h) => {
+                            onResizeCard(selectedCardId, w, h);
+                            setSelectedCardId(null);
+                        }} />
+                    </div>
+                    <Button 
+                        onClick={() => setSelectedCardId(null)}
+                        className="bg-green-500 text-white font-bold hover:bg-green-600 px-6"
+                    >
+                        Feito
+                    </Button>
                 </div>
-                <Button 
-                    onClick={() => setSelectedCardId(null)}
-                    className="bg-green-500 text-white font-bold hover:bg-green-600 px-6"
-                >
-                    Feito
-                </Button>
-            </div>
             </div>
         )}
         </>
