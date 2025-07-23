@@ -35,11 +35,14 @@ export type CardData = {
     background_color?: string | null;
 };
 
-const getContainerWidth = (isMobile: boolean) => {
-    if (typeof window === 'undefined') return isMobile ? 320 : 1200; // Default for SSR
-    const mainElement = document.querySelector('main.col-span-12');
-    return mainElement ? mainElement.clientWidth : window.innerWidth;
-};
+export type Profile = {
+  id: string;
+  username: string | null
+  name: string | null
+  bio: string | null
+  avatar_url: string | null
+  layout_config: Layout[] | null
+}
 
 const AddLinkIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -123,9 +126,8 @@ export default function UnifiedUserPage() {
     setRowHeight(calculatedRowHeight > 0 ? calculatedRowHeight : 100);
   }, [isMobile]);
 
-  const handleSelectCard = useCallback((cardId: string, e: React.MouseEvent) => {
+  const handleSelectCard = useCallback((cardId: string) => {
     if (isMobile) {
-      e.stopPropagation();
       setSelectedCardId(prevId => (prevId === cardId ? null : cardId));
     }
   }, [isMobile]);
@@ -530,10 +532,11 @@ export default function UnifiedUserPage() {
                         onDeleteCard={handleDeleteCard}
                         onResizeCard={handleResizeCard}
                         onEditCard={handleEditCard}
-                        isMobile={isMobile}
                         onMenuStateChange={setIsCardMenuOpen}
+                        isMobile={isMobile}
                         selectedCardId={selectedCardId}
                         onSelectCard={handleSelectCard}
+                        rowHeight={rowHeight}
                     />
                     )}
                 </main>
@@ -614,3 +617,5 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
+
+    

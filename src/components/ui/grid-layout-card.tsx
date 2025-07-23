@@ -26,9 +26,10 @@ interface GridLayoutCardProps {
     onDelete: (id: string) => void;
     onResize: (id: string, w: number, h: number) => void;
     onEdit: (id: string) => void;
-    onSelectCard: (id: string, e: React.MouseEvent) => void;
+    onSelectCard: (id: string) => void;
     isSelected: boolean;
     isMobile: boolean;
+    onMenuStateChange: (isOpen: boolean) => void;
 }
 
 const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, onSelectCard, isSelected, isMobile }: GridLayoutCardProps) => {
@@ -37,8 +38,8 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
     const showMobileControls = isMobile && isSelected;
     const isTitleCard = card.type === 'title';
 
-    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        onSelectCard(card.id, e);
+    const handleClick = () => {
+        onSelectCard(card.id);
     };
 
     return (
@@ -166,3 +167,5 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
 
 
 export const GridLayoutCard = React.memo(GridLayoutCardComponent);
+
+    

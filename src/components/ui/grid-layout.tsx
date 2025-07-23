@@ -8,7 +8,6 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import type { CardData } from '@/app/[username]/page';
 
-
 interface GridLayoutProps {
     cards: CardData[];
     layoutConfig: Layout[];
@@ -20,7 +19,8 @@ interface GridLayoutProps {
     onMenuStateChange: (isOpen: boolean) => void;
     isMobile: boolean;
     selectedCardId: string | null;
-    onSelectCard: (id: string, e: React.MouseEvent) => void;
+    onSelectCard: (id: string) => void;
+    rowHeight: number;
 }
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -37,15 +37,16 @@ const GridLayoutComponent = ({
     isMobile,
     selectedCardId,
     onSelectCard,
+    rowHeight
 }: GridLayoutProps) => {
 
-    const handleDragStart = (layout: Layout[], oldItem: Layout, newItem: Layout, placeholder: Layout, e: MouseEvent | TouchEvent, element: HTMLElement) => {
+    const handleDragStart = () => {
         if (isMobile) {
             document.body.classList.add('no-scroll');
         }
     };
     
-    const handleDragStop = (layout: Layout[], oldItem: Layout, newItem: Layout, placeholder: Layout, e: MouseEvent | TouchEvent, element: HTMLElement) => {
+    const handleDragStop = (layout: Layout[]) => {
         if (isMobile) {
             document.body.classList.remove('no-scroll');
         }
@@ -61,10 +62,10 @@ const GridLayoutComponent = ({
             onResizeStop={onLayoutChange}
             breakpoints={{ lg: 768, sm: 0 }}
             cols={{ lg: 4, sm: 2 }}
-            rowHeight={100}
+            rowHeight={rowHeight}
             isResizable={!isMobile}
             className="min-h-[400px]"
-            margin={[20, 20]}
+            margin={[10, 10]}
             containerPadding={[0,0]}
             compactType="vertical"
             draggableHandle=".drag-handle"
@@ -93,3 +94,5 @@ const GridLayoutComponent = ({
 };
 
 export default React.memo(GridLayoutComponent);
+
+    
