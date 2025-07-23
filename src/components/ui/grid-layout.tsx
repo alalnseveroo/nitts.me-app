@@ -53,6 +53,8 @@ const GridLayoutComponent = ({
 
     const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
+    const selectedCard = cards.find(c => c.id === selectedCardId);
+
     useEffect(() => {
         if (isMenuOpen && selectedCardId) {
             setSelectedCardId(null);
@@ -111,7 +113,7 @@ const GridLayoutComponent = ({
                 )
             })}
         </ResponsiveGridLayout>
-        {isMobile && selectedCardId && (
+        {isMobile && selectedCardId && selectedCard?.type !== 'title' && (
             <div className="fixed bottom-24 left-0 w-full p-4 z-50" onClick={(e) => e.stopPropagation()}>
                 <div className="bg-black/90 backdrop-blur-sm rounded-xl shadow-2xl flex justify-between items-center p-2 gap-2">
                     <div className="flex-1">
