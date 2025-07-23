@@ -33,8 +33,7 @@ interface GridLayoutProps {
     onEditCard: (cardId: string) => void;
     rowHeight: number;
     isMobile: boolean;
-    setSelectedCardId: (id: string | null) => void;
-    selectedCardId: string | null;
+    isMenuOpen?: boolean;
 }
 
 const GridLayoutComponent = ({ 
@@ -47,21 +46,27 @@ const GridLayoutComponent = ({
     onEditCard,
     rowHeight,
     isMobile,
-    setSelectedCardId,
-    selectedCardId,
+    isMenuOpen,
 }: GridLayoutProps) => {
+    const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
     const selectedCard = cards.find(c => c.id === selectedCardId);
 
     const handleSelectCard = useCallback((cardId: string) => {
         setSelectedCardId(currentId => (currentId === cardId ? null : cardId));
-    }, [setSelectedCardId]);
+    }, []);
 
     const handleDragStart = useCallback(() => {
         if (isMobile && selectedCardId) {
             setSelectedCardId(null);
         }
-    }, [isMobile, selectedCardId, setSelectedCardId]);
+    }, [isMobile, selectedCardId]);
+
+    useEffect(() => {
+        if(isMenuOpen && selectedCardId) {
+            setSelectedCardId(null);
+        }
+    }, [isMenuOpen, selectedCardId]);
 
     return (
         <>
@@ -69,7 +74,7 @@ const GridLayoutComponent = ({
             layouts={{ lg: layoutConfig, sm: layoutConfig }}
             onDragStart={handleDragStart}
             onDragStop={onDragStop}
-            onResizeStop={onDragStop}
+            onResizeStop={!isMobile ? onDragStop : undefined}
             breakpoints={{ lg: 768, sm: 0 }}
             cols={{ lg: 4, sm: 2 }}
             rowHeight={rowHeight}
