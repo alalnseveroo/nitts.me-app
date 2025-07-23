@@ -138,17 +138,15 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
                 );
             case 'note':
                 return (
-                    <div className={cn("p-4 h-full flex items-center justify-center", isDisabled && "pointer-events-none")}>
-                        <Textarea
-                            name="content"
-                            placeholder="Escreva sua nota aqui..."
-                            value={currentData.content || ''}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            className="border-none focus:ring-0 p-0 resize-none bg-transparent text-center text-xl font-medium"
-                            disabled={isDisabled}
-                        />
-                    </div>
+                    <Textarea
+                        name="content"
+                        placeholder="Escreva sua nota aqui..."
+                        value={currentData.content || ''}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        className="border-none focus:ring-0 p-0 resize-none bg-transparent text-center text-xl font-medium"
+                        disabled={isDisabled}
+                    />
                 );
             case 'map':
                  return (
@@ -162,21 +160,23 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
     };
     
     const isTitleCard = card.type === 'title';
+    const isNoteCard = card.type === 'note';
 
     return (
         <Card 
             className={cn(
                 'w-full h-full flex flex-col overflow-hidden',
                 isTitleCard ? 'bg-transparent border-none shadow-none' : 'bg-card',
+                isNoteCard ? 'items-center justify-center p-4' : '',
                 isFocused && !isDisabled && !isTitleCard ? 'ring-2 ring-primary' : '',
             )}
             style={{ 
-                backgroundColor: card.type === 'note' ? currentData.background_color ?? '#FFFFFF' : undefined 
+                backgroundColor: isNoteCard ? currentData.background_color ?? '#FFFFFF' : undefined 
             }}
             onFocus={() => !isDisabled && setIsFocused(true)}
             onBlurCapture={handleBlur}
         >
-            <div className={cn("flex-grow flex items-center justify-center h-full", { "pointer-events-none": isDisabled })}>
+            <div className={cn("flex-grow w-full", isNoteCard ? '' : 'flex items-center justify-center h-full', { "pointer-events-none": isDisabled })}>
                 {renderContent()}
             </div>
         </Card>
