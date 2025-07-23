@@ -33,6 +33,8 @@ interface GridLayoutProps {
     onEditCard: (cardId: string) => void;
     rowHeight: number;
     isMobile: boolean;
+    setSelectedCardId: (id: string | null) => void;
+    selectedCardId: string | null;
 }
 
 const GridLayoutComponent = ({ 
@@ -45,39 +47,21 @@ const GridLayoutComponent = ({
     onEditCard,
     rowHeight,
     isMobile,
+    setSelectedCardId,
+    selectedCardId,
 }: GridLayoutProps) => {
-
-    const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
     const selectedCard = cards.find(c => c.id === selectedCardId);
 
     const handleSelectCard = useCallback((cardId: string) => {
         setSelectedCardId(currentId => (currentId === cardId ? null : cardId));
-    }, []);
-    
-     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (selectedCardId && !(event.target as HTMLElement).closest(`[data-card-id="${selectedCardId}"]`)) {
-                 setSelectedCardId(null);
-            }
-        };
+    }, [setSelectedCardId]);
 
-        if (isMobile) {
-            document.addEventListener('click', handleClickOutside);
-        }
-
-        return () => {
-            if (isMobile) {
-                document.removeEventListener('click', handleClickOutside);
-            }
-        };
-    }, [isMobile, selectedCardId]);
-
-    const handleDragStart = useCallback((layout: LayoutItem[], oldItem: LayoutItem, newItem: LayoutItem, placeholder: LayoutItem, e: MouseEvent | TouchEvent, element: HTMLElement) => {
+    const handleDragStart = useCallback(() => {
         if (isMobile && selectedCardId) {
             setSelectedCardId(null);
         }
-    }, [isMobile, selectedCardId]);
+    }, [isMobile, selectedCardId, setSelectedCardId]);
 
     return (
         <>
@@ -92,7 +76,7 @@ const GridLayoutComponent = ({
             isDraggable
             isResizable={!isMobile}
             className="min-h-[400px]"
-            margin={[10, 0]}
+            margin={[10, 10]}
             containerPadding={[0,0]}
             compactType="vertical"
             draggableHandle={isMobile ? ".mobile-drag-handle" : ".drag-handle"}
@@ -101,7 +85,7 @@ const GridLayoutComponent = ({
                 const layoutItem = layoutConfig.find(l => l.i === card.id);
                 if (!layoutItem) return null;
                 return (
-                    <div key={card.id} data-grid={layoutItem}>
+                    <div key={card.id} data-grid={layoutItem} className={card.type === 'title' && isMobile ? '!h-fit' : ''}>
                         <GridLayoutCard
                             card={card}
                             onUpdate={onUpdateCard}
