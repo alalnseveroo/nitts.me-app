@@ -45,10 +45,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
 
     return (
         <div 
-            className={cn(
-                "w-full h-full relative group/card",
-                 isMobile && isTitleCard && '!h-fit'
-            )}
+            className="w-full h-full relative group/card"
             onClick={handleClick}
             data-card-id={card.id}
             onDragStart={(e) => e.preventDefault()}
