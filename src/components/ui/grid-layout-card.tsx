@@ -44,11 +44,6 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
         }
     };
 
-    const handleDeleteConfirm = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onDelete(card.id);
-    };
-
     return (
         <div 
             className="w-full h-full relative group/card"
@@ -98,7 +93,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
+                                <AlertDialogAction onClick={(e) => { e.stopPropagation(); onDelete(card.id); }} className="bg-destructive hover:bg-destructive/90">
                                     Deletar
                                 </AlertDialogAction>
                             </AlertDialogFooter>
@@ -146,9 +141,9 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                          <AlertDialogContent>
                             <AlertDialogHeader><AlertDialogTitle>Deletar este card?</AlertDialogTitle></AlertDialogHeader>
                             <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction 
-                                  onClick={handleDeleteConfirm}
+                                  onClick={(e) => { e.stopPropagation(); onDelete(card.id); }}
                                   className="bg-destructive hover:bg-destructive/90"
                                 >
                                   Deletar
