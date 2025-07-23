@@ -200,3 +200,4 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
 
 export const GridLayoutCard = React.memo(GridLayoutCardComponent);
 
+
