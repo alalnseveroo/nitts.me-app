@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { Input } from './input';
-import { LinkIcon } from 'lucide-react';
+import { LinkIcon, Move } from 'lucide-react';
 import type { CardData } from '@/app/[username]/page';
 import { CardColorControls } from './card-color-controls';
 
@@ -59,7 +59,11 @@ const GridLayoutComponent = ({
         }
     }, [selectedCard]);
 
-    const handleSelectCard = useCallback((cardId: string) => {
+    const handleSelectCard = useCallback((cardId: string, e?: React.MouseEvent) => {
+        // Prevent selection if click is on drag handle
+        if (e && (e.target as HTMLElement).closest('.mobile-drag-handle')) {
+            return;
+        }
         setSelectedCardId(currentId => (currentId === cardId ? null : cardId));
     }, []);
 
@@ -102,7 +106,8 @@ const GridLayoutComponent = ({
 
     const handleColorChange = (cardId: string, color: string) => {
         onUpdateCard(cardId, { background_color: color });
-        setSelectedCardId(null);
+        // Don't close the menu on color change, let user decide
+        // setSelectedCardId(null);
     };
     
     return (
@@ -137,7 +142,11 @@ const GridLayoutComponent = ({
                             }}
                             onResize={(w, h) => onResizeCard(card.id, w, h)}
                             onClick={handleSelectCard}
-                            onEdit={onEditCard}
+                            onEdit={(cardId) => {
+                                if (card.type !== 'note') {
+                                    onEditCard(cardId);
+                                }
+                            }}
                             isSelected={selectedCardId === card.id}
                             isMobile={isMobile}
                         />
@@ -150,12 +159,10 @@ const GridLayoutComponent = ({
                 <div className="bg-black/90 backdrop-blur-sm rounded-xl shadow-2xl flex items-center p-2 gap-2 flex-nowrap">
                    
                     {selectedCard?.type === 'note' && (
-                         <div className="bg-white/10 rounded-lg p-1">
-                            <CardColorControls onColorChange={(color) => handleColorChange(selectedCardId, color)} />
-                        </div>
+                         <CardColorControls onColorChange={(color) => handleColorChange(selectedCardId, color)} />
                     )}
 
-                    {selectedCard?.type !== 'title' && (
+                    {selectedCard?.type !== 'title' && selectedCard?.type !== 'note' && (
                         <div className="bg-white/10 rounded-lg p-1">
                             <CardResizeControls onResize={(w, h) => {
                                 onResizeCard(selectedCardId, w, h);
@@ -163,6 +170,7 @@ const GridLayoutComponent = ({
                             }} />
                         </div>
                     )}
+                    
                     <div className="relative flex-1 min-w-0">
                         <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <Input 

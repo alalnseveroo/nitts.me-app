@@ -5,15 +5,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LinkIcon } from 'lucide-react';
-
-type CardData = {
-    id: string;
-    type: string;
-    title?: string | null;
-    content?: string | null;
-    link?: string | null;
-    background_image?: string | null;
-};
+import { cn } from '@/lib/utils';
+import type { CardData } from '@/app/[username]/page';
 
 interface ElementCardProps {
     data: CardData;
@@ -57,7 +50,10 @@ export const ElementCard = ({ data }: ElementCardProps) => {
         case 'note':
             return (
                  <CardWrapper data={data}>
-                    <Card className="w-full h-full p-4 overflow-y-auto">
+                    <Card
+                        className="w-full h-full p-4 overflow-y-auto flex items-center justify-center text-center"
+                        style={{ backgroundColor: data.background_color ?? '#FFFFFF' }}
+                    >
                         <p className="text-sm text-foreground whitespace-pre-wrap">{data.content}</p>
                     </Card>
                  </CardWrapper>
