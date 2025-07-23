@@ -10,32 +10,24 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { Input } from './input';
 import { LinkIcon } from 'lucide-react';
+import type { CardData } from '@/app/[username]/page';
+import { CardColorControls } from './card-color-controls';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
-
-type Card = {
-    id: string;
-    user_id: string;
-    type: string;
-    title: string | null;
-    content: string | null;
-    link: string | null;
-    background_image: string | null;
-};
 
 type LayoutItem = Layout;
 
 interface GridLayoutProps {
-    cards: Card[];
+    cards: CardData[];
     layoutConfig: LayoutItem[];
     onDragStop: (layout: LayoutItem[]) => void;
-    onUpdateCard: (id: string, updates: Partial<Card>) => void;
+    onUpdateCard: (id: string, updates: Partial<CardData>) => void;
     onDeleteCard: (cardId: string) => void;
     onResizeCard: (cardId: string, w: number, h: number) => void;
     onEditCard: (cardId: string) => void;
     rowHeight: number;
     isMobile: boolean;
-    isMenuOpen?: boolean;
+    onMenuStateChange?: (isOpen: boolean) => void;
 }
 
 const GridLayoutComponent = ({ 
@@ -48,12 +40,16 @@ const GridLayoutComponent = ({
     onEditCard,
     rowHeight,
     isMobile,
-    isMenuOpen,
+    onMenuStateChange
 }: GridLayoutProps) => {
     const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
     const [linkInputValue, setLinkInputValue] = useState('');
 
     const selectedCard = cards.find(c => c.id === selectedCardId);
+
+    useEffect(() => {
+        onMenuStateChange?.(!!selectedCardId);
+    }, [selectedCardId, onMenuStateChange]);
 
     useEffect(() => {
         if (selectedCard) {
@@ -93,7 +89,6 @@ const GridLayoutComponent = ({
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             const target = event.target as HTMLElement;
-            // Se o card já está selecionado E o clique foi fora do grid E fora do menu de edição.
             if (selectedCardId && !target.closest('.react-grid-layout') && !target.closest('[data-mobile-menu]')) {
                  setSelectedCardId(null);
             }
@@ -105,12 +100,11 @@ const GridLayoutComponent = ({
         };
     }, [selectedCardId]);
 
-    useEffect(() => {
-        if(isMenuOpen && selectedCardId) {
-            setSelectedCardId(null);
-        }
-    }, [isMenuOpen, selectedCardId]);
-
+    const handleColorChange = (cardId: string, color: string) => {
+        onUpdateCard(cardId, { background_color: color });
+        setSelectedCardId(null);
+    };
+    
     return (
         <>
         <ResponsiveGridLayout
@@ -152,8 +146,15 @@ const GridLayoutComponent = ({
             })}
         </ResponsiveGridLayout>
         {isMobile && selectedCardId && (
-            <div data-mobile-menu className="fixed bottom-24 left-0 w-full px-4 z-50" onClick={(e) => e.stopPropagation()}>
+            <div data-mobile-menu className="fixed bottom-4 left-0 w-full px-4 z-50" onClick={(e) => e.stopPropagation()}>
                 <div className="bg-black/90 backdrop-blur-sm rounded-xl shadow-2xl flex items-center p-2 gap-2 flex-nowrap">
+                   
+                    {selectedCard?.type === 'note' && (
+                         <div className="bg-white/10 rounded-lg p-1">
+                            <CardColorControls onColorChange={(color) => handleColorChange(selectedCardId, color)} />
+                        </div>
+                    )}
+
                     {selectedCard?.type !== 'title' && (
                         <div className="bg-white/10 rounded-lg p-1">
                             <CardResizeControls onResize={(w, h) => {
@@ -185,5 +186,3 @@ const GridLayoutComponent = ({
 };
 
 export default React.memo(GridLayoutComponent);
-
-

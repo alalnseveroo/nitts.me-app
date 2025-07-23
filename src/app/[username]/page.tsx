@@ -42,6 +42,7 @@ export type CardData = {
     content: string | null;
     link: string | null;
     background_image: string | null;
+    background_color?: string | null;
 };
 
 const getContainerWidth = (isMobile: boolean) => {
@@ -64,6 +65,7 @@ export default function UnifiedUserPage() {
   const [rowHeight, setRowHeight] = useState(100);
   const [editingCard, setEditingCard] = useState<CardData | undefined>(undefined);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [isCardMenuOpen, setIsCardMenuOpen] = useState(false);
   
   const imageInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -280,6 +282,10 @@ export default function UnifiedUserPage() {
     if (type === 'link') {
       finalData.title = 'Novo Link';
     }
+    if (type === 'note') {
+      finalData.background_color = '#FFFFFF';
+    }
+
 
     const { data: newCard, error } = await supabase.from('cards').insert(finalData).select().single();
 
@@ -470,22 +476,25 @@ export default function UnifiedUserPage() {
                         onEditCard={handleEditCard}
                         rowHeight={rowHeight}
                         isMobile={isMobile}
+                        onMenuStateChange={setIsCardMenuOpen}
                     />
                     )}
                 </main>
             </div>
 
-            <footer className="fixed bottom-0 left-0 w-full p-4 z-50 md:left-1/2 md:-translate-x-1/2 md:w-auto">
-                <div className="bg-card/90 backdrop-blur-sm rounded-full shadow-lg border flex justify-around items-center p-2 gap-2">
-                    <Button title="Adicionar Imagem" variant="ghost" size="icon" className="rounded-full" onClick={() => imageInputRef.current?.click()} disabled={isUploadingImage}>
-                        {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon />}
-                    </Button>
-                    <Button title="Adicionar Título" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('title')}><Type /></Button>
-                    <Button title="Adicionar Nota" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('note')}><StickyNote /></Button>
-                    <Button title="Adicionar Link" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('link')}><LinkIcon /></Button>
-                    <Button title="Adicionar Mapa" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('map')}><MapIcon /></Button>
-                </div>
-            </footer>
+            {!isCardMenuOpen && (
+              <footer className="fixed bottom-0 left-0 w-full p-4 z-50 md:left-1/2 md:-translate-x-1/2 md:w-auto">
+                  <div className="bg-card/90 backdrop-blur-sm rounded-full shadow-lg border flex justify-around items-center p-2 gap-2">
+                      <Button title="Adicionar Imagem" variant="ghost" size="icon" className="rounded-full" onClick={() => imageInputRef.current?.click()} disabled={isUploadingImage}>
+                          {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon />}
+                      </Button>
+                      <Button title="Adicionar Título" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('title')}><Type /></Button>
+                      <Button title="Adicionar Nota" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('note')}><StickyNote /></Button>
+                      <Button title="Adicionar Link" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('link')}><LinkIcon /></Button>
+                      <Button title="Adicionar Mapa" variant="ghost" size="icon" className="rounded-full" onClick={() => addNewCard('map')}><MapIcon /></Button>
+                  </div>
+              </footer>
+            )}
             
             <EditCardSheet
                 isOpen={isEditSheetOpen}
