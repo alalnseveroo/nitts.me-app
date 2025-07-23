@@ -143,7 +143,7 @@ const GridLayoutComponent = ({
         </ResponsiveGridLayout>
         {isMobile && selectedCardId && (
             <div data-mobile-menu className="fixed bottom-24 left-0 w-full px-4 z-50" onClick={(e) => e.stopPropagation()}>
-                <div className="bg-black/90 backdrop-blur-sm rounded-xl shadow-2xl flex flex-wrap items-center justify-center p-2 gap-3">
+                <div className="bg-black/90 backdrop-blur-sm rounded-xl shadow-2xl flex items-center p-2 gap-2">
                     {selectedCard?.type !== 'title' && (
                         <div className="bg-white/10 rounded-lg p-1">
                             <CardResizeControls onResize={(w, h) => {
@@ -152,7 +152,7 @@ const GridLayoutComponent = ({
                             }} />
                         </div>
                     )}
-                    <div className="relative flex-1 min-w-[150px]">
+                    <div className="relative flex-1 min-w-0">
                         <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <Input 
                             placeholder="Cole o link"
