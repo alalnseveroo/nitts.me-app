@@ -19,6 +19,18 @@ interface ElementCardProps {
     data: CardData;
 }
 
+const CardWrapper = ({ data, children }: { data: CardData, children: React.ReactNode }) => {
+    if (data.link) {
+        return (
+            <Link href={data.link} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+                {children}
+            </Link>
+        )
+    }
+    return <>{children}</>;
+}
+
+
 export const ElementCard = ({ data }: ElementCardProps) => {
     
     switch (data.type) {
@@ -36,37 +48,45 @@ export const ElementCard = ({ data }: ElementCardProps) => {
             );
         case 'title':
             return (
-                <div className="w-full h-full flex items-center justify-start p-2">
-                     <h2 className="text-4xl font-bold">{data.title}</h2>
-                </div>
+                <CardWrapper data={data}>
+                    <div className="w-full h-full flex items-center justify-start p-2">
+                        <h2 className="text-4xl font-bold">{data.title}</h2>
+                    </div>
+                </CardWrapper>
             );
         case 'note':
             return (
-                 <Card className="w-full h-full p-4 overflow-y-auto">
-                    <p className="text-sm text-foreground whitespace-pre-wrap">{data.content}</p>
-                </Card>
+                 <CardWrapper data={data}>
+                    <Card className="w-full h-full p-4 overflow-y-auto">
+                        <p className="text-sm text-foreground whitespace-pre-wrap">{data.content}</p>
+                    </Card>
+                 </CardWrapper>
             );
         case 'image':
             return (
-                <Card className="w-full h-full overflow-hidden relative">
-                    <img 
-                        src={data.background_image || 'https://placehold.co/400x400.png'} 
-                        alt={data.title || 'image'} 
-                        className="w-full h-full object-cover" 
-                        data-ai-hint="abstract background"
-                    />
-                    {data.title && (
-                         <div className="absolute bottom-2 left-2 bg-white text-black rounded-lg shadow-md px-3 py-1.5">
-                            <p className="text-sm font-medium">{data.title}</p>
-                        </div>
-                    )}
-                </Card>
+                 <CardWrapper data={data}>
+                    <Card className="w-full h-full overflow-hidden relative">
+                        <img 
+                            src={data.background_image || 'https://placehold.co/400x400.png'} 
+                            alt={data.title || 'image'} 
+                            className="w-full h-full object-cover" 
+                            data-ai-hint="abstract background"
+                        />
+                        {data.title && (
+                            <div className="absolute bottom-2 left-2 bg-white text-black rounded-lg shadow-md px-3 py-1.5">
+                                <p className="text-sm font-medium">{data.title}</p>
+                            </div>
+                        )}
+                    </Card>
+                </CardWrapper>
             );
         case 'map':
             return (
-                <Card className="w-full h-full p-4 flex items-center justify-center">
-                    <p className="text-sm text-center text-muted-foreground">🗺️ Mapa (WIP)</p>
-                </Card>
+                <CardWrapper data={data}>
+                    <Card className="w-full h-full p-4 flex items-center justify-center">
+                        <p className="text-sm text-center text-muted-foreground">🗺️ Mapa (WIP)</p>
+                    </Card>
+                </CardWrapper>
             );
         default:
             return (
