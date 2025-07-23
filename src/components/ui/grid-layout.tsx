@@ -33,6 +33,7 @@ interface GridLayoutProps {
     onEditCard: (cardId: string) => void;
     rowHeight: number;
     isMobile: boolean;
+    isMenuOpen: boolean;
 }
 
 const GridLayoutComponent = ({ 
@@ -44,22 +45,32 @@ const GridLayoutComponent = ({
     onResizeCard,
     onEditCard,
     rowHeight,
-    isMobile
+    isMobile,
+    isMenuOpen
 }: GridLayoutProps) => {
 
     const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
-    const handleSelectCard = useCallback((cardId: string) => {
-        if (isMobile) {
-            setSelectedCardId(currentId => (currentId === cardId ? null : cardId));
+    useEffect(() => {
+        if (isMenuOpen && selectedCardId) {
+            setSelectedCardId(null);
         }
-    }, [isMobile]);
+    }, [isMenuOpen, selectedCardId])
+
+    const handleSelectCard = useCallback((cardId: string) => {
+        setSelectedCardId(currentId => (currentId === cardId ? null : cardId));
+    }, []);
     
-    const handleDragStart = () => {
+    const handleDragStart = useCallback(() => {
         if (isMobile && selectedCardId) {
             setSelectedCardId(null);
         }
-    }
+    }, [isMobile, selectedCardId]);
+
+    const handleLayoutChange = useCallback((layout: LayoutItem[]) => {
+      // Used for resize, which is rare.
+      onDragStop(layout);
+    }, [onDragStop]);
 
     return (
         <>
@@ -67,14 +78,14 @@ const GridLayoutComponent = ({
             layouts={{ lg: layoutConfig, sm: layoutConfig }}
             onDragStart={handleDragStart}
             onDragStop={onDragStop}
-            onResizeStop={onDragStop}
+            onResizeStop={handleLayoutChange}
             breakpoints={{ lg: 768, sm: 0 }}
             cols={{ lg: 4, sm: 2 }}
             rowHeight={rowHeight}
             isDraggable
-            isResizable={false}
+            isResizable={!isMobile}
             className="min-h-[400px]"
-            margin={[10, 10]}
+            margin={[10, 0]}
             containerPadding={[0,0]}
             compactType="vertical"
             draggableHandle={isMobile ? ".mobile-drag-handle" : ".drag-handle"}
@@ -83,7 +94,7 @@ const GridLayoutComponent = ({
                 const layoutItem = layoutConfig.find(l => l.i === card.id);
                 if (!layoutItem) return null;
                 return (
-                    <div key={card.id} data-grid={layoutItem} className="group/card-wrapper">
+                    <div key={card.id} data-grid={layoutItem}>
                         <GridLayoutCard
                             card={card}
                             onUpdate={onUpdateCard}
@@ -105,7 +116,10 @@ const GridLayoutComponent = ({
             <div className="fixed bottom-24 left-0 w-full p-4 z-50" onClick={(e) => e.stopPropagation()}>
                 <div className="bg-black/90 backdrop-blur-sm rounded-xl shadow-2xl flex justify-between items-center p-2 gap-2">
                 <div className="flex-1">
-                    <CardResizeControls onResize={(w, h) => onResizeCard(selectedCardId, w, h)} />
+                    <CardResizeControls onResize={(w, h) => {
+                        onResizeCard(selectedCardId, w, h);
+                        setSelectedCardId(null);
+                    }} />
                 </div>
                 <Button 
                     onClick={() => setSelectedCardId(null)}

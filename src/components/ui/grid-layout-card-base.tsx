@@ -80,8 +80,8 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
         switch (card.type) {
             case 'image':
                 return (
-                    <div className="w-full h-full relative group/image-card">
-                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/image-card:opacity-100 flex items-center justify-center transition-opacity z-10">
+                    <div className="w-full h-full relative group/image-card pointer-events-none">
+                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/image-card:opacity-100 flex items-center justify-center transition-opacity z-10 pointer-events-auto">
                             <Button
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={uploading || isDisabled}
@@ -109,11 +109,16 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
                             className="w-full h-full object-cover"
                             data-ai-hint="abstract background"
                         />
+                         {currentData.title && (
+                            <div className="absolute bottom-2 left-2 bg-white text-black rounded-lg shadow-md px-3 py-1.5 pointer-events-none">
+                                <p className="text-sm font-medium">{currentData.title}</p>
+                            </div>
+                        )}
                     </div>
                 );
             case 'link':
                 return (
-                    <div className="space-y-2 p-4">
+                    <div className={cn("space-y-2 p-4", isDisabled && "pointer-events-none")}>
                         <Input
                             name="title"
                             placeholder="Título"
@@ -136,7 +141,7 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
                 );
             case 'title':
                  return (
-                    <div className="p-0 w-full h-full">
+                    <div className={cn("p-0 w-full h-full", isDisabled && isMobile && "pointer-events-none")}>
                         <Input
                             name="title"
                             placeholder="Título Principal"
@@ -153,7 +158,7 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
                 );
             case 'note':
                 return (
-                    <div className="p-4 h-full">
+                    <div className={cn("p-4 h-full", isDisabled && "pointer-events-none")}>
                         <Textarea
                             name="content"
                             placeholder="Escreva sua nota aqui..."
@@ -167,12 +172,12 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
                 );
             case 'map':
                  return (
-                    <div className="p-4 flex items-center justify-center text-muted-foreground">
+                    <div className={cn("p-4 flex items-center justify-center text-muted-foreground", isDisabled && "pointer-events-none")}>
                         🗺️ Elemento de Mapa (WIP)
                     </div>
                 )
             default:
-                return <p className="p-4">Tipo de card desconhecido</p>;
+                return <p className={cn("p-4", isDisabled && "pointer-events-none")}>Tipo de card desconhecido</p>;
         }
     };
 

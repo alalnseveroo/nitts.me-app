@@ -64,6 +64,7 @@ export default function UnifiedUserPage() {
   const [rowHeight, setRowHeight] = useState(100);
   const [editingCard, setEditingCard] = useState<CardData | undefined>(undefined);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const imageInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -155,11 +156,11 @@ export default function UnifiedUserPage() {
                     x: existingLayout.x ?? 0,
                     y: existingLayout.y ?? index,
                     w: existingLayout.w ?? 1,
-                    h: existingLayout.h ?? 1,
+                    h: existingLayout.h ?? (card.type === 'title' ? 0.5 : 1),
                 };
             }
             const cols = isMobile ? 2 : 4;
-            return { i: card.id, x: (index % cols), y: Math.floor(index / cols), w: 1, h: 1 };
+            return { i: card.id, x: (index % cols), y: Math.floor(index / cols), w: card.type === 'title' ? cols : 1, h: card.type === 'title' ? 0.5 : 1 };
         });
         setCurrentLayout(finalLayout);
     }
@@ -206,13 +207,15 @@ export default function UnifiedUserPage() {
         ...l, x: l.x ?? 0, y: l.y ?? 0, w: l.w ?? 1, h: l.h ?? 1,
     }));
 
+    // Upsert all cards at once
+    const { error: cardsError } = await supabase.from('cards').upsert(cards);
+    
+    // Update profile with layout
     const { error: profileError } = await supabase
       .from('profiles')
       .update({ name: profile.name, bio: profile.bio, layout_config: validLayout })
       .eq('id', user.id);
       
-    const { error: cardsError } = await supabase.from('cards').upsert(cards);
-
     setSaving(false);
     if (profileError || cardsError) {
       toast({ title: 'Erro', description: `Erro ao salvar: ${profileError?.message || cardsError?.message}`, variant: 'destructive' });
@@ -260,7 +263,7 @@ export default function UnifiedUserPage() {
     
     const cols = isMobile ? 2 : 4;
     const w = type === 'title' ? cols : 1;
-    const h = 1;
+    const h = type === 'title' ? 0.5 : 1;
 
     const finalData: Omit<CardData, 'id' | 'user_id'> & { user_id: string } = {
         user_id: user.id,
@@ -408,7 +411,7 @@ export default function UnifiedUserPage() {
                     {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     Salvar Alterações
                 </Button>
-                <DropdownMenu>
+                <DropdownMenu onOpenChange={setIsMenuOpen}>
                     <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><Settings/></Button></DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Opções</DropdownMenuLabel>
@@ -467,6 +470,7 @@ export default function UnifiedUserPage() {
                         onEditCard={handleEditCard}
                         rowHeight={rowHeight}
                         isMobile={isMobile}
+                        isMenuOpen={isMenuOpen}
                     />
                     )}
                 </main>
