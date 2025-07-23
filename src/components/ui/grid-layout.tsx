@@ -33,8 +33,6 @@ interface GridLayoutProps {
     onEditCard: (cardId: string) => void;
     rowHeight: number;
     isMobile: boolean;
-    isMenuOpen: boolean;
-    setIsMenuOpen: (isOpen: boolean) => void;
 }
 
 const GridLayoutComponent = ({ 
@@ -47,29 +45,37 @@ const GridLayoutComponent = ({
     onEditCard,
     rowHeight,
     isMobile,
-    isMenuOpen,
-    setIsMenuOpen
 }: GridLayoutProps) => {
 
     const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
     const selectedCard = cards.find(c => c.id === selectedCardId);
 
-    useEffect(() => {
-        if (isMenuOpen && selectedCardId) {
-            setSelectedCardId(null);
-        }
-    }, [isMenuOpen, selectedCardId])
-
     const handleSelectCard = useCallback((cardId: string) => {
         setSelectedCardId(currentId => (currentId === cardId ? null : cardId));
     }, []);
     
+     useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (selectedCardId && !(event.target as HTMLElement).closest(`[data-card-id="${selectedCardId}"]`)) {
+                 setSelectedCardId(null);
+            }
+        };
+
+        if (isMobile) {
+            document.addEventListener('click', handleClickOutside);
+        }
+
+        return () => {
+            if (isMobile) {
+                document.removeEventListener('click', handleClickOutside);
+            }
+        };
+    }, [isMobile, selectedCardId]);
+
     const handleDragStart = useCallback((layout: LayoutItem[], oldItem: LayoutItem, newItem: LayoutItem, placeholder: LayoutItem, e: MouseEvent | TouchEvent, element: HTMLElement) => {
         if (isMobile && selectedCardId) {
-            if(element.contains(e.target as Node)) {
-              setSelectedCardId(null);
-            }
+            setSelectedCardId(null);
         }
     }, [isMobile, selectedCardId]);
 

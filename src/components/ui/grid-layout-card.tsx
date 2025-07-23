@@ -49,13 +49,17 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
 
     return (
         <div 
-            className="w-full h-full relative group/card"
+            className={cn(
+                "w-full h-full relative group/card",
+                isTitleOnMobile && '!h-fit'
+            )}
             onClick={(e) => {
                 if (isMobile && !isSelected) {
                     e.stopPropagation();
                     onClick(card.id);
                 }
             }}
+            data-card-id={card.id}
         >
             <div className={cn(
                 "w-full h-full rounded-lg transition-all",
@@ -174,4 +178,3 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
 
 
 export const GridLayoutCard = React.memo(GridLayoutCardComponent);
-

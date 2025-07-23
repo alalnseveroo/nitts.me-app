@@ -64,8 +64,7 @@ export default function UnifiedUserPage() {
   const [rowHeight, setRowHeight] = useState(100);
   const [editingCard, setEditingCard] = useState<CardData | undefined>(undefined);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+  
   const imageInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter()
@@ -149,17 +148,18 @@ export default function UnifiedUserPage() {
         
         const finalLayout = fetchedCards.map((card, index) => {
             const existingLayout = layoutMap.get(card.id);
+            const cols = isMobile ? 2 : 4;
+
             if (existingLayout) {
                 return {
                     ...existingLayout,
                     i: String(existingLayout.i), 
                     x: existingLayout.x ?? 0,
                     y: existingLayout.y ?? index,
-                    w: existingLayout.w ?? 1,
+                    w: existingLayout.w ?? (card.type === 'title' ? cols : 1),
                     h: existingLayout.h ?? (card.type === 'title' ? 0.5 : 1),
                 };
             }
-            const cols = isMobile ? 2 : 4;
             return { i: card.id, x: (index % cols), y: Math.floor(index / cols), w: card.type === 'title' ? cols : 1, h: card.type === 'title' ? 0.5 : 1 };
         });
         setCurrentLayout(finalLayout);
@@ -411,7 +411,7 @@ export default function UnifiedUserPage() {
                     {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     Salvar Alterações
                 </Button>
-                <DropdownMenu onOpenChange={setIsMenuOpen}>
+                <DropdownMenu>
                     <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><Settings/></Button></DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Opções</DropdownMenuLabel>
@@ -470,8 +470,6 @@ export default function UnifiedUserPage() {
                         onEditCard={handleEditCard}
                         rowHeight={rowHeight}
                         isMobile={isMobile}
-                        isMenuOpen={isMenuOpen}
-                        setIsMenuOpen={setIsMenuOpen}
                     />
                     )}
                 </main>
@@ -550,4 +548,3 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
-
