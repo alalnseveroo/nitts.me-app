@@ -138,14 +138,14 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
                 );
             case 'note':
                 return (
-                    <div className={cn("p-4 h-full flex items-center", isDisabled && "pointer-events-none")}>
+                    <div className={cn("p-4 h-full flex items-center justify-center", isDisabled && "pointer-events-none")}>
                         <Textarea
                             name="content"
                             placeholder="Escreva sua nota aqui..."
                             value={currentData.content || ''}
                             onChange={handleChange}
                             onBlur={handleBlur}
-                            className="border-none focus:ring-0 p-0 h-full resize-none bg-transparent text-center"
+                            className="border-none focus:ring-0 p-0 h-full resize-none bg-transparent text-center text-xl font-medium"
                             disabled={isDisabled}
                         />
                     </div>
