@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
 import { Responsive, WidthProvider } from 'react-grid-layout'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { ElementCard } from '@/components/ui/element-card'
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -599,4 +600,3 @@ export default function UnifiedUserPage() {
     </div>
   );
 }
-
