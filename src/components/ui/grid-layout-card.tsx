@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { GridLayoutCardBase } from './grid-layout-card-base';
 import { Button } from '@/components/ui/button';
-import { Move, Trash2, Edit, Crop, Square, RectangleHorizontal, RectangleVertical } from 'lucide-react';
+import { Move, Trash2, Edit } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,8 +16,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { CardResizeControls } from './card-resize-controls';
 import { cn } from '@/lib/utils';
 import type { CardData } from '@/app/[username]/page';
 
@@ -32,7 +30,7 @@ interface GridLayoutCardProps {
     isMobile: boolean;
 }
 
-const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, onSelectCard, isSelected, isMobile }: GridLayoutCardProps) => {
+const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCard, isSelected, isMobile }: GridLayoutCardProps) => {
     
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
