@@ -8,6 +8,8 @@ import { CardResizeControls } from '@/components/ui/card-resize-controls';
 import { Button } from '@/components/ui/button';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
+import { Input } from './input';
+import { LinkIcon } from 'lucide-react';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -49,8 +51,17 @@ const GridLayoutComponent = ({
     isMenuOpen,
 }: GridLayoutProps) => {
     const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+    const [linkInputValue, setLinkInputValue] = useState('');
 
     const selectedCard = cards.find(c => c.id === selectedCardId);
+
+    useEffect(() => {
+        if (selectedCard) {
+            setLinkInputValue(selectedCard.link || '');
+        } else {
+            setLinkInputValue('');
+        }
+    }, [selectedCard]);
 
     const handleSelectCard = useCallback((cardId: string) => {
         setSelectedCardId(currentId => (currentId === cardId ? null : cardId));
@@ -61,6 +72,13 @@ const GridLayoutComponent = ({
             setSelectedCardId(null);
         }
     }, [isMobile, selectedCardId]);
+
+    const handleDoneClick = () => {
+        if (selectedCardId && selectedCard && linkInputValue !== selectedCard.link) {
+            onUpdateCard(selectedCardId, { link: linkInputValue });
+        }
+        setSelectedCardId(null);
+    };
 
     useEffect(() => {
         if(isMenuOpen && selectedCardId) {
@@ -108,18 +126,27 @@ const GridLayoutComponent = ({
                 )
             })}
         </ResponsiveGridLayout>
-        {isMobile && selectedCardId && selectedCard?.type !== 'title' && (
+        {isMobile && selectedCardId && (
             <div className="fixed bottom-24 left-0 w-full p-4 z-50" onClick={(e) => e.stopPropagation()}>
-                <div className="bg-black/90 backdrop-blur-sm rounded-xl shadow-2xl flex justify-between items-center p-2 gap-2">
-                    <div className="flex-1">
+                <div className="bg-black/90 backdrop-blur-sm rounded-xl shadow-2xl flex flex-col p-2 gap-3">
+                    {selectedCard?.type !== 'title' && (
                         <CardResizeControls onResize={(w, h) => {
                             onResizeCard(selectedCardId, w, h);
                             setSelectedCardId(null);
                         }} />
+                    )}
+                    <div className="relative w-full px-2">
+                        <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <Input 
+                            placeholder="Cole o link"
+                            className="bg-white/10 border-white/20 text-white pl-10 h-11"
+                            value={linkInputValue}
+                            onChange={(e) => setLinkInputValue(e.target.value)}
+                        />
                     </div>
                     <Button 
-                        onClick={() => setSelectedCardId(null)}
-                        className="bg-green-500 text-white font-bold hover:bg-green-600 px-6"
+                        onClick={handleDoneClick}
+                        className="bg-green-500 text-white font-bold hover:bg-green-600 px-6 w-full"
                     >
                         Feito
                     </Button>
