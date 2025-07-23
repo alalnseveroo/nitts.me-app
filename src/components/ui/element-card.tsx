@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LinkIcon } from 'lucide-react';
+import { LinkIcon, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CardData } from '@/app/[username]/page';
 
@@ -13,14 +13,23 @@ interface ElementCardProps {
 }
 
 const CardWrapper = ({ data, children }: { data: CardData, children: React.ReactNode }) => {
+    const content = (
+        <div className="relative w-full h-full">
+            {children}
+            {data.link && (
+                <ArrowUpRight className="absolute top-2 right-2 h-4 w-4 text-muted-foreground" />
+            )}
+        </div>
+    );
+
     if (data.link) {
         return (
             <Link href={data.link} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
-                {children}
+                {content}
             </Link>
         )
     }
-    return <>{children}</>;
+    return <>{content}</>;
 }
 
 
