@@ -50,10 +50,15 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
     return (
         <div 
             className="w-full h-full relative group/card"
-            onClick={() => isMobile && !isSelected && onClick(card.id)}
+            onClick={(e) => {
+                if (isMobile && !isSelected) {
+                    e.stopPropagation();
+                    onClick(card.id);
+                }
+            }}
         >
             <div className={cn(
-                "w-full h-full rounded-lg",
+                "w-full h-full rounded-lg transition-all",
                 isSelected && !isTitleOnMobile ? "border-2 border-foreground" : "border-2 border-transparent",
                 isMobile && !isSelected && "cursor-pointer"
             )}>
@@ -121,7 +126,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
             )}
 
             {/* --- MOBILE CONTROLS --- */}
-            {showMobileControls && !isTitleOnMobile && (
+            {showMobileControls && (
                  <>
                     {/* Delete Icon */}
                     <AlertDialog>
@@ -145,15 +150,17 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                     </AlertDialog>
                    
                     {/* Edit Icon */}
-                     <Button
-                        title="Editar conteúdo"
-                        variant="default"
-                        size="icon"
-                        onClick={() => onEdit(card.id)}
-                        className="absolute top-[-12px] right-[-12px] z-30 h-8 w-8 rounded-full bg-black text-white shadow-lg hover:bg-gray-800"
-                    >
-                        <Edit className="h-4 w-4" />
-                    </Button>
+                    {!isTitleCard && (
+                         <Button
+                            title="Editar conteúdo"
+                            variant="default"
+                            size="icon"
+                            onClick={() => onEdit(card.id)}
+                            className="absolute top-[-12px] right-[-12px] z-30 h-8 w-8 rounded-full bg-black text-white shadow-lg hover:bg-gray-800"
+                        >
+                            <Edit className="h-4 w-4" />
+                        </Button>
+                    )}
                     
                      {/* Drag Handle */}
                     <div className="mobile-drag-handle absolute bottom-[-15px] left-1/2 -translate-x-1/2 z-30 cursor-move bg-black text-white rounded-full p-2 shadow-lg">
