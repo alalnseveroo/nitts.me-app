@@ -47,13 +47,9 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
     const isTitleCard = card.type === 'title';
 
     const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (isMobile) {
+        if (isMobile && !isSelected) {
             e.stopPropagation();
-            if (isTitleCard) {
-                onEdit(card.id); // Open sheet for title editing
-            } else if (!isSelected) {
-                onClick(card.id);
-            }
+            onClick(card.id);
         }
     };
 
@@ -61,7 +57,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
         <div 
             className={cn(
                 "w-full h-full relative group/card",
-                isMobile && isTitleCard && '!h-fit'
+                 isMobile && isTitleCard && '!h-fit'
             )}
             onClick={handleClick}
             data-card-id={card.id}
@@ -114,23 +110,21 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                     </AlertDialog>
                     
                     {!isTitleCard && (
-                        <>
-                            <div className="absolute bottom-[-50px] left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                                <div className="bg-black text-white rounded-lg shadow-xl p-1">
-                                    <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
-                                </div>
+                        <div className="absolute bottom-[-50px] left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                            <div className="bg-black text-white rounded-lg shadow-xl p-1">
+                                <CardResizeControls onResize={(w, h) => onResize(card.id, w, h)} />
                             </div>
-                             <Button
-                                title="Editar conteúdo"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => onEdit(card.id)}
-                                className="absolute bottom-[-10px] left-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
-                            >
-                                <Edit className="h-4 w-4" />
-                            </Button>
-                        </>
+                        </div>
                     )}
+                    <Button
+                        title="Editar conteúdo"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onEdit(card.id)}
+                        className="absolute bottom-[-10px] left-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
+                    >
+                        <Edit className="h-4 w-4" />
+                    </Button>
                 </>
             )}
 
@@ -159,17 +153,15 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onResize, onEdit, o
                     </AlertDialog>
                    
                     {/* Edit Icon */}
-                    {!isTitleCard && (
-                         <Button
-                            title="Editar conteúdo"
-                            variant="default"
-                            size="icon"
-                            onClick={() => onEdit(card.id)}
-                            className="absolute top-[-12px] right-[-12px] z-30 h-8 w-8 rounded-full bg-black text-white shadow-lg hover:bg-gray-800"
-                        >
-                            <Edit className="h-4 w-4" />
-                        </Button>
-                    )}
+                     <Button
+                        title="Editar conteúdo"
+                        variant="default"
+                        size="icon"
+                        onClick={() => onEdit(card.id)}
+                        className="absolute top-[-12px] right-[-12px] z-30 h-8 w-8 rounded-full bg-black text-white shadow-lg hover:bg-gray-800"
+                    >
+                        <Edit className="h-4 w-4" />
+                    </Button>
                     
                      {/* Drag Handle */}
                     <div className="mobile-drag-handle absolute bottom-[-15px] left-1/2 -translate-x-1/2 z-30 cursor-move bg-black text-white rounded-full p-2 shadow-lg">

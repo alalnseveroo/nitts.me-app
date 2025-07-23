@@ -80,7 +80,7 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
         switch (card.type) {
             case 'image':
                 return (
-                    <div className="w-full h-full relative group/image-card">
+                    <div className="w-full h-full relative group/image-card pointer-events-none">
                          <div className={cn("absolute inset-0 bg-black/40 opacity-0 group-hover/image-card:opacity-100 flex items-center justify-center transition-opacity z-10", isDisabled ? 'pointer-events-none' : 'pointer-events-auto')}>
                             <Button
                                 onClick={() => fileInputRef.current?.click()}
@@ -141,7 +141,7 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
                 );
             case 'title':
                  return (
-                    <div className={cn("w-full h-full flex items-center p-2", isDisabled && "pointer-events-none")}>
+                    <div className={cn("w-full h-full flex items-center p-2 pointer-events-none", isDisabled && "pointer-events-none")}>
                         <h2 className="text-4xl font-bold">{currentData.title}</h2>
                     </div>
                 );
@@ -169,17 +169,20 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
                 return <p className={cn("p-4", isDisabled && "pointer-events-none")}>Tipo de card desconhecido</p>;
         }
     };
+    
+    const isTitleCard = card.type === 'title';
 
     return (
         <Card 
             className={cn(
-                'w-full h-full flex flex-col overflow-hidden bg-card',
-                isFocused && !isDisabled ? 'ring-2 ring-primary' : '',
+                'w-full h-full flex flex-col overflow-hidden',
+                isTitleCard ? 'bg-transparent border-none shadow-none' : 'bg-card',
+                isFocused && !isDisabled && !isTitleCard ? 'ring-2 ring-primary' : '',
             )} 
             onFocus={() => !isDisabled && setIsFocused(true)}
             onBlurCapture={handleBlur}
         >
-            <div className={cn("flex-grow flex items-center justify-center h-full", { "pointer-events-none": isDisabled && card.type !== 'title' })}>
+            <div className={cn("flex-grow flex items-center justify-center h-full", { "pointer-events-none": isDisabled })}>
                 {renderContent()}
             </div>
         </Card>
