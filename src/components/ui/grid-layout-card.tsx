@@ -23,7 +23,6 @@ interface GridLayoutCardProps {
     card: CardData;
     onUpdate: (id: string, updates: Partial<CardData>) => void;
     onDelete: (id: string) => void;
-    onResize: (id: string, w: number, h: number) => void;
     onEdit: (id: string) => void;
     onSelectCard: (id: string) => void;
     isSelected: boolean;
@@ -37,7 +36,6 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
     const isTitleCard = card.type === 'title';
 
     const handleClick = (e: React.MouseEvent) => {
-        // Prevent edit sheet from opening if clicking on delete/drag controls on desktop
         if (!isMobile && (e.target as HTMLElement).closest('.drag-handle, [data-alert-dialog-trigger]')) {
              e.stopPropagation();
              return;
@@ -65,6 +63,12 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
         onDelete(card.id);
         setIsDeleteDialogOpen(false);
     }
+    
+    const handleDialogCancel = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsDeleteDialogOpen(false);
+    }
+
 
     return (
         <div 
@@ -86,42 +90,41 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
             </div>
             
              <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-
+                <AlertDialogTrigger asChild>
+                     <span />
+                </AlertDialogTrigger>
+                
                 {/* --- DESKTOP CONTROLS --- */}
                 {!isMobile && (
                     <>
                         <div className="drag-handle absolute top-2 right-2 z-20 cursor-move text-white bg-black/30 rounded-full p-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
                             <Move className="h-5 w-5" />
                         </div>
-                        <AlertDialogTrigger asChild>
-                            <Button
-                                data-alert-dialog-trigger
-                                title="Deletar"
-                                variant="ghost"
-                                size="icon"
-                                onClick={handleDeleteTriggerClick}
-                                className="absolute top-[-10px] left-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </AlertDialogTrigger>
+                        <Button
+                            data-alert-dialog-trigger
+                            title="Deletar"
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleDeleteTriggerClick}
+                            className="absolute top-[-10px] left-[-10px] z-20 h-8 w-8 rounded-full bg-white text-black shadow-md opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-gray-200"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
                     </>
                 )}
 
                 {/* --- MOBILE CONTROLS --- */}
                 { isMobile && isSelected && (
                     <>
-                        <AlertDialogTrigger asChild>
-                            <Button
-                                title="Deletar"
-                                variant="default"
-                                size="icon"
-                                onClick={handleDeleteTriggerClick}
-                                className="absolute top-[-12px] left-[-12px] z-30 h-8 w-8 rounded-full bg-white text-black shadow-lg hover:bg-gray-200"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </AlertDialogTrigger>
+                        <Button
+                            title="Deletar"
+                            variant="default"
+                            size="icon"
+                            onClick={handleDeleteTriggerClick}
+                            className="absolute top-[-12px] left-[-12px] z-30 h-8 w-8 rounded-full bg-white text-black shadow-lg hover:bg-gray-200"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
 
                         <Button
                             title="Editar conteúdo"
@@ -147,7 +150,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancelar</AlertDialogCancel>
+                        <AlertDialogCancel onClick={handleDialogCancel}>Cancelar</AlertDialogCancel>
                         <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
                             Deletar
                         </AlertDialogAction>
@@ -161,5 +164,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
 
 
 export const GridLayoutCard = React.memo(GridLayoutCardComponent);
+
+    
 
     

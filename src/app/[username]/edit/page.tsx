@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Map as MapIcon, StickyNote, Edit, Plus, Crop, Square, RectangleHorizontal, RectangleVertical } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Map as MapIcon, StickyNote, Edit, Plus, Crop, Square, RectangleHorizontal, RectangleVertical, Eye } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { CardResizeControls } from '@/components/ui/card-resize-controls'
+import { useDebounce } from '@/hooks/use-debounce'
 
 type Profile = {
   id: string;
@@ -108,6 +109,45 @@ export default function EditUserPage() {
   const { toast } = useToast();
   const pageUsername = params.username as string
   const isMobile = useIsMobile();
+  const isInitialMount = useRef(true);
+
+  const debouncedProfile = useDebounce(profile, 500);
+  const debouncedCards = useDebounce(cards, 500);
+  const debouncedLayout = useDebounce(currentLayout, 500);
+
+  const autoSaveChanges = useCallback(async () => {
+    if (!user || !profile || isInitialMount.current) return;
+    setSaving(true);
+    
+    const validLayout = currentLayout.map(l => ({
+        ...l, x: l.x ?? 0, y: l.y ?? 0, w: l.w ?? 1, h: l.h ?? 1,
+    }));
+
+    const { error: cardsError } = await supabase.from('cards').upsert(cards);
+    
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ name: profile.name, bio: profile.bio, layout_config: validLayout })
+      .eq('id', user.id);
+      
+    if (profileError || cardsError) {
+      toast({ title: 'Erro', description: `Erro ao salvar: ${profileError?.message || cardsError?.message}`, variant: 'destructive' });
+      console.error(profileError || cardsError);
+    } else {
+      // toast({ title: 'Sucesso', description: 'Alterações salvas!' });
+    }
+    setSaving(false);
+
+  }, [user, profile, cards, currentLayout, supabase, toast]);
+
+  useEffect(() => {
+    if (isInitialMount.current) {
+        // On first load, don't save anything
+        return;
+    }
+    autoSaveChanges();
+  }, [debouncedProfile, debouncedCards, debouncedLayout, autoSaveChanges]);
+
 
   const updateRowHeight = useCallback(() => {
     if (typeof window === 'undefined') return;
@@ -229,7 +269,10 @@ export default function EditUserPage() {
     }
     
     setLoading(false);
-    setTimeout(updateRowHeight, 100);
+    setTimeout(() => {
+      isInitialMount.current = false;
+      updateRowHeight();
+    }, 50);
 
   }, [pageUsername, isMobile, updateRowHeight, router]);
 
@@ -264,33 +307,6 @@ export default function EditUserPage() {
         currentCards.map(c => (c.id === id ? { ...c, ...updates } : c))
     );
   }, []);
-
-  const handleSaveChanges = async () => {
-    if (!user || !profile) return
-    setSaving(true);
-    
-    const validLayout = currentLayout.map(l => ({
-        ...l, x: l.x ?? 0, y: l.y ?? 0, w: l.w ?? 1, h: l.h ?? 1,
-    }));
-
-    // Upsert all cards at once
-    const { error: cardsError } = await supabase.from('cards').upsert(cards);
-    
-    // Update profile with layout
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({ name: profile.name, bio: profile.bio, layout_config: validLayout })
-      .eq('id', user.id);
-      
-    setSaving(false);
-    if (profileError || cardsError) {
-      toast({ title: 'Erro', description: `Erro ao salvar: ${profileError?.message || cardsError?.message}`, variant: 'destructive' });
-      console.error(profileError || cardsError);
-    } else {
-      toast({ title: 'Sucesso', description: 'Alterações salvas com sucesso!' });
-      setSelectedCardId(null); // Deselect card after saving
-    }
-  }
 
   const handleAvatarUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0 || !user) return
@@ -375,23 +391,24 @@ export default function EditUserPage() {
 
   const handleDeleteCard = useCallback(async (cardId: string) => {
     if (!user) return;
+    
+    setCards(prev => prev.filter(c => c.id !== cardId));
+    setCurrentLayout(prev => prev.filter(l => l.i !== cardId));
+    setSelectedCardId(null);
 
-    // First, delete from the database
     const { error } = await supabase.from('cards').delete().eq('id', cardId);
 
     if (error) {
         toast({ title: 'Erro', description: 'Não foi possível deletar o card.', variant: 'destructive' });
         console.error("Error deleting card:", error);
+        // Revert UI changes if DB delete fails
+        fetchPageData(user);
         return; 
     }
     
-    // Only if DB deletion is successful, update the UI state
-    setCards(prev => prev.filter(c => c.id !== cardId));
-    setCurrentLayout(prev => prev.filter(l => l.i !== cardId));
-    setSelectedCardId(null); // Deselect the card
     toast({ title: 'Sucesso', description: 'Card deletado.' });
 
-  }, [user, toast]);
+  }, [user, toast, fetchPageData]);
 
   const handleImageFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0 || !user) {
@@ -473,48 +490,41 @@ export default function EditUserPage() {
               className="hidden"
               accept="image/*"
           />
-
-          <header className="flex justify-between items-center p-4 sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b">
-              <div className="flex items-center space-x-2">
-                 {/* Share button removed from here */}
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button asChild variant="outline">
-                    <Link href={`/${pageUsername}`} target="_blank">
-                        Ver Página Pública
-                    </Link>
-                </Button>
-                <Button onClick={handleSaveChanges} disabled={saving}>
-                    {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                    Salvar Alterações
-                </Button>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><Settings/></Button></DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Opções</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem disabled><UserRound className="mr-2 h-4 w-4"/><span>Alterar Usuário</span></DropdownMenuItem>
-                    <DropdownMenuItem disabled><KeyRound className="mr-2 h-4 w-4"/><span>Alterar Senha</span></DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4"/><span>Sair</span></DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-          </header>
           
           <div className="grid grid-cols-12 md:gap-8 flex-1 px-6 md:px-8 py-4">
               <aside className="col-span-12 md:col-span-3 md:py-8">
-                  <div className="sticky top-24">
-                      <div className="relative mb-4 w-32 h-32">
-                          <Avatar className="w-32 h-32 text-lg">
-                              <AvatarImage src={profile?.avatar_url || ''} alt={profile?.username || 'avatar'} />
-                              <AvatarFallback>{profile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
-                          </Avatar>
-                          <label htmlFor="avatar-upload" className="absolute bottom-1 right-1 bg-primary text-primary-foreground rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-all">
-                              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                          </label>
-                          <input id="avatar-upload" type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={uploading}/>
+                  <div className="sticky top-8">
+                      <div className="flex items-start justify-between">
+                        <div className="relative mb-4 w-32 h-32">
+                            <Avatar className="w-32 h-32 text-lg">
+                                <AvatarImage src={profile?.avatar_url || ''} alt={profile?.username || 'avatar'} />
+                                <AvatarFallback>{profile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <label htmlFor="avatar-upload" className="absolute bottom-1 right-1 bg-primary text-primary-foreground rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-all">
+                                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                            </label>
+                            <input id="avatar-upload" type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={uploading}/>
+                        </div>
+
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground"><Settings/></Button></DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Opções</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                             <DropdownMenuItem asChild>
+                                <Link href={`/${pageUsername}`} target="_blank" className="cursor-pointer">
+                                    <Eye className="mr-2 h-4 w-4"/>
+                                    <span>Ver Página Pública</span>
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem disabled><UserRound className="mr-2 h-4 w-4"/><span>Alterar Usuário</span></DropdownMenuItem>
+                            <DropdownMenuItem disabled><KeyRound className="mr-2 h-4 w-4"/><span>Alterar Senha</span></DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4"/><span>Sair</span></DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
+
                       <Input
                       className="text-4xl font-bold border-none focus:ring-0 shadow-none p-0 h-auto mb-2 bg-transparent"
                       value={profile?.name || ''}
@@ -567,9 +577,10 @@ export default function EditUserPage() {
                 </div>
                 <Button 
                     onClick={handleShare} 
+                    disabled={saving}
                     className="bg-accent text-accent-foreground hover:bg-accent/90 px-3 text-sm h-9"
                 >
-                    Copiar Meu Nits
+                    {saving ? 'Salvando Nits...' : 'Copiar Meu Nits'}
                 </Button>
               </div>
             </footer>
@@ -593,3 +604,5 @@ export default function EditUserPage() {
       </div>
   )
 }
+
+    
