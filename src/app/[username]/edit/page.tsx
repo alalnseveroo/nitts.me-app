@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Map, StickyNote, Edit } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Map, StickyNote, Edit, Plus } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
 import GridLayoutComponent from '@/components/ui/grid-layout'
 import { EditCardSheet } from '@/components/ui/edit-card-sheet'
@@ -474,7 +475,7 @@ export default function EditUserPage() {
 
           <header className="flex justify-between items-center p-4 sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b">
               <div className="flex items-center space-x-2">
-                   <Button onClick={handleShare} variant="ghost"><Share className="mr-2 h-4 w-4" /> Compartilhar</Button>
+                 {/* Share button removed from here */}
               </div>
               <div className="flex items-center space-x-2">
                 <Button asChild variant="outline">
@@ -553,14 +554,31 @@ export default function EditUserPage() {
 
           {isMobile && !selectedCardId && (
             <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-auto p-4 z-50">
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border flex justify-around items-center p-1 gap-1">
-                    <Button title="Adicionar Link" variant="ghost" size="icon" onClick={() => addNewCard('link')}><AddLinkIcon /></Button>
-                    <Button title="Adicionar Imagem" variant="ghost" size="icon" onClick={() => imageInputRef.current?.click()} disabled={isUploadingImage}>
-                        {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <AddImageIcon />}
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border flex justify-center items-center p-1 gap-2">
+                     <Button 
+                        onClick={handleShare} 
+                        className="bg-accent text-accent-foreground hover:bg-accent/90 px-4"
+                    >
+                        Copiar Meu Nits
                     </Button>
-                    <Button title="Adicionar Nota" variant="ghost" size="icon" onClick={() => addNewCard('note')}><AddNoteIcon /></Button>
-                    <Button title="Adicionar Mapa" variant="ghost" size="icon" onClick={() => addNewCard('map')}><AddMapIcon /></Button>
-                    <Button title="Adicionar Título" variant="ghost" size="icon" onClick={() => addNewCard('title')}><AddTitleIcon /></Button>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button title="Adicionar Card" variant="ghost" size="icon">
+                                <Plus className="h-6 w-6" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent align="center" side="top" className="w-auto p-1 mb-2">
+                             <div className="bg-white rounded-2xl flex justify-around items-center p-1 gap-1">
+                                <Button title="Adicionar Link" variant="ghost" size="icon" onClick={() => addNewCard('link')}><AddLinkIcon /></Button>
+                                <Button title="Adicionar Imagem" variant="ghost" size="icon" onClick={() => imageInputRef.current?.click()} disabled={isUploadingImage}>
+                                    {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <AddImageIcon />}
+                                </Button>
+                                <Button title="Adicionar Nota" variant="ghost" size="icon" onClick={() => addNewCard('note')}><AddNoteIcon /></Button>
+                                <Button title="Adicionar Mapa" variant="ghost" size="icon" onClick={() => addNewCard('map')}><AddMapIcon /></Button>
+                                <Button title="Adicionar Título" variant="ghost" size="icon" onClick={() => addNewCard('title')}><AddTitleIcon /></Button>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
                 </div>
             </footer>
           )}
