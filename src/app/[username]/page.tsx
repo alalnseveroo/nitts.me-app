@@ -5,6 +5,9 @@ import type { Layout } from 'react-grid-layout';
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import PublicProfileGrid from '@/components/ui/public-profile-grid';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { ArrowUpRight } from 'lucide-react';
 
 export type CardData = {
     id: string;
@@ -67,8 +70,8 @@ export default async function PublicProfilePage({ params }: { params: { username
   
   // RENDER PUBLIC VIEW
   return (
-    <div className="w-full min-h-screen px-6 md:px-8 py-4 md:py-8 relative bg-background">
-        <div className="grid grid-cols-12 md:gap-8">
+    <div className="w-full min-h-screen px-6 md:px-8 py-4 md:py-8 relative bg-background flex flex-col">
+        <div className="grid grid-cols-12 md:gap-8 flex-1">
             <header className="col-span-12 md:col-span-3 md:py-8">
                 <div className="sticky top-8">
                     <Avatar className="w-32 h-32 mb-4">
@@ -84,6 +87,14 @@ export default async function PublicProfilePage({ params }: { params: { username
                <PublicProfileGrid cards={cards} layoutConfig={profile.layout_config} />
             </main>
         </div>
+        <footer className="w-full flex justify-center py-8">
+          <Button asChild variant="ghost" className="text-muted-foreground">
+            <Link href="/signup">
+              Pegue também seu Nits
+              <ArrowUpRight className="h-4 w-4 ml-2" />
+            </Link>
+          </Button>
+        </footer>
     </div>
   );
 }
