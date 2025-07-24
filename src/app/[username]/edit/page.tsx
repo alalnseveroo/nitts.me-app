@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Map as MapIcon, StickyNote, Edit, Plus } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Map as MapIcon, StickyNote, Edit, Plus, Crop, Square, RectangleHorizontal, RectangleVertical } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -21,6 +21,7 @@ import { CardEditControls } from '@/components/ui/card-edit-controls'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { CardResizeControls } from '@/components/ui/card-resize-controls'
 
 type Profile = {
   id: string;
@@ -409,7 +410,7 @@ export default function EditUserPage() {
         const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
         
         await addNewCard('image', { background_image: publicUrl, title: '' });
-    } catch (error) {
+    } catch (error) => {
         toast({ title: 'Erro', description: 'Falha no upload da imagem.', variant: 'destructive' });
         console.error(error);
     } finally {
@@ -488,7 +489,7 @@ export default function EditUserPage() {
                     Salvar Alterações
                 </Button>
                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><Settings/></Button></DropdownMenuTrigger>
+                    <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><Settings/></ButtonMenuTrigger>
                     <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Opções</DropdownMenuLabel>
                     <DropdownMenuSeparator />
@@ -553,33 +554,24 @@ export default function EditUserPage() {
           </div>
 
           {isMobile && !selectedCardId && (
-            <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-auto p-4 z-50">
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border flex justify-center items-center p-1 gap-2">
-                     <Button 
-                        onClick={handleShare} 
-                        className="bg-accent text-accent-foreground hover:bg-accent/90 px-4"
-                    >
-                        Copiar Meu Nits
-                    </Button>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button title="Adicionar Card" variant="ghost" size="icon">
-                                <Plus className="h-6 w-6" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent align="center" side="top" className="w-auto p-1 mb-2">
-                             <div className="bg-white rounded-2xl flex justify-around items-center p-1 gap-1">
-                                <Button title="Adicionar Link" variant="ghost" size="icon" onClick={() => addNewCard('link')}><AddLinkIcon /></Button>
-                                <Button title="Adicionar Imagem" variant="ghost" size="icon" onClick={() => imageInputRef.current?.click()} disabled={isUploadingImage}>
-                                    {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <AddImageIcon />}
-                                </Button>
-                                <Button title="Adicionar Nota" variant="ghost" size="icon" onClick={() => addNewCard('note')}><AddNoteIcon /></Button>
-                                <Button title="Adicionar Mapa" variant="ghost" size="icon" onClick={() => addNewCard('map')}><AddMapIcon /></Button>
-                                <Button title="Adicionar Título" variant="ghost" size="icon" onClick={() => addNewCard('title')}><AddTitleIcon /></Button>
-                            </div>
-                        </PopoverContent>
-                    </Popover>
+            <footer className="fixed bottom-0 left-0 right-0 p-4 z-50">
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border flex justify-between items-center p-1.5 gap-2 max-w-sm mx-auto">
+                <div className="flex items-center gap-1">
+                  <Button title="Adicionar Link" variant="ghost" size="icon" onClick={() => addNewCard('link')}><AddLinkIcon /></Button>
+                  <Button title="Adicionar Imagem" variant="ghost" size="icon" onClick={() => imageInputRef.current?.click()} disabled={isUploadingImage}>
+                      {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <AddImageIcon />}
+                  </Button>
+                  <Button title="Adicionar Nota" variant="ghost" size="icon" onClick={() => addNewCard('note')}><AddNoteIcon /></Button>
+                  <Button title="Adicionar Mapa" variant="ghost" size="icon" onClick={() => addNewCard('map')}><AddMapIcon /></Button>
+                  <Button title="Adicionar Título" variant="ghost" size="icon" onClick={() => addNewCard('title')}><AddTitleIcon /></Button>
                 </div>
+                <Button 
+                    onClick={handleShare} 
+                    className="bg-accent text-accent-foreground hover:bg-accent/90 px-3 text-sm h-9"
+                >
+                    Copiar Meu Nits
+                </Button>
+              </div>
             </footer>
           )}
 
@@ -601,3 +593,5 @@ export default function EditUserPage() {
       </div>
   )
 }
+
+    
