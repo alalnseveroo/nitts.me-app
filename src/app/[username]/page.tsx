@@ -1,19 +1,10 @@
-import { supabase } from '@/lib/supabase/client'
-import type { User } from '@supabase/supabase-js'
-import type { Layout } from 'react-grid-layout';
 
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Share, Edit } from 'lucide-react'
-import { Skeleton } from '@/components/ui/skeleton'
-import { ElementCard } from '@/components/ui/element-card'
-import Link from 'next/link'
-import { Responsive, WidthProvider } from 'react-grid-layout'
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { notFound, redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
+import type { Layout } from 'react-grid-layout';
 
-const ResponsiveGridLayout = WidthProvider(Responsive);
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import PublicProfileGrid from '@/components/ui/public-profile-grid';
 
 export type CardData = {
     id: string;
@@ -36,7 +27,7 @@ export type Profile = {
 }
 
 async function fetchPageData(username: string) {
-    const supabase = createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient();
     
     const { data: profileData, error: profileError } = await supabase
         .from('profiles')
@@ -66,34 +57,7 @@ export default async function PublicProfilePage({ params }: { params: { username
 
   const { profile, cards } = data;
   
-  const savedLayout = profile.layout_config || [];
-  const layoutMap = new Map(savedLayout.map(l => [l.i, l]));
-
-  const finalLayout = cards.map((card, index) => {
-      const existingLayout = layoutMap.get(card.id);
-      const cols = 4; // Assuming desktop view default for server render
-      const mobileCols = 2;
-
-      if (existingLayout) {
-          return {
-              ...existingLayout,
-              i: String(existingLayout.i), 
-              x: existingLayout.x ?? 0,
-              y: existingLayout.y ?? index,
-              w: existingLayout.w ?? (card.type === 'title' ? cols : 1),
-              h: existingLayout.h ?? (card.type === 'title' ? 0.5 : 1),
-          };
-      }
-      return { 
-          i: card.id, 
-          x: (index % cols), 
-          y: Math.floor(index / cols), 
-          w: card.type === 'title' ? cols : 1, 
-          h: card.type === 'title' ? 0.5 : 1 
-      };
-  });
-  
-  const supabaseAuth = createSupabaseServerClient();
+  const supabaseAuth = await createSupabaseServerClient();
   const { data: { user } } = await supabaseAuth.auth.getUser();
   const isOwner = user?.id === profile.id;
 
@@ -117,35 +81,7 @@ export default async function PublicProfilePage({ params }: { params: { username
             </header>
 
             <main className="col-span-12 md:col-span-9 mt-6 md:mt-0">
-                {cards.length > 0 ? (
-                <ResponsiveGridLayout
-                    layouts={{ lg: finalLayout, sm: finalLayout }}
-                    breakpoints={{ lg: 768, sm: 0 }}
-                    cols={{ lg: 4, sm: 2 }}
-                    rowHeight={100} // A static rowHeight is better for SSR
-                    isDraggable={false}
-                    isResizable={false}
-                    compactType="vertical"
-                    margin={[10, 10]}
-                    containerPadding={[0, 0]}
-                    className="min-h-[400px]"
-                >
-                    {cards.map(card => {
-                        const layout = finalLayout.find(l => l.i === card.id) || {x:0, y:0, w:1, h:1, i: card.id };
-                        return (
-                            <div key={card.id} data-grid={layout}>
-                                <ElementCard data={card} />
-                            </div>
-                        )
-                    })}
-                </ResponsiveGridLayout>
-                ) : (
-                    <div className="flex items-center justify-center h-64 border-2 border-dashed rounded-lg">
-                        <p className="text-muted-foreground">
-                          Este perfil ainda não tem cards.
-                        </p>
-                    </div>
-                )}
+               <PublicProfileGrid cards={cards} layoutConfig={profile.layout_config} />
             </main>
         </div>
     </div>
