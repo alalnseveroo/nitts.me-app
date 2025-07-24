@@ -410,7 +410,7 @@ export default function EditUserPage() {
         const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
         
         await addNewCard('image', { background_image: publicUrl, title: '' });
-    } catch (error) => {
+    } catch (error) {
         toast({ title: 'Erro', description: 'Falha no upload da imagem.', variant: 'destructive' });
         console.error(error);
     } finally {
@@ -593,5 +593,7 @@ export default function EditUserPage() {
       </div>
   )
 }
+
+    
 
     
