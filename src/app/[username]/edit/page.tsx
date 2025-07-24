@@ -489,7 +489,7 @@ export default function EditUserPage() {
                     Salvar Alterações
                 </Button>
                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><Settings/></ButtonMenuTrigger>
+                    <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><Settings/></Button></DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Opções</DropdownMenuLabel>
                     <DropdownMenuSeparator />
@@ -593,7 +593,3 @@ export default function EditUserPage() {
       </div>
   )
 }
-
-    
-
-    
