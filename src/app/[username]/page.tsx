@@ -42,6 +42,9 @@ async function fetchPageData(username: string) {
       return null;
     }
     
+    // Log page view
+    await supabase.from('page_views').insert({ profile_id: profileData.id });
+
     const { data: cardsData, error: cardsError } = await supabase
       .from('cards')
       .select('*')
@@ -98,3 +101,5 @@ export default async function PublicProfilePage({ params }: { params: { username
     </div>
   );
 }
+
+    

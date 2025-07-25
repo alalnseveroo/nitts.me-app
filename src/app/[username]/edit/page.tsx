@@ -6,6 +6,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import type { Layout } from 'react-grid-layout';
+import { subDays } from 'date-fns';
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -230,17 +231,21 @@ export default function EditUserPage() {
   }, [updateRowHeight]);
 
     const fetchViewCount = useCallback(async (profileId: string, days: number = 7) => {
-        // This is a placeholder. You'll need to implement the actual query
-        // based on your 'views' table structure.
-        console.log(`Fetching views for profile ${profileId} for the last ${days} days.`);
-        // Example data:
-        const mockData: ViewCount = {
-            1: { total: 150 },
-            7: { total: 1200 },
-            30: { total: 5300 },
-        }[days as 1|7|30] || { total: 0 };
+        const startDate = subDays(new Date(), days).toISOString();
         
-        setViewCount(mockData);
+        const { count, error } = await supabase
+            .from('page_views')
+            .select('*', { count: 'exact', head: true })
+            .eq('profile_id', profileId)
+            .gte('created_at', startDate);
+            
+        if(error) {
+            console.error('Error fetching view count:', error);
+            setViewCount({ total: 0 });
+            return;
+        }
+
+        setViewCount({ total: count || 0 });
   }, []);
 
   const fetchPageData = useCallback(async (currentUser: User) => {
@@ -663,3 +668,5 @@ export default function EditUserPage() {
       </div>
   )
 }
+
+    
