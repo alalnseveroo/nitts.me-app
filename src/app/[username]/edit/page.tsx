@@ -136,14 +136,7 @@ export default function EditUserPage() {
         ...l, x: l.x ?? 0, y: l.y ?? 0, w: l.w ?? 1, h: l.h ?? 1,
     }));
     
-    // Sanitize cards before upsert
-    const sanitizedCards = cards.map(card => ({
-      ...card,
-      release_at: card.release_at ? new Date(card.release_at).toISOString() : null,
-      expires_at: card.expires_at ? new Date(card.expires_at).toISOString() : null,
-    }));
-
-    const { error: cardsError } = await supabase.from('cards').upsert(sanitizedCards);
+    const { error: cardsError } = await supabase.from('cards').upsert(cards);
     
     const { error: profileError } = await supabase
       .from('profiles')
@@ -156,8 +149,9 @@ export default function EditUserPage() {
       .eq('id', user.id);
       
     if (profileError || cardsError) {
-      toast({ title: 'Erro', description: `Erro ao salvar: ${profileError?.message || cardsError?.message}`, variant: 'destructive' });
-      console.error(profileError || cardsError);
+      const errorMessage = profileError?.message || cardsError?.message || 'Ocorreu um erro desconhecido.';
+      toast({ title: 'Erro ao salvar', description: errorMessage, variant: 'destructive' });
+      console.error("Save error:", profileError || cardsError);
     }
     setSaving(false);
 
@@ -644,7 +638,7 @@ export default function EditUserPage() {
                     disabled={saving}
                     className="bg-accent text-accent-foreground hover:bg-accent/90 px-3 text-sm h-9"
                 >
-                    {saving ? 'Salvando Nits...' : 'Copiar Meu Nits'}
+                    {saving ? 'Salvando...' : 'Copiar Link'}
                 </Button>
               </div>
             </footer>
@@ -668,5 +662,3 @@ export default function EditUserPage() {
       </div>
   )
 }
-
-    
