@@ -23,28 +23,10 @@ import Link from 'next/link'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { CardResizeControls } from '@/components/ui/card-resize-controls'
 import { useDebounce } from '@/hooks/use-debounce'
-
-type Profile = {
-  id: string;
-  username: string | null
-  name: string | null
-  bio: string | null
-  avatar_url: string | null
-  layout_config: Layout[] | null
-}
-
-type CardData = {
-    id: string;
-    user_id: string;
-    type: string;
-    title: string | null;
-    content: string | null;
-    link: string | null;
-    background_image: string | null;
-    background_color?: string | null;
-    release_at?: string | null;
-    expires_at?: string | null;
-};
+import type { Profile as ProfileType, CardData } from '@/lib/types';
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import AnalyticsCard from '@/components/ui/analytics-card'
 
 const AddLinkIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -91,7 +73,7 @@ const AddMapIcon = () => (
 
 export default function EditUserPage() {
   const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [profile, setProfile] = useState<ProfileType | null>(null)
   const [cards, setCards] = useState<CardData[]>([]);
   const [currentLayout, setCurrentLayout] = useState<Layout[]>([]);
   const [loading, setLoading] = useState(true)
@@ -103,6 +85,9 @@ export default function EditUserPage() {
   const [editingCard, setEditingCard] = useState<CardData | undefined>(undefined);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [showAnalytics, setShowAnalytics] = useState(false)
+  const [viewCount, setViewCount] = useState<number | null>(null)
+  const [analyticsPeriod, setAnalyticsPeriod] = useState<'today' | '7d' | '30d'>('7d')
   
   const imageInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -116,6 +101,7 @@ export default function EditUserPage() {
   const debouncedProfile = useDebounce(profile, 500);
   const debouncedCards = useDebounce(cards, 500);
   const debouncedLayout = useDebounce(currentLayout, 500);
+  const debouncedShowAnalytics = useDebounce(showAnalytics, 500);
 
   const autoSaveChanges = useCallback(async () => {
     if (!user || !profile || isInitialMount.current) return;
@@ -134,8 +120,8 @@ export default function EditUserPage() {
         link: c.link,
         background_image: c.background_image,
         background_color: c.background_color,
-        release_at: c.release_at,
-        expires_at: c.expires_at,
+        release_at: c.release_at ? new Date(c.release_at).toISOString() : null,
+        expires_at: c.expires_at ? new Date(c.expires_at).toISOString() : null,
     }));
     
     const { error: cardsError } = await supabase.from('cards').upsert(cardsToUpsert);
@@ -146,6 +132,7 @@ export default function EditUserPage() {
         name: profile.name, 
         bio: profile.bio, 
         layout_config: validLayout,
+        show_analytics: showAnalytics,
       })
       .eq('id', user.id);
       
@@ -156,7 +143,7 @@ export default function EditUserPage() {
     }
     setSaving(false);
 
-  }, [user, profile, cards, currentLayout, toast]);
+  }, [user, profile, cards, currentLayout, toast, showAnalytics]);
 
   useEffect(() => {
     if (isInitialMount.current) {
@@ -164,7 +151,40 @@ export default function EditUserPage() {
         return;
     }
     autoSaveChanges();
-  }, [debouncedProfile, debouncedCards, debouncedLayout, autoSaveChanges]);
+  }, [debouncedProfile, debouncedCards, debouncedLayout, debouncedShowAnalytics, autoSaveChanges]);
+
+  const fetchViewCount = useCallback(async (period: 'today' | '7d' | '30d', profileId: string) => {
+      if (!profileId) return;
+      
+      let dateFilter = new Date();
+      if (period === 'today') {
+          dateFilter.setHours(0, 0, 0, 0);
+      } else if (period === '7d') {
+          dateFilter.setDate(dateFilter.getDate() - 7);
+      } else if (period === '30d') {
+          dateFilter.setDate(dateFilter.getDate() - 30);
+      }
+
+      const { count, error } = await supabase
+          .from('page_views')
+          .select('*', { count: 'exact', head: true })
+          .eq('profile_id', profileId)
+          .gte('created_at', dateFilter.toISOString());
+
+      if (error) {
+          console.error('Error fetching view count:', error);
+          setViewCount(null);
+      } else {
+          setViewCount(count);
+      }
+  }, []);
+
+  const handlePeriodChange = (period: 'today' | '7d' | '30d') => {
+      setAnalyticsPeriod(period);
+      if(profile?.id) {
+        fetchViewCount(period, profile.id);
+      }
+  };
 
 
   const updateRowHeight = useCallback(() => {
@@ -248,7 +268,12 @@ export default function EditUserPage() {
         return;
     }
 
-    setProfile(profileData as Profile);
+    setProfile(profileData as ProfileType);
+    setShowAnalytics(profileData.show_analytics || false);
+    if(profileData.show_analytics) {
+      fetchViewCount(analyticsPeriod, profileData.id);
+    }
+
 
     const { data: cardsData, error: cardsError } = await supabase
       .from('cards')
@@ -291,7 +316,7 @@ export default function EditUserPage() {
       updateRowHeight();
     }, 50);
 
-  }, [pageUsername, isMobile, updateRowHeight, router]);
+  }, [pageUsername, isMobile, updateRowHeight, router, fetchViewCount, analyticsPeriod]);
 
   useEffect(() => {
     const fetchSessionAndProfile = async () => {
@@ -364,7 +389,7 @@ export default function EditUserPage() {
     const w = type === 'title' ? cols : 1;
     const h = type === 'title' ? 0.5 : 1;
 
-    const finalData: Omit<CardData, 'id' | 'user_id'> & { user_id: string } = {
+    const finalData: Omit<CardData, 'id' | 'user_id' | 'release_at' | 'expires_at'> & { user_id: string, release_at?: string | null, expires_at?: string | null } = {
         user_id: user.id,
         type: type,
         title: ``,
@@ -417,7 +442,9 @@ export default function EditUserPage() {
     if (error) {
         toast({ title: 'Erro', description: 'Não foi possível deletar o card.', variant: 'destructive' });
         console.error("Error deleting card:", error);
-        fetchPageData(user);
+        if (user) {
+          fetchPageData(user);
+        }
         return; 
     }
     
@@ -557,23 +584,45 @@ export default function EditUserPage() {
                         placeholder="Sua biografia..."
                         rows={1}
                       />
+                      
+                      {isMobile && (
+                        <div className="flex items-center space-x-2 mt-4">
+                            <Switch 
+                                id="analytics-mode" 
+                                checked={showAnalytics}
+                                onCheckedChange={setShowAnalytics}
+                            />
+                            <Label htmlFor="analytics-mode">Análise de dados</Label>
+                        </div>
+                      )}
                   </div>
               </aside>
               
               <main className="col-span-12 md:col-span-9 mb-24 md:mb-0 mt-6 md:mt-0">
                   {user && (
-                  <GridLayoutComponent
-                      cards={cards}
-                      layoutConfig={currentLayout}
-                      onLayoutChange={handleLayoutChange}
-                      onUpdateCard={handleUpdateCard}
-                      onDeleteCard={handleDeleteCard}
-                      onEditCard={handleEditCard}
-                      isMobile={isMobile}
-                      selectedCardId={selectedCardId}
-                      onSelectCard={handleSelectCard}
-                      rowHeight={rowHeight}
-                  />
+                  <>
+                    {isMobile && showAnalytics && (
+                        <div className="mb-6">
+                            <AnalyticsCard 
+                                viewCount={viewCount}
+                                period={analyticsPeriod}
+                                onPeriodChange={handlePeriodChange}
+                            />
+                        </div>
+                    )}
+                    <GridLayoutComponent
+                        cards={cards}
+                        layoutConfig={currentLayout}
+                        onLayoutChange={handleLayoutChange}
+                        onUpdateCard={handleUpdateCard}
+                        onDeleteCard={handleDeleteCard}
+                        onEditCard={handleEditCard}
+                        isMobile={isMobile}
+                        selectedCardId={selectedCardId}
+                        onSelectCard={handleSelectCard}
+                        rowHeight={rowHeight}
+                    />
+                  </>
                   )}
               </main>
           </div>
@@ -619,3 +668,4 @@ export default function EditUserPage() {
       </div>
   )
 }
+
