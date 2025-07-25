@@ -6,13 +6,12 @@ import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import type { Layout } from 'react-grid-layout';
-import { subDays } from 'date-fns';
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Map as MapIcon, StickyNote, Edit, Plus, Crop, Square, RectangleHorizontal, RectangleVertical, Eye, BarChart2 } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Map as MapIcon, StickyNote, Edit, Plus, Crop, Square, RectangleHorizontal, RectangleVertical, Eye } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -24,9 +23,6 @@ import Link from 'next/link'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { CardResizeControls } from '@/components/ui/card-resize-controls'
 import { useDebounce } from '@/hooks/use-debounce'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
-import { AnalyticsCard } from '@/components/ui/analytics-card'
 
 type Profile = {
   id: string;
@@ -35,7 +31,6 @@ type Profile = {
   bio: string | null
   avatar_url: string | null
   layout_config: Layout[] | null
-  show_analytics: boolean | null
 }
 
 type CardData = {
@@ -50,10 +45,6 @@ type CardData = {
     release_at?: string | null;
     expires_at?: string | null;
 };
-
-type ViewCount = {
-  total: number;
-}
 
 const AddLinkIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -112,8 +103,6 @@ export default function EditUserPage() {
   const [editingCard, setEditingCard] = useState<CardData | undefined>(undefined);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
-  const [showAnalytics, setShowAnalytics] = useState(false);
-  const [viewCount, setViewCount] = useState<ViewCount>({ total: 0 });
   
   const imageInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -157,7 +146,6 @@ export default function EditUserPage() {
         name: profile.name, 
         bio: profile.bio, 
         layout_config: validLayout,
-        show_analytics: profile.show_analytics
       })
       .eq('id', user.id);
       
@@ -237,24 +225,6 @@ export default function EditUserPage() {
     };
   }, [updateRowHeight]);
 
-    const fetchViewCount = useCallback(async (profileId: string, days: number = 7) => {
-        const startDate = subDays(new Date(), days).toISOString();
-        
-        const { count, error } = await supabase
-            .from('page_views')
-            .select('*', { count: 'exact', head: true })
-            .eq('profile_id', profileId)
-            .gte('created_at', startDate);
-            
-        if(error) {
-            console.error('Error fetching view count:', error);
-            setViewCount({ total: 0 });
-            return;
-        }
-
-        setViewCount({ total: count || 0 });
-  }, []);
-
   const fetchPageData = useCallback(async (currentUser: User) => {
     setLoading(true);
     setError(null);
@@ -279,7 +249,6 @@ export default function EditUserPage() {
     }
 
     setProfile(profileData as Profile);
-    setShowAnalytics(profileData.show_analytics ?? false);
 
     const { data: cardsData, error: cardsError } = await supabase
       .from('cards')
@@ -316,15 +285,13 @@ export default function EditUserPage() {
         setCurrentLayout(finalLayout);
     }
     
-    await fetchViewCount(profileData.id);
-
     setLoading(false);
     setTimeout(() => {
       isInitialMount.current = false;
       updateRowHeight();
     }, 50);
 
-  }, [pageUsername, isMobile, updateRowHeight, router, fetchViewCount]);
+  }, [pageUsername, isMobile, updateRowHeight, router]);
 
   useEffect(() => {
     const fetchSessionAndProfile = async () => {
@@ -506,11 +473,6 @@ export default function EditUserPage() {
       setIsEditSheetOpen(true);
   }, [cards]);
   
-  const handleShowAnalyticsToggle = (checked: boolean) => {
-    setShowAnalytics(checked);
-    setProfile(p => p ? { ...p, show_analytics: checked } : null)
-  }
-
   const selectedEditingCard = selectedCardId ? cards.find(c => c.id === selectedCardId) : undefined;
 
   if (loading) {
@@ -595,27 +557,9 @@ export default function EditUserPage() {
                         placeholder="Sua biografia..."
                         rows={1}
                       />
-
-                    {isMobile && (
-                        <div className="flex items-center space-x-2 mt-6 p-3 bg-secondary/50 rounded-lg">
-                            <Switch id="analytics-mode" checked={showAnalytics} onCheckedChange={handleShowAnalyticsToggle} />
-                            <Label htmlFor="analytics-mode" className="flex items-center gap-2 cursor-pointer">
-                                <BarChart2 className="h-4 w-4"/> Análise de dados
-                            </Label>
-                        </div>
-                    )}
                   </div>
               </aside>
               
-              {isMobile && showAnalytics && profile && (
-                 <div className="col-span-12 my-4">
-                    <AnalyticsCard
-                        viewCount={viewCount.total}
-                        onTimeframeChange={(days) => fetchViewCount(profile.id, days)}
-                    />
-                 </div>
-              )}
-
               <main className="col-span-12 md:col-span-9 mb-24 md:mb-0 mt-6 md:mt-0">
                   {user && (
                   <GridLayoutComponent
@@ -675,5 +619,3 @@ export default function EditUserPage() {
       </div>
   )
 }
-
-    
