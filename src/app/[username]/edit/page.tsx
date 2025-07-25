@@ -135,8 +135,21 @@ export default function EditUserPage() {
     const validLayout = currentLayout.map(l => ({
         ...l, x: l.x ?? 0, y: l.y ?? 0, w: l.w ?? 1, h: l.h ?? 1,
     }));
+
+    const cardsToUpsert = cards.map(c => ({
+        id: c.id,
+        user_id: c.user_id,
+        type: c.type,
+        title: c.title,
+        content: c.content,
+        link: c.link,
+        background_image: c.background_image,
+        background_color: c.background_color,
+        release_at: c.release_at,
+        expires_at: c.expires_at,
+    }));
     
-    const { error: cardsError } = await supabase.from('cards').upsert(cards);
+    const { error: cardsError } = await supabase.from('cards').upsert(cardsToUpsert);
     
     const { error: profileError } = await supabase
       .from('profiles')
@@ -662,3 +675,5 @@ export default function EditUserPage() {
       </div>
   )
 }
+
+    
