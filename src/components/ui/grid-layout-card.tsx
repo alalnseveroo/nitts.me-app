@@ -39,9 +39,8 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
     const handleClick = (e: React.MouseEvent) => {
         const target = e.target as HTMLElement;
         const isControlClick = target.closest('.drag-handle, [data-delete-button], [data-edit-button]');
-        const isNoteTextArea = target.closest('textarea');
-
-        if (isControlClick || (isNoteCard && isEditingNote && isNoteTextArea)) {
+        
+        if (isControlClick || (isNoteCard && isEditingNote)) {
              e.stopPropagation();
              return;
         }
@@ -90,7 +89,6 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
                  <GridLayoutCardBase
                     card={card}
                     onUpdate={onUpdate}
-                    isDisabled={isMobile && !isSelected}
                     isEditing={isEditingNote}
                     isMobile={isMobile}
                 />
@@ -111,7 +109,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
                         className={cn(
                             "absolute top-[-10px] left-[-10px] z-20 h-8 w-8 rounded-full shadow-md transition-all",
                              isConfirmingDelete 
-                                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90 opacity-100" 
+                                ? "bg-white text-black hover:bg-gray-200 opacity-100" 
                                 : "bg-white text-black hover:bg-gray-200 opacity-0 group-hover/card:opacity-100"
                         )}
                     >
@@ -127,7 +125,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
                             className={cn(
                                 "absolute top-[-10px] right-[-10px] z-20 h-8 w-8 rounded-full shadow-md transition-all hover:bg-gray-200",
                                 isNoteCard && isEditingNote 
-                                    ? "bg-green-500 text-white hover:bg-green-600"
+                                    ? "bg-green-500 text-white hover:bg-green-600 opacity-100"
                                     : "bg-white text-black opacity-0 group-hover/card:opacity-100"
                             )}
                         >
