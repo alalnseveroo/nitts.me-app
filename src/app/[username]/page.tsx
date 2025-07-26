@@ -8,26 +8,8 @@ import PublicProfileGrid from '@/components/ui/public-profile-grid';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import type { Profile, CardData } from '@/lib/types';
 
-export type CardData = {
-    id: string;
-    user_id: string;
-    type: string;
-    title: string | null;
-    content: string | null;
-    link: string | null;
-    background_image: string | null;
-    background_color?: string | null;
-};
-
-export type Profile = {
-  id: string;
-  username: string | null
-  name: string | null
-  bio: string | null
-  avatar_url: string | null
-  layout_config: Layout[] | null
-}
 
 async function fetchPageData(username: string) {
     const supabase = await createSupabaseServerClient();

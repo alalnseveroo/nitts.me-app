@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LinkIcon, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { CardData } from '@/app/[username]/page';
+import type { CardData } from '@/lib/types';
+import { useEffect, useState } from 'react';
 
 interface ElementCardProps {
     data: CardData;

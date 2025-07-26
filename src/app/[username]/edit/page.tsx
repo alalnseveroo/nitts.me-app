@@ -120,8 +120,6 @@ export default function EditUserPage() {
         link: c.link,
         background_image: c.background_image,
         background_color: c.background_color,
-        release_at: c.release_at ? new Date(c.release_at).toISOString() : null,
-        expires_at: c.expires_at ? new Date(c.expires_at).toISOString() : null,
     }));
     
     const { error: cardsError } = await supabase.from('cards').upsert(cardsToUpsert);
@@ -389,7 +387,7 @@ export default function EditUserPage() {
     const w = type === 'title' ? cols : 1;
     const h = type === 'title' ? 0.5 : 1;
 
-    const finalData: Omit<CardData, 'id' | 'user_id' | 'release_at' | 'expires_at'> & { user_id: string, release_at?: string | null, expires_at?: string | null } = {
+    const finalData: Omit<CardData, 'id' | 'user_id'> & { user_id: string } = {
         user_id: user.id,
         type: type,
         title: ``,

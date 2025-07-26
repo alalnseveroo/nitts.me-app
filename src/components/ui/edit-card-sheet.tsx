@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import type { CardData } from "@/app/[username]/page"
-import { Separator } from "./separator"
+import type { CardData } from "@/lib/types"
 
 interface EditCardSheetProps {
   isOpen: boolean;
@@ -39,11 +38,10 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
   };
 
   const handleSaveChanges = () => {
-    // We only update the data that can be edited in this sheet.
-    // The link is now edited elsewhere.
     const updatesToSave: Partial<CardData> = {};
     if (formData.title !== undefined) updatesToSave.title = formData.title;
     if (formData.content !== undefined) updatesToSave.content = formData.content;
+    if (formData.link !== undefined) updatesToSave.link = formData.link;
     
     onUpdate(card.id, updatesToSave);
     onOpenChange(false);
@@ -125,7 +123,7 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
       case 'map':
         return (
           <>
-            <p className="mb-4">Este tipo de card não tem conteúdo editável, mas pode ter um link gerenciado no menu rápido.</p>
+            <p className="mb-4">Este tipo de card não tem conteúdo editável.</p>
           </>
         );
       default:
@@ -135,7 +133,7 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="sheet-content">
+      <SheetContent>
         <SheetHeader>
           <SheetTitle>Editar Card</SheetTitle>
           <SheetDescription>
