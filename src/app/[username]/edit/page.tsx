@@ -268,8 +268,8 @@ export default function EditUserPage() {
 
     setProfile(profileData as ProfileType);
     setShowAnalytics(profileData.show_analytics || false);
-    if(profileData.show_analytics) {
-      fetchViewCount(analyticsPeriod, profileData.id);
+    if(profileData.show_analytics && profileData.id) {
+      fetchViewCount('7d', profileData.id);
     }
 
 
@@ -314,7 +314,7 @@ export default function EditUserPage() {
       updateRowHeight();
     }, 50);
 
-  }, [pageUsername, isMobile, updateRowHeight, router, fetchViewCount, analyticsPeriod]);
+  }, [pageUsername, isMobile, updateRowHeight, router, fetchViewCount]);
 
   useEffect(() => {
     const fetchSessionAndProfile = async () => {
