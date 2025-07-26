@@ -171,7 +171,6 @@ export default function EditUserPage() {
 
       if (error) {
           console.error('Error fetching view count:', error);
-          // Don't set to null here to avoid flickering. The old value will be kept on error.
       } else {
           setViewCount(count);
       }
@@ -338,7 +337,6 @@ export default function EditUserPage() {
   const handleShare = () => {
     const url = `${window.location.origin}/${pageUsername}`;
     navigator.clipboard.writeText(url);
-    toast({ title: "Link Copiado!", description: "A URL do seu perfil foi copiada para a área de transferência." });
   };
   
   const handleUpdateCard = useCallback((id: string, updates: Partial<CardData>) => {
@@ -364,7 +362,6 @@ export default function EditUserPage() {
         if (updateError) throw updateError
 
         if (profile) setProfile({ ...profile, avatar_url: publicUrl })
-        toast({ title: 'Sucesso', description: 'Avatar atualizado!' });
     } catch (error) {
         toast({ title: 'Erro', description: 'Erro ao fazer upload do avatar.', variant: 'destructive'});
         console.error(error);
@@ -424,8 +421,6 @@ export default function EditUserPage() {
 
     setCards(currentCards => [...currentCards, newCard]);
     setCurrentLayout(currentLayout => [...currentLayout, newLayoutItem]);
-
-    toast({ title: 'Sucesso', description: 'Card adicionado!' });
   }
 
   const handleDeleteCard = useCallback(async (cardId: string) => {
@@ -445,9 +440,6 @@ export default function EditUserPage() {
         }
         return; 
     }
-    
-    toast({ title: 'Sucesso', description: 'Card deletado.' });
-
   }, [user, toast, fetchPageData]);
 
   const handleImageFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
