@@ -28,49 +28,6 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import AnalyticsCard from '@/components/ui/analytics-card'
 
-const AddLinkIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M14.5 8.5C14.5 7.67157 13.8284 7 13 7H9C8.17157 7 7.5 7.67157 7.5 8.5V8.5C7.5 9.32843 8.17157 10 9 10H10.5M9.5 15.5C9.5 16.3284 10.1716 17 11 17H15C15.8284 17 16.5 16.3284 16.5 15.5V15.5C16.5 14.6716 15.8284 14 15 14H13.5" stroke="#18181B" strokeWidth="2" strokeLinecap="round"/>
-        <path d="M12 12L12 12C10.8954 12 10 12.8954 10 14V15.5M14 8.5V10C14 11.1046 13.1046 12 12 12" stroke="#18181B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-);
-const AddImageIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="8" fill="url(#paint0_linear_1_2)"/>
-        <path d="M22 19L18.4354 15.4354C17.6543 14.6543 16.388 14.6331 15.5804 15.3908L12 18.5M10 20L11.7528 18.2472C12.553 17.447 13.8198 17.4191 14.655 18.1925L16.5 19.8333" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-        <circle cx="12.5" cy="12.5" r="2.5" fill="white"/>
-        <defs>
-        <linearGradient id="paint0_linear_1_2" x1="16" y1="0" x2="16" y2="32" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#F5A623"/>
-        <stop offset="1" stopColor="#D0021B"/>
-        </linearGradient>
-        </defs>
-    </svg>
-);
-const AddTitleIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path fillRule="evenodd" clipRule="evenodd" d="M8.25 6C8.25 5.58579 8.58579 5.25 9 5.25H15C15.4142 5.25 15.75 5.58579 15.75 6V6.75H18.75V8.25H5.25V6.75H8.25V6ZM14.25 6.75H9.75V6.75H14.25V6.75Z" fill="#18181B"/>
-        <path d="M6.75 9.75V18.75H17.25V9.75H6.75Z" stroke="#18181B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-
-);
-const AddNoteIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="8" fill="#50E3C2"/>
-        <path d="M12 13H20" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-        <path d="M12 18H18" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-    </svg>
-);
-const AddMapIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="8" fill="#4A90E2"/>
-        <path d="M22 10C22 12.2091 20.2091 14 18 14C15.7909 14 14 12.2091 14 10C14 7.79086 15.7909 6 18 6C20.2091 6 22 7.79086 22 10Z" fill="white"/>
-        <path d="M14.25 25L18 14L21.75 25C19.9167 26.3333 16.0833 26.3333 14.25 25Z" fill="#7ED321"/>
-        <path d="M6 20C9.33333 18.3333 14.4 20.6 18 14L14.25 25C11.4 24.2 8.33333 22 6 20Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M18 14C21.6 17.2 24 16.5 26 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-);
-
 export default function EditUserPage() {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<ProfileType | null>(null)
@@ -171,6 +128,7 @@ export default function EditUserPage() {
 
       if (error) {
           console.error('Error fetching view count:', error);
+          setViewCount(null);
       } else {
           setViewCount(count);
       }
@@ -206,7 +164,10 @@ export default function EditUserPage() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
         const target = event.target as HTMLElement;
-        if (!target.closest('[data-card-id]') && !target.closest('[data-card-edit-controls]')) {
+        const isControlClick = target.closest('[data-card-id]')?.contains(target);
+        const isControlBarClick = target.closest('[data-card-edit-controls]');
+
+        if (!isControlClick && !isControlBarClick) {
             setSelectedCardId(null);
         }
     };
@@ -384,7 +345,7 @@ export default function EditUserPage() {
     const w = type === 'title' ? cols : 1;
     const h = type === 'title' ? 0.5 : 1;
 
-    const finalData: Omit<CardData, 'id' | 'user_id'> & { user_id: string } = {
+    const finalData: Omit<CardData, 'id' | 'user_id' | 'created_at'> & { user_id: string } = {
         user_id: user.id,
         type: type,
         title: ``,
@@ -624,13 +585,13 @@ export default function EditUserPage() {
             <footer className="fixed bottom-0 left-0 right-0 p-4 z-50">
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border flex justify-between items-center p-1.5 gap-2 max-w-sm mx-auto">
                 <div className="flex items-center gap-1">
-                  <Button title="Adicionar Link" variant="ghost" size="icon" onClick={() => addNewCard('link')}><AddLinkIcon /></Button>
+                  <Button title="Adicionar Link" variant="ghost" size="icon" onClick={() => addNewCard('link')}><LinkIcon className="h-5 w-5" /></Button>
                   <Button title="Adicionar Imagem" variant="ghost" size="icon" onClick={() => imageInputRef.current?.click()} disabled={isUploadingImage}>
-                      {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <AddImageIcon />}
+                      {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
                   </Button>
-                  <Button title="Adicionar Nota" variant="ghost" size="icon" onClick={() => addNewCard('note')}><AddNoteIcon /></Button>
-                  <Button title="Adicionar Mapa" variant="ghost" size="icon" onClick={() => addNewCard('map')}><AddMapIcon /></Button>
-                  <Button title="Adicionar Título" variant="ghost" size="icon" onClick={() => addNewCard('title')}><AddTitleIcon /></Button>
+                  <Button title="Adicionar Nota" variant="ghost" size="icon" onClick={() => addNewCard('note')}><StickyNote className="h-5 w-5" /></Button>
+                  <Button title="Adicionar Mapa" variant="ghost" size="icon" onClick={() => addNewCard('map')}><MapIcon className="h-5 w-5" /></Button>
+                  <Button title="Adicionar Título" variant="ghost" size="icon" onClick={() => addNewCard('title')}><Type className="h-5 w-5" /></Button>
                 </div>
                 <Button 
                     onClick={handleShare} 
