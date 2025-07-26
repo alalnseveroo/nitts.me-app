@@ -11,9 +11,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, ArrowLeft, Image as ImageIcon, Type, Link as LinkIcon, Map as MapIcon, StickyNote, Edit, Plus, Crop, Square, RectangleHorizontal, RectangleVertical, Eye } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Eye, Link as LinkIcon, ImageIcon, StickyNote, Map as MapIcon, Type } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
 import GridLayoutComponent from '@/components/ui/grid-layout'
 import { EditCardSheet } from '@/components/ui/edit-card-sheet'
@@ -529,7 +528,7 @@ export default function EditUserPage() {
                       />
                       <Textarea
                         ref={textareaRef}
-                        className="text-muted-foreground mt-2 border-none focus:ring-0 shadow-none resize-none p-0 bg-transparent overflow-hidden"
+                        className="text-muted-foreground mt-2 border-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none resize-none p-0 bg-transparent overflow-hidden"
                         value={profile?.bio || ''}
                         onChange={(e) => {
                           setProfile(p => p ? { ...p, bio: e.target.value } : null)
@@ -555,7 +554,7 @@ export default function EditUserPage() {
               <main className="col-span-12 md:col-span-9 mb-24 md:mb-0 mt-6 md:mt-0">
                   {user && (
                   <>
-                    {isMobile && showAnalytics && (
+                    {showAnalytics && (
                         <div className="mb-6">
                             <AnalyticsCard 
                                 viewCount={viewCount}
