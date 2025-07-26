@@ -15,18 +15,26 @@ interface GridLayoutCardBaseProps {
     card: CardData;
     onUpdate: (id: string, updates: Partial<CardData>) => void;
     isDisabled?: boolean;
+    isEditing?: boolean;
     isMobile: boolean;
 }
 
-export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobile }: GridLayoutCardBaseProps) => {
+export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditing = false, isMobile }: GridLayoutCardBaseProps) => {
     const [currentData, setCurrentData] = useState(card);
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [isFocused, setIsFocused] = useState(false);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
         setCurrentData(card);
     }, [card]);
+    
+    useEffect(() => {
+        if (isEditing && card.type === 'note' && textareaRef.current) {
+            textareaRef.current.focus();
+            textareaRef.current.select();
+        }
+    }, [isEditing, card.type]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -34,7 +42,6 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
     };
 
     const handleBlur = () => {
-        setIsFocused(false);
         // Only trigger update if data has actually changed
         if (JSON.stringify(currentData) !== JSON.stringify(card)) {
             onUpdate(card.id, currentData);
@@ -139,14 +146,14 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
             case 'note':
                 return (
                     <Textarea
+                        ref={textareaRef}
                         name="content"
                         placeholder="Escreva sua nota aqui..."
                         value={currentData.content || ''}
                         onChange={handleChange}
                         onBlur={handleBlur}
                         className="border-none focus:ring-0 p-0 resize-none bg-transparent text-center text-xl font-medium"
-                        disabled={isDisabled}
-                        onFocus={(e) => e.target.select()}
+                        disabled={!isEditing}
                     />
                 );
             case 'map':
@@ -168,13 +175,10 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
             className={cn(
                 'w-full h-full flex flex-col overflow-hidden',
                 isTitleCard ? 'bg-transparent border-none shadow-none' : 'bg-card',
-                isFocused && !isDisabled && !isTitleCard ? 'ring-2 ring-primary' : '',
             )}
             style={{ 
                 backgroundColor: isNoteCard ? currentData.background_color ?? '#FFFFFF' : undefined 
             }}
-            onFocus={() => !isDisabled && setIsFocused(true)}
-            onBlurCapture={handleBlur}
         >
              <div className={cn(
                 "w-full h-full p-0", 
