@@ -59,7 +59,10 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
         e.stopPropagation();
         if (isNoteCard) {
             setIsEditingNote(prev => !prev);
-            if (isSelected) onSelectCard(card.id); // Reselect to bring up controls if needed
+            // Ensure the card remains selected to show controls if needed
+            if (!isSelected && isMobile) {
+                onSelectCard(card.id);
+            }
         } else {
             onEdit(card.id);
         }
@@ -136,7 +139,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
             )}
 
             {/* --- MOBILE CONTROLS --- */}
-            { isMobile && isSelected && (
+            { isMobile && (isSelected || (isNoteCard && isEditingNote)) && (
                 <>
                     <Button
                         data-delete-button
