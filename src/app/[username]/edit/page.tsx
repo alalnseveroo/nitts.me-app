@@ -173,7 +173,7 @@ export default function EditUserPage() {
 
       if (error) {
           console.error('Error fetching view count:', error);
-          setViewCount(null);
+          // Don't set to null here to avoid flickering. The old value will be kept on error.
       } else {
           setViewCount(count);
       }
