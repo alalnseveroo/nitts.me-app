@@ -152,7 +152,10 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
                         value={currentData.content || ''}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        className="border-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none p-0 resize-none bg-transparent text-center text-xl font-medium"
+                        className={cn(
+                            "border-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none p-0 resize-none bg-transparent text-center text-xl font-medium",
+                            !isEditing && "pointer-events-none"
+                        )}
                         disabled={!isEditing}
                     />
                 );
