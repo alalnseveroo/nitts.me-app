@@ -8,7 +8,7 @@ export type Profile = {
   bio: string | null;
   avatar_url: string | null;
   layout_config: Layout[] | null;
-  show_analytics?: boolean | null;
+  show_analytics: boolean | null;
 };
 
 export type CardData = {

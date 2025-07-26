@@ -17,7 +17,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from '@/lib/utils';
-import type { CardData } from '@/app/[username]/page';
+import type { CardData } from '@/lib/types';
 
 interface GridLayoutCardProps {
     card: CardData;
@@ -34,6 +34,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     const isTitleCard = card.type === 'title';
+    const isNoteCard = card.type === 'note';
 
     const handleClick = (e: React.MouseEvent) => {
         if (!isMobile && (e.target as HTMLElement).closest('.drag-handle, [data-alert-dialog-trigger]')) {
@@ -43,14 +44,16 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
 
         if (isMobile) {
             onSelectCard(card.id);
-        } else {
+        } else if (!isNoteCard) { // Don't open sheet for notes on desktop
             onEdit(card.id);
         }
     };
 
     const handleEditClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        onEdit(card.id);
+         if (!isNoteCard) {
+            onEdit(card.id);
+        }
     }
     
     const handleDeleteTriggerClick = (e: React.MouseEvent) => {
@@ -79,12 +82,13 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
              <div className={cn(
                 "w-full h-full rounded-lg transition-all",
                 isSelected && !isTitleCard ? "border-2 border-foreground" : "border-2 border-transparent",
-                isMobile && !isSelected && "cursor-pointer"
+                isMobile && !isSelected && !isNoteCard && "cursor-pointer",
+                !isMobile && !isNoteCard && "cursor-pointer"
             )}>
                  <GridLayoutCardBase
                     card={card}
                     onUpdate={onUpdate}
-                    isDisabled={isMobile && !isSelected}
+                    isDisabled={isMobile && !isSelected && !isNoteCard}
                     isMobile={isMobile}
                 />
             </div>
@@ -126,15 +130,17 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
                             <Trash2 className="h-4 w-4" />
                         </Button>
 
-                        <Button
-                            title="Editar conteúdo"
-                            variant="default"
-                            size="icon"
-                            onClick={handleEditClick}
-                            className="absolute top-[-12px] right-[-12px] z-30 h-8 w-8 rounded-full bg-black text-white shadow-lg hover:bg-gray-800"
-                        >
-                            <Edit className="h-4 w-4" />
-                        </Button>
+                        {!isNoteCard && 
+                            <Button
+                                title="Editar conteúdo"
+                                variant="default"
+                                size="icon"
+                                onClick={handleEditClick}
+                                className="absolute top-[-12px] right-[-12px] z-30 h-8 w-8 rounded-full bg-black text-white shadow-lg hover:bg-gray-800"
+                            >
+                                <Edit className="h-4 w-4" />
+                            </Button>
+                        }
                         
                         <div className="drag-handle absolute bottom-[-15px] left-1/2 -translate-x-1/2 z-30 cursor-move bg-black text-white rounded-full p-2 shadow-lg">
                             <Move className="h-5 w-5" />

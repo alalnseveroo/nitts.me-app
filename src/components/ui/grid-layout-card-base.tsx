@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Loader2, UploadCloud } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import type { CardData } from '@/app/[username]/page';
+import type { CardData } from '@/lib/types';
 
 interface GridLayoutCardBaseProps {
     card: CardData;
@@ -146,6 +146,7 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
                         onBlur={handleBlur}
                         className="border-none focus:ring-0 p-0 resize-none bg-transparent text-center text-xl font-medium"
                         disabled={isDisabled}
+                        onFocus={(e) => e.target.select()}
                     />
                 );
             case 'map':
@@ -177,7 +178,7 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobil
         >
              <div className={cn(
                 "w-full h-full p-0", 
-                { "pointer-events-none": isDisabled },
+                { "pointer-events-none": isDisabled && card.type !== 'note' },
                 isNoteCard && 'flex items-center justify-center p-4'
             )}>
                 {renderContent()}

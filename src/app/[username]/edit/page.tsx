@@ -486,8 +486,11 @@ export default function EditUserPage() {
   }, []);
 
   const handleEditCard = useCallback((cardId: string) => {
-      setEditingCard(cards.find(c => c.id === cardId));
-      setIsEditSheetOpen(true);
+      const cardToEdit = cards.find(c => c.id === cardId);
+      if (cardToEdit && cardToEdit.type !== 'note') {
+        setEditingCard(cardToEdit);
+        setIsEditSheetOpen(true);
+      }
   }, [cards]);
   
   const selectedEditingCard = selectedCardId ? cards.find(c => c.id === selectedCardId) : undefined;
