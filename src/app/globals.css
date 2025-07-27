@@ -81,3 +81,62 @@ body.no-scroll {
     transition-duration: 100ms;
     border: none !important;
 }
+
+/* Custom Analytics Toggle */
+.analytics-toggle-container {
+  --color: #a5a5b0;
+  --size: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  font-size: var(--size);
+  user-select: none;
+  fill: var(--color);
+}
+
+.analytics-toggle-container .eye {
+  position: absolute;
+  animation: keyframes-fill .5s;
+}
+
+.analytics-toggle-container .eye-slash {
+  position: absolute;
+  animation: keyframes-fill .5s;
+  display: none;
+}
+
+.analytics-toggle-container input:checked ~ .eye {
+  display: block;
+}
+
+.analytics-toggle-container input:not(:checked) ~ .eye {
+  display: none;
+}
+
+.analytics-toggle-container input:checked ~ .eye-slash {
+  display: none;
+}
+
+.analytics-toggle-container input:not(:checked) ~ .eye-slash {
+  display: block;
+}
+
+.analytics-toggle-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+@keyframes keyframes-fill {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}

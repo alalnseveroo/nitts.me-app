@@ -23,9 +23,9 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { CardResizeControls } from '@/components/ui/card-resize-controls'
 import { useDebounce } from '@/hooks/use-debounce'
 import type { Profile as ProfileType, CardData } from '@/lib/types';
-import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import AnalyticsCard from '@/components/ui/analytics-card'
+import { AnalyticsToggle } from '@/components/ui/analytics-toggle'
 
 export default function EditUserPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -59,53 +59,50 @@ export default function EditUserPage() {
   const debouncedLayout = useDebounce(currentLayout, 500);
   const debouncedShowAnalytics = useDebounce(showAnalytics, 500);
 
-  const autoSaveChanges = useCallback(async () => {
-    if (!user || !profile || isInitialMount.current) return;
-    setSaving(true);
-    
-    const validLayout = currentLayout.map(l => ({
-        ...l, x: l.x ?? 0, y: l.y ?? 0, w: l.w ?? 1, h: l.h ?? 1,
-    }));
-
-    const cardsToUpsert = cards.map(c => ({
-        id: c.id,
-        user_id: c.user_id,
-        type: c.type,
-        title: c.title,
-        content: c.content,
-        link: c.link,
-        background_image: c.background_image,
-        background_color: c.background_color,
-    }));
-    
-    const { error: cardsError } = await supabase.from('cards').upsert(cardsToUpsert);
-    
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({ 
-        name: profile.name, 
-        bio: profile.bio, 
-        layout_config: validLayout,
-        show_analytics: showAnalytics,
-      })
-      .eq('id', user.id);
-      
-    if (profileError || cardsError) {
-      const errorMessage = profileError?.message || cardsError?.message || 'Ocorreu um erro desconhecido.';
-      toast({ title: 'Erro ao salvar', description: errorMessage, variant: 'destructive' });
-      console.error("Save error:", profileError || cardsError);
-    }
-    setSaving(false);
-
-  }, [user, profile, cards, currentLayout, toast, showAnalytics]);
-
   useEffect(() => {
-    if (isInitialMount.current) {
-        // On first load, don't save anything
-        return;
+    const autoSaveChanges = async () => {
+      if (!user || !profile || isInitialMount.current) return;
+      setSaving(true);
+      
+      const validLayout = currentLayout.map(l => ({
+          ...l, x: l.x ?? 0, y: l.y ?? 0, w: l.w ?? 1, h: l.h ?? 1,
+      }));
+
+      const cardsToUpsert = cards.map(c => ({
+          id: c.id,
+          user_id: c.user_id,
+          type: c.type,
+          title: c.title,
+          content: c.content,
+          link: c.link,
+          background_image: c.background_image,
+          background_color: c.background_color,
+      }));
+      
+      const { error: cardsError } = await supabase.from('cards').upsert(cardsToUpsert);
+      
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ 
+          name: profile.name, 
+          bio: profile.bio, 
+          layout_config: validLayout,
+          show_analytics: showAnalytics,
+        })
+        .eq('id', user.id);
+        
+      if (profileError || cardsError) {
+        const errorMessage = profileError?.message || cardsError?.message || 'Ocorreu um erro desconhecido.';
+        toast({ title: 'Erro ao salvar', description: errorMessage, variant: 'destructive' });
+        console.error("Save error:", profileError || cardsError);
+      }
+      setSaving(false);
+    };
+
+    if (!isInitialMount.current) {
+        autoSaveChanges();
     }
-    autoSaveChanges();
-  }, [debouncedProfile, debouncedCards, debouncedLayout, debouncedShowAnalytics, autoSaveChanges]);
+  }, [debouncedProfile, debouncedCards, debouncedLayout, debouncedShowAnalytics, user, profile, cards, currentLayout, showAnalytics, toast]);
 
   const fetchViewCount = useCallback(async (period: 'today' | '7d' | '30d', profileId: string) => {
       if (!profileId) return;
@@ -202,80 +199,80 @@ export default function EditUserPage() {
     };
   }, [updateRowHeight]);
 
-  const fetchPageData = useCallback(async (currentUser: User) => {
-    setLoading(true);
-    setError(null);
-
-    const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('username', pageUsername)
-        .single();
-
-    if (profileError || !profileData) {
-      setError('Usuário não encontrado.');
-      setLoading(false);
-      return;
-    }
-    
-    if (currentUser.id !== profileData.id) {
-        setError('Acesso não autorizado.');
-        setLoading(false);
-        router.push(`/${pageUsername}`);
-        return;
-    }
-
-    setProfile(profileData as ProfileType);
-    setShowAnalytics(profileData.show_analytics || false);
-    if(profileData.show_analytics && profileData.id) {
-      fetchViewCount('7d', profileData.id);
-    }
-
-
-    const { data: cardsData, error: cardsError } = await supabase
-      .from('cards')
-      .select('*')
-      .eq('user_id', profileData.id);
-
-    if (cardsError) {
-        console.error('Error fetching cards:', cardsError);
-        setCards([]);
-        setCurrentLayout([]);
-    } else {
-        const fetchedCards = cardsData || [];
-        setCards(fetchedCards);
-
-        const savedLayout = profileData.layout_config || [];
-        const layoutMap = new Map(savedLayout.map(l => [l.i, l]));
-        
-        const finalLayout = fetchedCards.map((card, index) => {
-            const existingLayout = layoutMap.get(card.id);
-            const cols = isMobile ? 2 : 4;
-
-            if (existingLayout) {
-                return {
-                    ...existingLayout,
-                    i: String(existingLayout.i), 
-                    x: existingLayout.x ?? 0,
-                    y: existingLayout.y ?? index,
-                    w: existingLayout.w ?? (card.type === 'title' ? cols : 1),
-                    h: existingLayout.h ?? (card.type === 'title' ? 0.5 : 1),
-                };
-            }
-            return { i: card.id, x: (index % cols), y: Math.floor(index / cols), w: card.type === 'title' ? cols : 1, h: card.type === 'title' ? 0.5 : 1 };
-        });
-        setCurrentLayout(finalLayout);
-    }
-    
-    setLoading(false);
-    setTimeout(() => {
-      isInitialMount.current = false;
-      updateRowHeight();
-    }, 50);
-
-  }, [pageUsername, isMobile, updateRowHeight, router, fetchViewCount]);
-
   useEffect(() => {
+    const fetchPageData = async (currentUser: User) => {
+      setLoading(true);
+      setError(null);
+
+      const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('username', pageUsername)
+          .single();
+
+      if (profileError || !profileData) {
+        setError('Usuário não encontrado.');
+        setLoading(false);
+        return;
+      }
+      
+      if (currentUser.id !== profileData.id) {
+          setError('Acesso não autorizado.');
+          setLoading(false);
+          router.push(`/${pageUsername}`);
+          return;
+      }
+
+      setProfile(profileData as ProfileType);
+      setShowAnalytics(profileData.show_analytics || false);
+      if(profileData.show_analytics && profileData.id) {
+        fetchViewCount('7d', profileData.id);
+      }
+
+
+      const { data: cardsData, error: cardsError } = await supabase
+        .from('cards')
+        .select('*')
+        .eq('user_id', profileData.id);
+
+      if (cardsError) {
+          console.error('Error fetching cards:', cardsError);
+          setCards([]);
+          setCurrentLayout([]);
+      } else {
+          const fetchedCards = cardsData || [];
+          setCards(fetchedCards);
+
+          const savedLayout = profileData.layout_config || [];
+          const layoutMap = new Map(savedLayout.map(l => [l.i, l]));
+          
+          const finalLayout = fetchedCards.map((card, index) => {
+              const existingLayout = layoutMap.get(card.id);
+              const cols = isMobile ? 2 : 4;
+
+              if (existingLayout) {
+                  return {
+                      ...existingLayout,
+                      i: String(existingLayout.i), 
+                      x: existingLayout.x ?? 0,
+                      y: existingLayout.y ?? index,
+                      w: existingLayout.w ?? (card.type === 'title' ? cols : 1),
+                      h: existingLayout.h ?? (card.type === 'title' ? 0.5 : 1),
+                  };
+              }
+              return { i: card.id, x: (index % cols), y: Math.floor(index / cols), w: card.type === 'title' ? cols : 1, h: card.type === 'title' ? 0.5 : 1 };
+          });
+          setCurrentLayout(finalLayout);
+      }
+      
+      setLoading(false);
+      setTimeout(() => {
+        isInitialMount.current = false;
+        updateRowHeight();
+      }, 50);
+
+    }
+    
     const fetchSessionAndProfile = async () => {
       setLoading(true)
       const { data: { session } } = await supabase.auth.getSession()
@@ -287,7 +284,7 @@ export default function EditUserPage() {
       await fetchPageData(session.user);
     }
     fetchSessionAndProfile()
-  }, [fetchPageData, pageUsername, router])
+  }, [pageUsername, isMobile, updateRowHeight, router, fetchViewCount])
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -395,12 +392,14 @@ export default function EditUserPage() {
     if (error) {
         toast({ title: 'Erro', description: 'Não foi possível deletar o card.', variant: 'destructive' });
         console.error("Error deleting card:", error);
-        if (user) {
-          fetchPageData(user);
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+            // Re-fetch data to re-sync state with db
+            router.refresh();
         }
         return; 
     }
-  }, [user, toast, fetchPageData]);
+  }, [user, toast, router]);
 
   const handleImageFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0 || !user) {
@@ -540,7 +539,7 @@ export default function EditUserPage() {
                       
                       {isMobile && (
                         <div className="flex items-center space-x-2 mt-4">
-                            <Switch 
+                            <AnalyticsToggle 
                                 id="analytics-mode" 
                                 checked={showAnalytics}
                                 onCheckedChange={setShowAnalytics}
