@@ -176,7 +176,7 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
     return (
         <Card 
             className={cn(
-                'w-full h-full flex flex-col overflow-hidden',
+                'w-full h-full flex flex-col overflow-hidden rounded-3xl md:rounded-lg',
                 isTitleCard ? 'bg-transparent border-none shadow-none' : 'bg-card',
             )}
             style={{ 
