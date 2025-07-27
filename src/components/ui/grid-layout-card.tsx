@@ -84,7 +84,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
             data-card-id={card.id}
         >
              <div className={cn(
-                "w-full h-full rounded-lg transition-all",
+                "w-full h-full rounded-3xl md:rounded-lg transition-all",
                 isSelected && !isTitleCard ? "border-2 border-foreground" : "border-2 border-transparent",
                 isMobile && !isSelected && "cursor-pointer",
                 !isMobile && !isNoteCard && "cursor-pointer"
