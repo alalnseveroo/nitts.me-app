@@ -77,7 +77,7 @@ body.no-scroll {
 .react-grid-placeholder {
     background-color: hsl(var(--border)) !important;
     border-radius: 0.5rem !important; /* Corresponds to rounded-lg */
-    border: 2px dashed hsl(var(--muted-foreground)) !important;
-    opacity: 0.6;
+    opacity: 0.8;
     transition-duration: 100ms;
+    border: none !important;
 }
