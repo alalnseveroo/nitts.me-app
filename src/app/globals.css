@@ -78,7 +78,6 @@ body.no-scroll {
     background-color: hsl(var(--border)) !important;
     border-radius: 0.5rem !important; /* Corresponds to rounded-lg */
     opacity: 0.8;
-    transition-duration: 100ms;
     border: none !important;
 }
 
@@ -97,30 +96,11 @@ body.no-scroll {
 }
 
 .analytics-toggle-container .eye {
-  position: absolute;
   animation: keyframes-fill .5s;
 }
 
 .analytics-toggle-container .eye-slash {
-  position: absolute;
   animation: keyframes-fill .5s;
-  display: none;
-}
-
-.analytics-toggle-container input:checked ~ .eye {
-  display: block;
-}
-
-.analytics-toggle-container input:not(:checked) ~ .eye {
-  display: none;
-}
-
-.analytics-toggle-container input:checked ~ .eye-slash {
-  display: none;
-}
-
-.analytics-toggle-container input:not(:checked) ~ .eye-slash {
-  display: block;
 }
 
 .analytics-toggle-container input {
