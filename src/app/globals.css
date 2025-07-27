@@ -73,3 +73,11 @@ body.no-scroll {
     @apply bg-background text-foreground;
   }
 }
+
+.react-grid-placeholder {
+    background-color: hsl(var(--muted)) !important;
+    border-radius: 0.5rem !important; /* Corresponds to rounded-lg */
+    border: 2px dashed hsl(var(--border)) !important;
+    opacity: 0.6;
+    transition-duration: 100ms;
+}
