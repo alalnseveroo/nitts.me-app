@@ -475,6 +475,14 @@ export default function EditUserPage() {
 
   if (error) return <div className="flex flex-col justify-center items-center h-screen text-center p-4"><h1>{error}</h1> <Link href="/"><Button variant="link">Voltar para a página inicial</Button></Link></div>;
 
+  if (!isMobile) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen text-center p-4">
+        <h1 className="text-2xl font-bold">Pegue seu Nitts pelo celular</h1>
+      </div>
+    )
+  }
+
   return (
       <div className="flex flex-col min-h-screen bg-background">
           <input

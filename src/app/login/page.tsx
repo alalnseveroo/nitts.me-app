@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/lib/supabase/client'
 import { Skeleton } from '@/components/ui/skeleton'
+import LoginLoader from '@/components/ui/login-loader'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -113,29 +114,35 @@ export default function LoginPage() {
             Acesse sua conta para gerenciar sua página ConectaBio.
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleLogin}>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">E-mail</Label>
-              <Input id="email" type="email" placeholder="seu@email.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col">
-            <Button className="w-full bg-accent hover:bg-accent/90" type="submit" disabled={loading}>
-              {loading ? 'Entrando...' : 'Entrar'}
-            </Button>
-            <div className="mt-4 text-center text-sm">
-              Não tem uma conta?{' '}
-              <Link href="/signup" className="underline">
-                Crie uma
-              </Link>
-            </div>
-          </CardFooter>
-        </form>
+        {loading ? (
+            <CardContent>
+                <LoginLoader />
+            </CardContent>
+        ) : (
+            <form onSubmit={handleLogin}>
+                <CardContent className="grid gap-4">
+                    <div className="grid gap-2">
+                    <Label htmlFor="email">E-mail</Label>
+                    <Input id="email" type="email" placeholder="seu@email.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} />
+                    </div>
+                    <div className="grid gap-2">
+                    <Label htmlFor="password">Senha</Label>
+                    <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} />
+                    </div>
+                </CardContent>
+                <CardFooter className="flex flex-col">
+                    <Button className="w-full bg-accent hover:bg-accent/90" type="submit" disabled={loading}>
+                        Entrar
+                    </Button>
+                    <div className="mt-4 text-center text-sm">
+                    Não tem uma conta?{' '}
+                    <Link href="/signup" className="underline">
+                        Crie uma
+                    </Link>
+                    </div>
+                </CardFooter>
+            </form>
+        )}
       </Card>
     </div>
   )
