@@ -5,7 +5,7 @@ export const SubstackIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
-    className={cn("h-6 w-6", props.className)}
+    className={cn("h-10 w-10", props.className)}
     {...props}
   >
     <path

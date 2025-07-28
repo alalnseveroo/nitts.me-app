@@ -33,22 +33,22 @@ const getDomainIcon = (link: string | null) => {
         const domain = url.hostname.replace('www.', '');
 
         if (domain.includes('youtube.com') || domain.includes('youtu.be')) {
-            return <YoutubeIcon className="h-8 w-8" />;
+            return <YoutubeIcon className="h-10 w-10 text-red-600" />;
         }
         if (domain.includes('tiktok.com')) {
-            return <TiktokIcon className="h-8 w-8" />;
+            return <TiktokIcon className="h-10 w-10" />;
         }
         if (domain.includes('substack.com')) {
-            return <SubstackIcon className="h-8 w-8" />;
+            return <SubstackIcon className="h-10 w-10 text-orange-600" />;
         }
         if (domain.includes('instagram.com')) {
-            return <InstagramIcon className="h-8 w-8" />;
+            return <InstagramIcon className="h-10 w-10" />;
         }
         if (domain.includes('discord')) {
-            return <DiscordIcon className="h-8 w-8" />;
+            return <DiscordIcon className="h-10 w-10 text-indigo-500" />;
         }
         if (domain.includes('facebook.com')) {
-            return <FacebookIcon className="h-8 w-8" />;
+            return <FacebookIcon className="h-10 w-10 text-blue-600" />;
         }
 
 
@@ -156,16 +156,26 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
                 );
             case 'link': {
                 const Icon = getDomainIcon(currentData.link);
+                const isYoutube = card.link?.includes('youtube.com') || card.link?.includes('youtu.be');
                 return (
-                    <div className={cn("flex items-center text-left p-4 gap-4 w-full h-full", isDisabled && "pointer-events-none")}>
+                    <div className={cn("flex flex-col items-center justify-center text-center p-4 gap-2 h-full", isDisabled && "pointer-events-none")}>
                         <div className="flex-shrink-0" style={{ color: currentData.text_color ?? 'currentColor' }}>
                             {Icon}
                         </div>
-                        <div className="flex-grow overflow-hidden">
-                            <h3 className="font-semibold text-lg break-words w-full whitespace-pre-wrap" style={{ color: currentData.text_color ?? 'currentColor' }}>
+                         <div className="flex-grow flex flex-col items-center justify-center">
+                             <h3 className="font-semibold text-lg break-words w-full" style={{ color: currentData.text_color ?? 'currentColor' }}>
                                 {currentData.title || currentData.link}
                             </h3>
-                            {currentData.link && <p className="text-sm break-all w-full opacity-70" style={{ color: currentData.text_color ?? 'currentColor' }}>{currentData.link.replace(/^(https?:\/\/)?(www\.)?/, '')}</p>}
+                            {isYoutube ? (
+                                <div className='text-center mt-2'>
+                                    <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white font-bold rounded-full pointer-events-none">
+                                        Subscribe
+                                    </Button>
+                                    <p className="text-sm font-semibold text-neutral-800">466K</p>
+                                </div>
+                            ) : (
+                                currentData.link && <p className="text-sm break-all w-full opacity-60" style={{ color: currentData.text_color ?? 'currentColor' }}>{currentData.link.replace(/^(https?:\/\/)?(www\.)?/, '')}</p>
+                            )}
                         </div>
                     </div>
                 );

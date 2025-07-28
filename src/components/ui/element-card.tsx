@@ -3,7 +3,7 @@
 
 import { supabase } from '@/lib/supabase/client';
 import { Card } from '@/components/ui/card';
-import { Link as LinkIconLucide, ArrowUpRight, Subtitles } from 'lucide-react';
+import { Link as LinkIconLucide, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CardData } from '@/lib/types';
 import { SubstackIcon } from './substack-icon';
@@ -12,6 +12,7 @@ import { TiktokIcon } from './tiktok-icon';
 import { FacebookIcon } from './facebook-icon';
 import { InstagramIcon } from './instagram-icon';
 import { DiscordIcon } from './discord-icon';
+import { Button } from './button';
 
 interface ElementCardProps {
     data: CardData;
@@ -26,22 +27,22 @@ const getDomainIcon = (link: string | null) => {
         const domain = url.hostname.replace('www.', '');
 
         if (domain.includes('youtube.com') || domain.includes('youtu.be')) {
-            return <YoutubeIcon className="h-8 w-8" />;
+            return <YoutubeIcon className="h-10 w-10 text-red-600" />;
         }
         if (domain.includes('tiktok.com')) {
-            return <TiktokIcon className="h-8 w-8" />;
+            return <TiktokIcon className="h-10 w-10" />;
         }
         if (domain.includes('substack.com')) {
-            return <SubstackIcon className="h-8 w-8" />;
+            return <SubstackIcon className="h-10 w-10 text-orange-600" />;
         }
         if (domain.includes('instagram.com')) {
-            return <InstagramIcon className="h-8 w-8" />;
+            return <InstagramIcon className="h-10 w-10" />;
         }
         if (domain.includes('discord')) {
-            return <DiscordIcon className="h-8 w-8" />;
+            return <DiscordIcon className="h-10 w-10 text-indigo-500" />;
         }
         if (domain.includes('facebook.com')) {
-            return <FacebookIcon className="h-8 w-8" />;
+            return <FacebookIcon className="h-10 w-10 text-blue-600" />;
         }
 
 
@@ -115,10 +116,7 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
     switch (data.type) {
         case 'link': {
             const Icon = getDomainIcon(data.link);
-            const cardStyle = {
-                backgroundColor: data.background_color ?? undefined,
-                color: data.text_color ?? 'currentColor',
-            };
+            const isYoutube = data.link?.includes('youtube.com') || data.link?.includes('youtu.be');
             
             return (
                 <Card 
@@ -129,15 +127,24 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
                     )}
                     style={{ backgroundColor: data.background_color ?? undefined }}
                 >
-                    <a href={data.link || '#'} onClick={handleLinkClick} target="_blank" rel="noopener noreferrer" className="flex items-center text-left p-4 gap-4">
-                        <div className="flex-shrink-0" style={{ color: data.text_color ?? 'currentColor' }}>
+                    <a href={data.link || '#'} onClick={handleLinkClick} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center text-center p-4 gap-2 h-full">
+                         <div className="flex-shrink-0" style={{ color: data.text_color ?? 'currentColor' }}>
                             {Icon}
                         </div>
-                        <div className="flex-grow overflow-hidden">
-                            <h3 className="font-semibold text-lg break-words w-full whitespace-pre-wrap" style={{ color: data.text_color ?? 'currentColor' }}>
+                        <div className="flex-grow flex flex-col items-center justify-center">
+                             <h3 className="font-semibold text-lg break-words w-full" style={{ color: data.text_color ?? 'currentColor' }}>
                                 {data.title || data.link}
                             </h3>
-                            {data.link && <p className="text-sm break-all w-full opacity-70" style={{ color: data.text_color ?? 'currentColor' }}>{data.link.replace(/^(https?:\/\/)?(www\.)?/, '')}</p>}
+                            {isYoutube ? (
+                                <div className='text-center mt-2'>
+                                    <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white font-bold rounded-full">
+                                        Subscribe
+                                    </Button>
+                                    <p className="text-sm font-semibold text-neutral-800">466K</p>
+                                </div>
+                            ) : (
+                                data.link && <p className="text-sm break-all w-full opacity-60" style={{ color: data.text_color ?? 'currentColor' }}>{data.link.replace(/^(https?:\/\/)?(www\.)?/, '')}</p>
+                            )}
                         </div>
                     </a>
                 </Card>

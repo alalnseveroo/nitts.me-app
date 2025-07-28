@@ -34,15 +34,15 @@ const getSocialConfig = (url: string) => {
     try {
         const hostname = new URL(url).hostname;
         const colorWithOpacity = (r: number, g: number, b: number) => ({
-            color: `rgba(${r}, ${g}, ${b}, 0.3)`,
-            textColor: `rgb(${r}, ${g}, ${b})`
+            color: `rgba(${r}, ${g}, ${b}, 0.1)`,
+            textColor: `rgb(0, 0, 0)` // Texto preto para melhor legibilidade no fundo claro
         });
 
         if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
             return colorWithOpacity(255, 0, 0); // Vermelho
         }
         if (hostname.includes('tiktok.com')) {
-            return { color: 'rgba(0, 0, 0, 0.3)', textColor: 'rgb(0, 0, 0)' }; // Preto
+            return colorWithOpacity(0, 0, 0); // Preto
         }
         if (hostname.includes('substack.com')) {
             return colorWithOpacity(255, 103, 25); // Laranja
