@@ -309,7 +309,6 @@ export default function EditUserPage() {
 
     let finalUpdates = { ...updates };
 
-    // Substack scraping logic
     const isSubstackLink = originalCard.type === 'link' && updates.link && updates.link.includes('substack.com') && updates.link !== originalCard.link;
 
     if (isSubstackLink) {
@@ -318,6 +317,7 @@ export default function EditUserPage() {
             const result = await scrapeSubstack({ url: updates.link });
             finalUpdates.title = result.profileName;
             finalUpdates.background_image = result.profileImage;
+            finalUpdates.background_color = '#FFF5E6'; // Cor laranja claro para Substack
             toast({ title: 'Sucesso!', description: 'Dados do Substack importados.' });
         } catch (error) {
             console.error('Scraping error:', error);
@@ -719,5 +719,3 @@ export default function EditUserPage() {
       </div>
   )
 }
-
-    

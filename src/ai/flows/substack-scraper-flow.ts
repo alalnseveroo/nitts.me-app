@@ -60,7 +60,9 @@ const substackScraperFlow = ai.defineFlow(
     const $ = cheerio.load(html);
 
     const profileName = $('meta[property="og:site_name"]').attr('content') || $('title').text();
-    const profileImage = $('meta[property="og:image"]').attr('content') || '';
+    // Prioriza a imagem com itemprop="image", que geralmente é o avatar.
+    // Se não encontrar, usa a og:image como fallback.
+    const profileImage = $('img[itemprop="image"]').attr('src') || $('meta[property="og:image"]').attr('content') || '';
 
     if (!profileName || !profileImage) {
         throw new Error('Não foi possível extrair nome e imagem do perfil do HTML.');
@@ -73,7 +75,7 @@ const substackScraperFlow = ai.defineFlow(
     const output: SubstackScrapeOutput = {
       profileName,
       profileImage,
-      recentPosts, // Retornando um array vazio por simplicidade, como no prompt de IA
+      recentPosts, // Retornando um array vazio por simplicidade
     };
 
     return output;
