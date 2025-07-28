@@ -21,7 +21,7 @@ interface EditCardSheetProps {
 
 const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCardSheetProps) => {
   const [formData, setFormData] = useState<Partial<CardData>>({});
-  const [isScraping, setIsScraping] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -44,45 +44,39 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSaveChanges = () => {
-    const updatesToSave: Partial<CardData> = {};
+  const handleSaveChanges = async () => {
+    setIsSaving(true);
+    let updatesToSave: Partial<CardData> = {};
+
+    // Standard field updates
     if (formData.title !== card.title) updatesToSave.title = formData.title;
     if (formData.content !== card.content) updatesToSave.content = formData.content;
     if (formData.link !== card.link) updatesToSave.link = formData.link;
     if (formData.background_image !== card.background_image) updatesToSave.background_image = formData.background_image;
+
+    // Substack scraping logic
+    const isSubstackLink = card.type === 'link' && formData.link && formData.link.includes('substack.com') && formData.link !== card.link;
+
+    if (isSubstackLink) {
+        try {
+            const result = await scrapeSubstack({ url: formData.link });
+            updatesToSave.title = result.profileName;
+            updatesToSave.background_image = result.profileImage;
+            toast({ title: 'Sucesso!', description: 'Dados do Substack importados.' });
+        } catch (error) {
+            console.error('Scraping error:', error);
+            toast({ title: 'Erro de importação', description: 'Não foi possível buscar os dados do Substack, mas o link foi salvo.', variant: 'destructive' });
+        }
+    }
     
     if (Object.keys(updatesToSave).length > 0) {
       onUpdate(card.id, updatesToSave);
     }
+    
+    setIsSaving(false);
     onOpenChange(false);
   };
   
-  const handleScrape = async () => {
-    if (!formData.link || !formData.link.includes('substack.com')) {
-        toast({ title: 'URL Inválida', description: 'Por favor, insira uma URL válida do Substack.', variant: 'destructive' });
-        return;
-    }
-    setIsScraping(true);
-    try {
-        const result = await scrapeSubstack({ url: formData.link });
-        const updates = {
-            title: result.profileName,
-            background_image: result.profileImage,
-        };
-        setFormData(prev => ({ ...prev, ...updates }));
-        // Also update the card in the main state immediately
-        onUpdate(card.id, updates);
-        toast({ title: 'Sucesso!', description: 'Dados do Substack importados.' });
-    } catch (error) {
-        console.error('Scraping error:', error);
-        toast({ title: 'Erro de importação', description: 'Não foi possível buscar os dados. Verifique a URL.', variant: 'destructive' });
-    } finally {
-        setIsScraping(false);
-    }
-  };
-  
-  const isSubstackLink = formData.link?.includes('substack.com') ?? false;
-
   const renderFormContent = () => {
     switch (card.type) {
       case 'title':
@@ -114,23 +108,16 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
             </div>
             <div>
               <Label htmlFor="link">URL do Link</Label>
-              <div className="flex gap-2">
-                <Input
+               <Input
                   id="link"
                   name="link"
                   value={formData.link || ''}
                   onChange={handleChange}
                   placeholder="https://exemplo.com"
                 />
-                {isSubstackLink && (
-                    <Button onClick={handleScrape} disabled={isScraping} variant="outline">
-                        {isScraping ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Importar'}
-                    </Button>
-                )}
-              </div>
-               {isSubstackLink && (
+                {(formData.link?.includes('substack.com')) && (
                     <p className="text-sm text-muted-foreground mt-2">
-                        Detectamos um link do Substack! Clique em "Importar" para preencher os dados automaticamente.
+                        Detectamos um link do Substack! Salve para importar os dados automaticamente.
                     </p>
                 )}
             </div>
@@ -193,8 +180,11 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
           {renderFormContent()}
         </div>
         <SheetFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSaveChanges}>Salvar Alterações</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>Cancelar</Button>
+          <Button onClick={handleSaveChanges} disabled={isSaving}>
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+          </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>
