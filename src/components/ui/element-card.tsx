@@ -1,8 +1,7 @@
 
 'use client'
 
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { supabase } from '@/lib/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LinkIcon, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,9 +10,29 @@ import { useEffect, useState } from 'react';
 
 interface ElementCardProps {
     data: CardData;
+    source?: string;
 }
 
-const CardWrapper = ({ data, children }: { data: CardData, children: React.ReactNode }) => {
+const CardWrapper = ({ data, children, source }: { data: CardData, children: React.ReactNode, source?: string }) => {
+    
+    const handleLinkClick = async (e: React.MouseEvent) => {
+        if (!data.link) return;
+        e.preventDefault();
+
+        try {
+            await supabase.from('link_clicks').insert({
+                profile_id: data.user_id,
+                card_id: data.id,
+                source: source,
+                destination_url: data.link,
+            });
+        } catch (error) {
+            console.error('Error logging link click:', error);
+        } finally {
+            window.open(data.link, '_blank');
+        }
+    };
+    
     const content = (
         <div className="relative w-full h-full">
             {children}
@@ -27,33 +46,50 @@ const CardWrapper = ({ data, children }: { data: CardData, children: React.React
 
     if (data.link) {
         return (
-            <Link href={data.link} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+            <a href={data.link} onClick={handleLinkClick} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
                 {content}
-            </Link>
+            </a>
         )
     }
     return <>{content}</>;
 }
 
 
-export const ElementCard = ({ data }: ElementCardProps) => {
+export const ElementCard = ({ data, source }: ElementCardProps) => {
+    const handleLinkClick = async (e: React.MouseEvent) => {
+        if (!data.link) return;
+        e.preventDefault();
+
+        try {
+            await supabase.from('link_clicks').insert({
+                profile_id: data.user_id,
+                card_id: data.id,
+                source: source,
+                destination_url: data.link,
+            });
+        } catch (error) {
+            console.error('Error logging link click:', error);
+        } finally {
+            window.open(data.link, '_blank');
+        }
+    };
     
     switch (data.type) {
         case 'link':
             return (
                 <Card asChild className="w-full h-full bg-card hover:bg-secondary/50 transition-colors">
-                    <Link href={data.link || '#'} target="_blank" rel="noopener noreferrer" className="flex flex-col justify-between p-4">
+                    <a href={data.link || '#'} onClick={handleLinkClick} target="_blank" rel="noopener noreferrer" className="flex flex-col justify-between p-4">
                         <div>
                             <CardTitle className="text-base font-semibold">{data.title}</CardTitle>
                             {data.link && <CardDescription className="text-sm truncate">{data.link}</CardDescription>}
                         </div>
                         <LinkIcon className="h-4 w-4 text-muted-foreground self-end"/>
-                    </Link>
+                    </a>
                 </Card>
             );
         case 'title':
             return (
-                <CardWrapper data={data}>
+                <CardWrapper data={data} source={source}>
                     <div className="w-full h-full flex items-center justify-start p-2">
                         <h2 className="text-4xl font-bold">{data.title}</h2>
                     </div>
@@ -61,7 +97,7 @@ export const ElementCard = ({ data }: ElementCardProps) => {
             );
         case 'note':
             return (
-                 <CardWrapper data={data}>
+                 <CardWrapper data={data} source={source}>
                     <Card
                         className="w-full h-full p-4 flex items-center justify-center text-center"
                         style={{ backgroundColor: data.background_color ?? '#FFFFFF' }}
@@ -72,7 +108,7 @@ export const ElementCard = ({ data }: ElementCardProps) => {
             );
         case 'image':
             return (
-                 <CardWrapper data={data}>
+                 <CardWrapper data={data} source={source}>
                     <Card className="w-full h-full overflow-hidden relative">
                         <img 
                             src={data.background_image || 'https://placehold.co/400x400.png'} 
@@ -90,7 +126,7 @@ export const ElementCard = ({ data }: ElementCardProps) => {
             );
         case 'map':
             return (
-                <CardWrapper data={data}>
+                <CardWrapper data={data} source={source}>
                     <Card className="w-full h-full p-4 flex items-center justify-center">
                         <p className="text-sm text-center text-muted-foreground">🗺️ Mapa (WIP)</p>
                     </Card>

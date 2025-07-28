@@ -35,8 +35,10 @@ async function fetchPageData(username: string) {
     return { profile: profileData as Profile, cards: (cardsData || []) as CardData[] };
 }
 
-export default async function PublicProfilePage({ params }: { params: { username: string } }) {
+export default async function PublicProfilePage({ params, searchParams }: { params: { username: string }, searchParams?: { [key: string]: string | string[] | undefined } }) {
   const pageUsername = params.username as string;
+  const source = searchParams?.ref as string | undefined;
+
   const data = await fetchPageData(pageUsername);
 
   if (!data) {
@@ -69,7 +71,7 @@ export default async function PublicProfilePage({ params }: { params: { username
             </header>
 
             <main className="col-span-12 md:col-span-9 mt-6 md:mt-0">
-               <PublicProfileGrid cards={cards} layoutConfig={profile.layout_config} />
+               <PublicProfileGrid cards={cards} layoutConfig={profile.layout_config} source={source} />
             </main>
         </div>
         <footer className="w-full flex justify-center py-8">

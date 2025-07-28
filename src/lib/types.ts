@@ -20,4 +20,5 @@ export type CardData = {
   link: string | null;
   background_image: string | null;
   background_color?: string | null;
+  created_at: string;
 };

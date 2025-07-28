@@ -7,7 +7,7 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
 import type { Layout } from 'react-grid-layout';
-import type { CardData } from '@/app/[username]/page';
+import type { CardData } from '@/lib/types';
 import { ElementCard } from '@/components/ui/element-card';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from './skeleton';
@@ -17,9 +17,10 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 interface PublicProfileGridProps {
     cards: CardData[];
     layoutConfig: Layout[] | null;
+    source?: string;
 }
 
-export default function PublicProfileGrid({ cards, layoutConfig }: PublicProfileGridProps) {
+export default function PublicProfileGrid({ cards, layoutConfig, source }: PublicProfileGridProps) {
     const [rowHeight, setRowHeight] = useState(100);
     const [isMounted, setIsMounted] = useState(false);
     const isMobile = useIsMobile();
@@ -107,7 +108,7 @@ export default function PublicProfileGrid({ cards, layoutConfig }: PublicProfile
                 const layout = finalLayout.find(l => l.i === card.id) || {x:0, y:0, w:1, h:1, i: card.id };
                 return (
                     <div key={card.id} data-grid={layout}>
-                        <ElementCard data={card} />
+                        <ElementCard data={card} source={source} />
                     </div>
                 )
             })}
