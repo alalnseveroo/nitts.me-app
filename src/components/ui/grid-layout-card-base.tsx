@@ -81,16 +81,19 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
 
         if (isSubstackEnhanced) {
              return (
-                <div className="w-full h-full p-4 flex flex-col justify-between pointer-events-none">
+                <div 
+                    className="w-full h-full p-4 flex flex-col justify-between pointer-events-none"
+                    style={{ color: '#FFFFFF' }}
+                >
                     <div className="flex items-start justify-between">
-                        <Avatar className="w-12 h-12 border-2 border-black/10">
-                            <AvatarImage src={currentData.background_image || ''} alt={currentData.title || 'substack'} />
-                            <AvatarFallback>{currentData.title?.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <SubstackIcon className="h-6 w-6 text-black/80" />
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-lg text-black/90">{currentData.title}</h3>
+                        <div className="flex items-center gap-3">
+                            <Avatar className="w-12 h-12 border-2 border-white/20">
+                                <AvatarImage src={currentData.background_image || ''} alt={currentData.title || 'substack'} />
+                                <AvatarFallback>{currentData.title?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                             <h3 className="font-bold text-lg">{currentData.title}</h3>
+                        </div>
+                        <SubstackIcon className="h-6 w-6" />
                     </div>
                 </div>
             );
@@ -203,7 +206,7 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
                 isTitleCard ? 'bg-transparent border-none shadow-none' : 'bg-card',
             )}
             style={{ 
-                backgroundColor: isNoteCard ? currentData.background_color ?? undefined : isSubstackEnhanced ? '#FFF5E6' : undefined 
+                backgroundColor: isNoteCard ? currentData.background_color ?? undefined : isSubstackEnhanced ? currentData.background_color ?? '#FF6719' : undefined 
             }}
         >
              <div className={cn(

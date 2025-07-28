@@ -84,17 +84,20 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
             <CardWrapper data={data} source={source}>
                 <Card
                     className="w-full h-full p-4 flex flex-col justify-between"
-                    style={{ backgroundColor: '#FFF5E6' }} // Substack-like color
+                    style={{ 
+                        backgroundColor: data.background_color ?? '#FF6719', 
+                        color: '#FFFFFF'
+                    }}
                 >
                     <div className="flex items-start justify-between">
-                        <Avatar className="w-12 h-12 border-2 border-black/10">
-                            <AvatarImage src={data.background_image || ''} alt={data.title || 'substack'} />
-                            <AvatarFallback>{data.title?.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <SubstackIcon className="h-6 w-6 text-black/80" />
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-lg text-black/90">{data.title}</h3>
+                         <div className="flex items-center gap-3">
+                            <Avatar className="w-12 h-12 border-2 border-white/20">
+                                <AvatarImage src={data.background_image || ''} alt={data.title || 'substack'} />
+                                <AvatarFallback>{data.title?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                             <h3 className="font-bold text-lg">{data.title}</h3>
+                        </div>
+                        <SubstackIcon className="h-6 w-6" />
                     </div>
                 </Card>
             </CardWrapper>

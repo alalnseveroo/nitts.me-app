@@ -61,8 +61,8 @@ const substackScraperFlow = ai.defineFlow(
 
     const profileName = $('meta[property="og:site_name"]').attr('content') || $('title').text();
     // Prioriza a imagem com itemprop="image", que geralmente é o avatar.
-    // Se não encontrar, usa a og:image como fallback.
-    const profileImage = $('img[itemprop="image"]').attr('src') || $('meta[property="og:image"]').attr('content') || '';
+    // Se não encontrar, busca por '.avatar' e por último usa a og:image como fallback.
+    const profileImage = $('img[itemprop="image"]').attr('src') || $('img.avatar').attr('src') || $('meta[property="og:image"]').attr('content') || '';
 
     if (!profileName || !profileImage) {
         throw new Error('Não foi possível extrair nome e imagem do perfil do HTML.');
