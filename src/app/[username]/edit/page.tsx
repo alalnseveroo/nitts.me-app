@@ -28,6 +28,7 @@ import AnalyticsCard from '@/components/ui/analytics-card'
 import { AnalyticsToggle } from '@/components/ui/analytics-toggle'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { SubstackIcon } from '@/components/ui/substack-icon'
+import { CardColorControls } from '@/components/ui/card-color-controls'
 
 export default function EditUserPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -166,8 +167,9 @@ export default function EditUserPage() {
         const target = event.target as HTMLElement;
         const isControlClick = target.closest('[data-card-id]')?.contains(target);
         const isControlBarClick = target.closest('[data-card-edit-controls]');
+        const isColorPopoverClick = target.closest('.color-popover-content');
 
-        if (!isControlClick && !isControlBarClick) {
+        if (!isControlClick && !isControlBarClick && !isColorPopoverClick) {
             setSelectedCardId(null);
         }
     };
@@ -350,30 +352,18 @@ export default function EditUserPage() {
         h = 1;
     }
 
-    const finalData: Omit<CardData, 'id' | 'user_id' | 'created_at'> & { user_id: string } = {
+    const newCardData: Omit<CardData, 'id' | 'created_at'> = {
         user_id: user.id,
         type: type,
-        title: ``,
-        content: null,
-        link: null,
-        background_image: null,
-        background_color: null,
-        ...extraData
+        title: type === 'title' ? 'Novo Título' : (type === 'link' ? 'Novo Link' : ''),
+        content: '',
+        link: '',
+        background_image: '',
+        background_color: type === 'note' ? '#FFFFFF' : (type === 'substack' ? '#FFF5E6' : ''),
+        ...extraData,
     };
-    if (type === 'title') {
-      finalData.title = 'Novo Título';
-    }
-    if (type === 'link') {
-      finalData.title = 'Novo Link';
-    }
-    if (type === 'note') {
-      finalData.background_color = '#FFFFFF';
-    }
-    if (type === 'substack') {
-        finalData.background_color = '#FFF5E6'; // Laranja claro
-    }
 
-    const { data: newCard, error } = await supabase.from('cards').insert(finalData).select().single();
+    const { data: newCard, error } = await supabase.from('cards').insert(newCardData).select().single();
 
     if(error || !newCard) {
         toast({ title: 'Erro', description: 'Erro ao criar novo card.', variant: 'destructive'});
@@ -466,6 +456,7 @@ export default function EditUserPage() {
   }, [cards]);
   
   const selectedEditingCard = selectedCardId ? cards.find(c => c.id === selectedCardId) : undefined;
+  const isNoteCardSelected = selectedEditingCard?.type === 'note';
 
   if (loading) {
     return (
@@ -654,13 +645,31 @@ export default function EditUserPage() {
             </footer>
           )}
 
-          {isMobile && selectedEditingCard && (
+          {isMobile && selectedEditingCard && !isNoteCardSelected && (
               <CardEditControls 
                   card={selectedEditingCard}
                   onUpdate={handleUpdateCard}
                   onResize={handleResizeCard}
                   onDone={() => setSelectedCardId(null)}
               />
+          )}
+
+          {isMobile && isNoteCardSelected && (
+              <div data-card-edit-controls className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm z-50">
+                  <div className="bg-neutral-900 text-white rounded-2xl shadow-lg border border-neutral-700 flex justify-between items-center p-2 gap-2">
+                      <CardResizeControls onResize={(w,h) => handleResizeCard(selectedEditingCard.id, w, h)} />
+                      <div className="flex-1 flex items-center justify-center gap-2">
+                        <CardColorControls onColorChange={(color) => handleUpdateCard(selectedEditingCard.id, { background_color: color })} />
+                      </div>
+                      <Button
+                          onClick={() => setSelectedCardId(null)}
+                          className="bg-green-500 hover:bg-green-600 text-white rounded-lg px-4"
+                      >
+                          <Check className="h-4 w-4 mr-1" />
+                          Feito
+                      </Button>
+                  </div>
+              </div>
           )}
           
           <EditCardSheet
@@ -672,3 +681,5 @@ export default function EditUserPage() {
       </div>
   )
 }
+
+    
