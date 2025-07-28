@@ -163,7 +163,7 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
                             {Icon}
                         </div>
                          <div className="flex-grow flex flex-col items-center justify-center">
-                             <h3 className="font-semibold text-lg break-words w-full" style={{ color: currentData.text_color ?? 'currentColor' }}>
+                             <h3 className="font-bold text-lg break-words w-full" style={{ color: currentData.text_color ?? 'currentColor' }}>
                                 {currentData.title || currentData.link}
                             </h3>
                             {isYoutube ? (

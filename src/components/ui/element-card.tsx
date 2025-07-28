@@ -132,7 +132,7 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
                             {Icon}
                         </div>
                         <div className="flex-grow flex flex-col items-center justify-center">
-                             <h3 className="font-semibold text-lg break-words w-full" style={{ color: data.text_color ?? 'currentColor' }}>
+                             <h3 className="font-bold text-lg break-words w-full" style={{ color: data.text_color ?? 'currentColor' }}>
                                 {data.title || data.link}
                             </h3>
                             {isYoutube ? (
