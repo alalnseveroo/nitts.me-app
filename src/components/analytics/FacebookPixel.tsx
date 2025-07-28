@@ -5,9 +5,11 @@ import { usePathname } from 'next/navigation'
 import Script from 'next/script'
 import { useEffect, useState } from 'react'
 
-const FB_PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID || ''
+interface FacebookPixelProps {
+  pixelId: string
+}
 
-export const FacebookPixel = () => {
+export const FacebookPixel = ({ pixelId }: FacebookPixelProps) => {
   const [isMounted, setIsMounted] = useState(false)
   const pathname = usePathname()
 
@@ -16,13 +18,13 @@ export const FacebookPixel = () => {
   }, [])
 
   useEffect(() => {
-    if (!isMounted || !FB_PIXEL_ID || typeof window === 'undefined' || !window.fbq) {
+    if (!isMounted || !pixelId || typeof window === 'undefined' || !window.fbq) {
       return
     }
     window.fbq('track', 'PageView')
-  }, [pathname, isMounted])
+  }, [pathname, isMounted, pixelId])
 
-  if (!FB_PIXEL_ID) {
+  if (!pixelId) {
     return null
   }
 
@@ -38,7 +40,7 @@ export const FacebookPixel = () => {
           t.src=v;s=b.getElementsByTagName(e)[0];
           s.parentNode.insertBefore(t,s)}(window, document,'script',
           'https://connect.facebook.net/en_US/fbevents.js');
-          fbq('init', '${FB_PIXEL_ID}');
+          fbq('init', '${pixelId}');
           fbq('track', 'PageView');
         `}
       </Script>

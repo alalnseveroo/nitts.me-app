@@ -1,7 +1,6 @@
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { notFound, redirect } from 'next/navigation';
-import type { Layout } from 'react-grid-layout';
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import PublicProfileGrid from '@/components/ui/public-profile-grid';
@@ -9,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import type { Profile, CardData } from '@/lib/types';
+import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
+import { FacebookPixel } from '@/components/analytics/FacebookPixel';
 
 
 async function fetchPageData(username: string) {
@@ -57,33 +58,35 @@ export default async function PublicProfilePage({ params, searchParams }: { para
   
   // RENDER PUBLIC VIEW
   return (
-    <div className="w-full min-h-screen px-6 md:px-8 py-4 md:py-8 relative bg-background flex flex-col">
-        <div className="grid grid-cols-12 md:gap-8 flex-1">
-            <header className="col-span-12 md:col-span-3 md:py-8">
-                <div className="sticky top-8">
-                    <Avatar className="w-32 h-32 mb-4">
-                        <AvatarImage src={profile?.avatar_url || ''} />
-                        <AvatarFallback>{profile?.name?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <h1 className="text-4xl font-bold">{profile?.name || `@${profile?.username}`}</h1>
-                    <p className="text-muted-foreground mt-2">{profile?.bio}</p>
-                </div>
-            </header>
+    <>
+      {profile.ga_tracking_id && <GoogleAnalytics gaId={profile.ga_tracking_id} />}
+      {profile.fb_pixel_id && <FacebookPixel pixelId={profile.fb_pixel_id} />}
+      <div className="w-full min-h-screen px-6 md:px-8 py-4 md:py-8 relative bg-background flex flex-col">
+          <div className="grid grid-cols-12 md:gap-8 flex-1">
+              <header className="col-span-12 md:col-span-3 md:py-8">
+                  <div className="sticky top-8">
+                      <Avatar className="w-32 h-32 mb-4">
+                          <AvatarImage src={profile?.avatar_url || ''} />
+                          <AvatarFallback>{profile?.name?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <h1 className="text-4xl font-bold">{profile?.name || `@${profile?.username}`}</h1>
+                      <p className="text-muted-foreground mt-2">{profile?.bio}</p>
+                  </div>
+              </header>
 
-            <main className="col-span-12 md:col-span-9 mt-6 md:mt-0">
-               <PublicProfileGrid cards={cards} layoutConfig={profile.layout_config} source={source} />
-            </main>
-        </div>
-        <footer className="w-full flex justify-center py-8">
-          <Button asChild variant="ghost" className="text-muted-foreground">
-            <Link href="/signup">
-              Pegue também seu Nits
-              <ArrowUpRight className="h-4 w-4 ml-2" />
-            </Link>
-          </Button>
-        </footer>
-    </div>
+              <main className="col-span-12 md:col-span-9 mt-6 md:mt-0">
+                <PublicProfileGrid cards={cards} layoutConfig={profile.layout_config} source={source} />
+              </main>
+          </div>
+          <footer className="w-full flex justify-center py-8">
+            <Button asChild variant="ghost" className="text-muted-foreground">
+              <Link href="/signup">
+                Pegue também seu Nits
+                <ArrowUpRight className="h-4 w-4 ml-2" />
+              </Link>
+            </Button>
+          </footer>
+      </div>
+    </>
   );
 }
-
-    

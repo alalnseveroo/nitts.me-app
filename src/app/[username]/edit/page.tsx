@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Eye, Link as LinkIcon, ImageIcon, StickyNote, Map as MapIcon, Type } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Eye, Link as LinkIcon, ImageIcon, StickyNote, Map as MapIcon, Type, BarChart2 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '@/components/ui/skeleton'
 import GridLayoutComponent from '@/components/ui/grid-layout'
@@ -26,6 +26,7 @@ import type { Profile as ProfileType, CardData } from '@/lib/types';
 import { Label } from '@/components/ui/label'
 import AnalyticsCard from '@/components/ui/analytics-card'
 import { AnalyticsToggle } from '@/components/ui/analytics-toggle'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 
 export default function EditUserPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -88,6 +89,8 @@ export default function EditUserPage() {
           bio: profile.bio, 
           layout_config: validLayout,
           show_analytics: showAnalytics,
+          fb_pixel_id: profile.fb_pixel_id,
+          ga_tracking_id: profile.ga_tracking_id,
         })
         .eq('id', user.id);
         
@@ -294,6 +297,7 @@ export default function EditUserPage() {
   const handleShare = () => {
     const url = `${window.location.origin}/${pageUsername}`;
     navigator.clipboard.writeText(url);
+    toast({ title: 'Link copiado!', description: 'O link do seu perfil foi copiado para a área de transferência.' });
   };
   
   const handleUpdateCard = useCallback((id: string, updates: Partial<CardData>) => {
@@ -348,6 +352,7 @@ export default function EditUserPage() {
         content: null,
         link: null,
         background_image: null,
+        background_color: null,
         ...extraData
     };
     if (type === 'title') {
@@ -478,7 +483,7 @@ export default function EditUserPage() {
   if (!isMobile) {
     return (
       <div className="flex flex-col justify-center items-center h-screen text-center p-4">
-        <h1 className="text-2xl font-bold">Pegue seu Nitts pelo celular</h1>
+        <h1 className="text-2xl font-bold">Pegue seu Nits pelo celular</h1>
       </div>
     )
   }
@@ -545,8 +550,8 @@ export default function EditUserPage() {
                         rows={1}
                       />
                       
-                      {isMobile && (
-                        <div className="flex items-center space-x-2 mt-4">
+                      <div className="space-y-4 mt-6">
+                         <div className="flex items-center space-x-2">
                             <AnalyticsToggle 
                                 id="analytics-mode" 
                                 checked={showAnalytics}
@@ -554,7 +559,37 @@ export default function EditUserPage() {
                             />
                             <Label htmlFor="analytics-mode">Análise de dados</Label>
                         </div>
-                      )}
+                        <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem value="item-1">
+                                <AccordionTrigger>
+                                <div className="flex items-center gap-2">
+                                    <BarChart2 className="h-4 w-4" />
+                                    Integrações
+                                </div>
+                                </AccordionTrigger>
+                                <AccordionContent className="space-y-4 pt-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="ga_tracking_id">Google Analytics ID</Label>
+                                        <Input
+                                            id="ga_tracking_id"
+                                            placeholder="G-XXXXXXXXXX"
+                                            value={profile?.ga_tracking_id || ''}
+                                            onChange={(e) => setProfile(p => p ? { ...p, ga_tracking_id: e.target.value } : null)}
+                                        />
+                                    </div>
+                                     <div className="space-y-2">
+                                        <Label htmlFor="fb_pixel_id">Facebook Pixel ID</Label>
+                                        <Input
+                                            id="fb_pixel_id"
+                                            placeholder="123456789012345"
+                                            value={profile?.fb_pixel_id || ''}
+                                            onChange={(e) => setProfile(p => p ? { ...p, fb_pixel_id: e.target.value } : null)}
+                                        />
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Accordion>
+                      </div>
                   </div>
               </aside>
               

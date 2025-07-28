@@ -9,6 +9,8 @@ export type Profile = {
   avatar_url: string | null;
   layout_config: Layout[] | null;
   show_analytics: boolean | null;
+  fb_pixel_id?: string | null;
+  ga_tracking_id?: string | null;
 };
 
 export type CardData = {
