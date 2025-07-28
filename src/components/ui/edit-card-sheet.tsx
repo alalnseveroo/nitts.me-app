@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import type { CardData } from "@/lib/types"
-import { scrapeSubstack } from "@/ai/flows/substack-scraper-flow"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2 } from "lucide-react"
 
@@ -44,36 +43,8 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSaveChanges = async () => {
-    setIsSaving(true);
-    let updatesToSave: Partial<CardData> = {};
-
-    // Standard field updates
-    if (formData.title !== card.title) updatesToSave.title = formData.title;
-    if (formData.content !== card.content) updatesToSave.content = formData.content;
-    if (formData.link !== card.link) updatesToSave.link = formData.link;
-    if (formData.background_image !== card.background_image) updatesToSave.background_image = formData.background_image;
-
-    // Substack scraping logic
-    const isSubstackLink = card.type === 'link' && formData.link && formData.link.includes('substack.com') && formData.link !== card.link;
-
-    if (isSubstackLink) {
-        try {
-            const result = await scrapeSubstack({ url: formData.link });
-            updatesToSave.title = result.profileName;
-            updatesToSave.background_image = result.profileImage;
-            toast({ title: 'Sucesso!', description: 'Dados do Substack importados.' });
-        } catch (error) {
-            console.error('Scraping error:', error);
-            toast({ title: 'Erro de importação', description: 'Não foi possível buscar os dados do Substack, mas o link foi salvo.', variant: 'destructive' });
-        }
-    }
-    
-    if (Object.keys(updatesToSave).length > 0) {
-      onUpdate(card.id, updatesToSave);
-    }
-    
-    setIsSaving(false);
+  const handleSaveChanges = () => {
+    onUpdate(card.id, formData);
     onOpenChange(false);
   };
   
@@ -192,3 +163,5 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
 };
 
 export const EditCardSheet = memo(EditCardSheetComponent);
+
+    

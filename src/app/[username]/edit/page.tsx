@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Eye, Link as LinkIcon, ImageIcon, StickyNote, Map as MapIcon, Type, BarChart2, Check } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Eye, Link as LinkIcon, ImageIcon, StickyNote, Map as MapIcon, Type, BarChart2, Check, Subtitles } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '@/components/ui/skeleton'
 import GridLayoutComponent from '@/components/ui/grid-layout'
@@ -28,6 +28,7 @@ import AnalyticsCard from '@/components/ui/analytics-card'
 import { AnalyticsToggle } from '@/components/ui/analytics-toggle'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { CardColorControls } from '@/components/ui/card-color-controls'
+import { scrapeSubstack } from "@/ai/flows/substack-scraper-flow"
 
 export default function EditUserPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -302,11 +303,32 @@ export default function EditUserPage() {
     toast({ title: 'Link copiado!', description: 'O link do seu perfil foi copiado para a área de transferência.' });
   };
   
-  const handleUpdateCard = useCallback((id: string, updates: Partial<CardData>) => {
+  const handleUpdateCard = useCallback(async (id: string, updates: Partial<CardData>) => {
+    const originalCard = cards.find(c => c.id === id);
+    if (!originalCard) return;
+
+    let finalUpdates = { ...updates };
+
+    // Substack scraping logic
+    const isSubstackLink = originalCard.type === 'link' && updates.link && updates.link.includes('substack.com') && updates.link !== originalCard.link;
+
+    if (isSubstackLink) {
+        toast({ title: 'Importando dados...', description: 'Estamos buscando as informações do seu perfil Substack.' });
+        try {
+            const result = await scrapeSubstack({ url: updates.link });
+            finalUpdates.title = result.profileName;
+            finalUpdates.background_image = result.profileImage;
+            toast({ title: 'Sucesso!', description: 'Dados do Substack importados.' });
+        } catch (error) {
+            console.error('Scraping error:', error);
+            toast({ title: 'Erro de importação', description: 'Não foi possível buscar os dados. O link foi salvo.', variant: 'destructive' });
+        }
+    }
+    
     setCards(currentCards => 
-        currentCards.map(c => (c.id === id ? { ...c, ...updates } : c))
+        currentCards.map(c => (c.id === id ? { ...c, ...finalUpdates } : c))
     );
-  }, []);
+  }, [cards, toast]);
 
   const handleAvatarUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0 || !user) return
@@ -697,3 +719,5 @@ export default function EditUserPage() {
       </div>
   )
 }
+
+    
