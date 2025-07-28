@@ -33,23 +33,28 @@ import { scrapeUrlMetadata } from "@/ai/flows/url-metadata-scraper-flow"
 const getSocialConfig = (url: string) => {
     try {
         const hostname = new URL(url).hostname;
+        const colorWithOpacity = (r: number, g: number, b: number) => ({
+            color: `rgba(${r}, ${g}, ${b}, 0.3)`,
+            textColor: `rgb(${r}, ${g}, ${b})`
+        });
+
         if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
-            return { color: '#FF0000', textColor: '#FFFFFF' };
+            return colorWithOpacity(255, 0, 0); // Vermelho
         }
         if (hostname.includes('tiktok.com')) {
-            return { color: '#000000', textColor: '#FFFFFF' };
+            return { color: 'rgba(0, 0, 0, 0.3)', textColor: 'rgb(0, 0, 0)' }; // Preto
         }
         if (hostname.includes('substack.com')) {
-            return { color: '#FF6719', textColor: '#FFFFFF' };
+            return colorWithOpacity(255, 103, 25); // Laranja
         }
         if (hostname.includes('instagram.com')) {
-            return { color: '#E4405F', textColor: '#FFFFFF' };
+            return colorWithOpacity(228, 64, 95); // Rosa
         }
         if (hostname.includes('discord')) {
-            return { color: '#5865F2', textColor: '#FFFFFF' };
+            return colorWithOpacity(88, 101, 242); // Azul Discord
         }
         if (hostname.includes('facebook.com')) {
-            return { color: '#1877F2', textColor: '#FFFFFF' };
+            return colorWithOpacity(24, 119, 242); // Azul Facebook
         }
     } catch (e) {
         // Invalid URL
@@ -351,8 +356,11 @@ export default function EditUserPage() {
                 finalUpdates.background_color = socialConfig.color;
                 finalUpdates.text_color = socialConfig.textColor;
             } else {
-                 finalUpdates.background_color = null; // Reset to default
+                 finalUpdates.background_color = null; 
                  finalUpdates.text_color = null;
+            }
+            if (result.imageUrl) {
+                finalUpdates.background_image = result.imageUrl;
             }
 
             toast({ title: 'Sucesso!', description: 'Título do link atualizado.' });

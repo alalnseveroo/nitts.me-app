@@ -117,10 +117,9 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
             const Icon = getDomainIcon(data.link);
             const cardStyle = {
                 backgroundColor: data.background_color ?? undefined,
-                color: data.text_color ?? undefined,
+                color: data.text_color ?? 'currentColor',
             };
-            const linkColorClass = data.text_color ? 'opacity-70' : 'text-muted-foreground';
-
+            
             return (
                 <Card 
                     asChild 
@@ -128,17 +127,17 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
                         "w-full h-full transition-colors",
                         !data.background_color && "bg-card hover:bg-secondary/50"
                     )}
-                    style={cardStyle}
+                    style={{ backgroundColor: data.background_color ?? undefined }}
                 >
-                    <a href={data.link || '#'} onClick={handleLinkClick} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center text-center p-4 gap-2">
-                        <div className="flex-shrink-0">
+                    <a href={data.link || '#'} onClick={handleLinkClick} target="_blank" rel="noopener noreferrer" className="flex items-center text-left p-4 gap-4">
+                        <div className="flex-shrink-0" style={{ color: data.text_color ?? 'currentColor' }}>
                             {Icon}
                         </div>
-                        <div className="flex-grow flex flex-col items-center justify-center overflow-hidden">
-                            <h3 className="font-semibold text-lg break-words w-full">
+                        <div className="flex-grow overflow-hidden">
+                            <h3 className="font-semibold text-lg break-words w-full whitespace-pre-wrap" style={{ color: data.text_color ?? 'currentColor' }}>
                                 {data.title || data.link}
                             </h3>
-                            {data.link && <p className={cn("text-sm break-all w-full", linkColorClass)}>{data.link.replace(/^(https?:\/\/)?(www\.)?/, '')}</p>}
+                            {data.link && <p className="text-sm break-all w-full opacity-70" style={{ color: data.text_color ?? 'currentColor' }}>{data.link.replace(/^(https?:\/\/)?(www\.)?/, '')}</p>}
                         </div>
                     </a>
                 </Card>

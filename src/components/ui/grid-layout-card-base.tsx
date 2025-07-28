@@ -156,17 +156,16 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
                 );
             case 'link': {
                 const Icon = getDomainIcon(currentData.link);
-                const linkColorClass = currentData.text_color ? 'opacity-70' : 'text-muted-foreground';
                 return (
-                    <div className={cn("flex flex-col items-center justify-center text-center p-4 gap-2 w-full h-full", isDisabled && "pointer-events-none")}>
-                         <div className="flex-shrink-0">
+                    <div className={cn("flex items-center text-left p-4 gap-4 w-full h-full", isDisabled && "pointer-events-none")}>
+                        <div className="flex-shrink-0" style={{ color: currentData.text_color ?? 'currentColor' }}>
                             {Icon}
                         </div>
-                        <div className="flex-grow flex flex-col items-center justify-center overflow-hidden w-full">
-                           <h3 className="font-semibold text-lg break-words w-full">
+                        <div className="flex-grow overflow-hidden">
+                            <h3 className="font-semibold text-lg break-words w-full whitespace-pre-wrap" style={{ color: currentData.text_color ?? 'currentColor' }}>
                                 {currentData.title || currentData.link}
                             </h3>
-                            {currentData.link && <p className={cn("text-sm break-all w-full", linkColorClass)}>{currentData.link.replace(/^(https?:\/\/)?(www\.)?/, '')}</p>}
+                            {currentData.link && <p className="text-sm break-all w-full opacity-70" style={{ color: currentData.text_color ?? 'currentColor' }}>{currentData.link.replace(/^(https?:\/\/)?(www\.)?/, '')}</p>}
                         </div>
                     </div>
                 );
@@ -209,7 +208,6 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
 
     const cardStyle = {
         backgroundColor: currentData.background_color ?? undefined,
-        color: currentData.text_color ?? undefined
     };
 
     return (
