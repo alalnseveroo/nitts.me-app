@@ -27,7 +27,6 @@ import { Label } from '@/components/ui/label'
 import AnalyticsCard from '@/components/ui/analytics-card'
 import { AnalyticsToggle } from '@/components/ui/analytics-toggle'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { SubstackIcon } from '@/components/ui/substack-icon'
 import { CardColorControls } from '@/components/ui/card-color-controls'
 
 export default function EditUserPage() {
@@ -341,39 +340,36 @@ export default function EditUserPage() {
     return layout.reduce((maxY, item) => Math.max(maxY, (item.y ?? 0) + (item.h ?? 0)), 0);
   };
 
-  const addNewCard = async (type: string, extraData: Record<string, any> = {}) => {
+  const addNewCard = async (type: string, extraData: Partial<CardData> = {}) => {
     if (!user) return;
 
-    let newCardData: Omit<CardData, 'id' | 'created_at'> | null = null;
-    const baseCard = {
+    let newCardData: Omit<CardData, 'id' | 'created_at'>;
+
+    const baseData = {
         user_id: user.id,
-        type: type,
         title: '',
         content: '',
         link: '',
         background_image: '',
         background_color: '',
-        ...extraData,
+        ...extraData
     };
 
     switch (type) {
         case 'title':
-            newCardData = { ...baseCard, title: 'Novo Título' };
+            newCardData = { ...baseData, type, title: 'Novo Título' };
             break;
         case 'link':
-            newCardData = { ...baseCard, title: 'Novo Link' };
+            newCardData = { ...baseData, type, title: 'Novo Link' };
             break;
         case 'note':
-            newCardData = { ...baseCard, background_color: '#FFFFFF' };
-            break;
-        case 'substack':
-             newCardData = { ...baseCard, title: 'Perfil Substack', background_color: '#FFF5E6' };
+            newCardData = { ...baseData, type, background_color: '#FFFFFF' };
             break;
         case 'map':
-            newCardData = { ...baseCard, title: 'Mapa' };
+            newCardData = { ...baseData, type, title: 'Mapa' };
             break;
         case 'image':
-            newCardData = { ...baseCard, title: 'Nova Imagem', ...extraData };
+            newCardData = { ...baseData, type, title: '' };
             break;
         default:
              toast({ title: 'Erro', description: 'Tipo de card desconhecido.', variant: 'destructive'});
@@ -391,10 +387,6 @@ export default function EditUserPage() {
     const cols = isMobile ? 2 : 4;
     let w = type === 'title' ? cols : 1;
     let h = type === 'title' ? 0.5 : 1;
-     if (type === 'substack') {
-        w = isMobile ? 2 : 2;
-        h = 1;
-    }
 
     const newLayoutItem: Layout = { 
       i: newCard.id, 
@@ -655,7 +647,6 @@ export default function EditUserPage() {
                       {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
                   </Button>
                   <Button title="Adicionar Nota" variant="ghost" size="icon" onClick={() => addNewCard('note')}><StickyNote className="h-5 w-5" /></Button>
-                   <Button title="Adicionar Card Substack" variant="ghost" size="icon" onClick={() => addNewCard('substack')}><SubstackIcon className="h-5 w-5" /></Button>
                   <Button title="Adicionar Mapa" variant="ghost" size="icon" onClick={() => addNewCard('map')}><MapIcon className="h-5 w-5" /></Button>
                   <Button title="Adicionar Título" variant="ghost" size="icon" onClick={() => addNewCard('title')}><Type className="h-5 w-5" /></Button>
                 </div>

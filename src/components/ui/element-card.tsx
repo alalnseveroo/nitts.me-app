@@ -76,6 +76,31 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
         }
     };
     
+    // Check if it's a Substack-enhanced link card
+    const isSubstackEnhanced = data.type === 'link' && data.link?.includes('substack.com') && data.background_image;
+
+    if (isSubstackEnhanced) {
+        return (
+            <CardWrapper data={data} source={source}>
+                <Card
+                    className="w-full h-full p-4 flex flex-col justify-between"
+                    style={{ backgroundColor: '#FFF5E6' }} // Substack-like color
+                >
+                    <div className="flex items-start justify-between">
+                        <Avatar className="w-12 h-12 border-2 border-black/10">
+                            <AvatarImage src={data.background_image || ''} alt={data.title || 'substack'} />
+                            <AvatarFallback>{data.title?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <SubstackIcon className="h-6 w-6 text-black/80" />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-lg text-black/90">{data.title}</h3>
+                    </div>
+                </Card>
+            </CardWrapper>
+        );
+    }
+    
     switch (data.type) {
         case 'link':
             return (
@@ -126,26 +151,6 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
                     </Card>
                 </CardWrapper>
             );
-        case 'substack':
-            return (
-                <CardWrapper data={data} source={source}>
-                    <Card
-                        className="w-full h-full p-4 flex flex-col justify-between"
-                        style={{ backgroundColor: data.background_color ?? '#FFF5E6' }}
-                    >
-                        <div className="flex items-start justify-between">
-                             <Avatar className="w-12 h-12 border-2 border-black/10">
-                                <AvatarImage src={data.background_image || ''} alt={data.title || 'substack'} />
-                                <AvatarFallback>{data.title?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <SubstackIcon className="h-6 w-6 text-black/80" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-lg text-black/90">{data.title}</h3>
-                        </div>
-                    </Card>
-                </CardWrapper>
-            )
         case 'map':
             return (
                 <CardWrapper data={data} source={source}>

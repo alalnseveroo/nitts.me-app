@@ -44,12 +44,14 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
 
   const handleSaveChanges = () => {
     const updatesToSave: Partial<CardData> = {};
-    if (formData.title !== undefined) updatesToSave.title = formData.title;
-    if (formData.content !== undefined) updatesToSave.content = formData.content;
-    if (formData.link !== undefined) updatesToSave.link = formData.link;
-    if (formData.background_image !== undefined) updatesToSave.background_image = formData.background_image;
+    if (formData.title !== card.title) updatesToSave.title = formData.title;
+    if (formData.content !== card.content) updatesToSave.content = formData.content;
+    if (formData.link !== card.link) updatesToSave.link = formData.link;
+    if (formData.background_image !== card.background_image) updatesToSave.background_image = formData.background_image;
     
-    onUpdate(card.id, updatesToSave);
+    if (Object.keys(updatesToSave).length > 0) {
+      onUpdate(card.id, updatesToSave);
+    }
     onOpenChange(false);
   };
   
@@ -61,11 +63,12 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
     setIsScraping(true);
     try {
         const result = await scrapeSubstack({ url: formData.link });
-        setFormData(prev => ({
-            ...prev,
+        const updates = {
             title: result.profileName,
             background_image: result.profileImage,
-        }));
+        };
+        setFormData(prev => ({ ...prev, ...updates }));
+        onUpdate(card.id, updates); // Update immediately
         toast({ title: 'Sucesso!', description: 'Dados do Substack importados.' });
     } catch (error) {
         console.error('Scraping error:', error);
@@ -74,6 +77,8 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
         setIsScraping(false);
     }
   };
+  
+  const isSubstackLink = formData.link?.includes('substack.com') ?? false;
 
   const renderFormContent = () => {
     switch (card.type) {
@@ -106,12 +111,24 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
             </div>
             <div>
               <Label htmlFor="link">URL do Link</Label>
-              <Input
-                id="link"
-                name="link"
-                value={formData.link || ''}
-                onChange={handleChange}
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="link"
+                  name="link"
+                  value={formData.link || ''}
+                  onChange={handleChange}
+                />
+                {isSubstackLink && (
+                    <Button onClick={handleScrape} disabled={isScraping}>
+                        {isScraping ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Importar'}
+                    </Button>
+                )}
+              </div>
+               {isSubstackLink && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                        Detectamos um link do Substack! Clique em "Importar" para preencher os dados automaticamente.
+                    </p>
+                )}
             </div>
           </div>
         );
@@ -148,46 +165,6 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
             </div>
           </div>
         );
-        case 'substack':
-            return (
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="link">URL do Perfil Substack</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="link"
-                      name="link"
-                      value={formData.link || ''}
-                      onChange={handleChange}
-                      placeholder="https://exemplo.substack.com"
-                    />
-                    <Button onClick={handleScrape} disabled={isScraping}>
-                        {isScraping ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Importar'}
-                    </Button>
-                  </div>
-                </div>
-                 <div>
-                    <Label htmlFor="title">Nome do Perfil</Label>
-                    <Input
-                        id="title"
-                        name="title"
-                        value={formData.title || ''}
-                        onChange={handleChange}
-                        placeholder="Nome do Autor/Publicação"
-                    />
-                </div>
-                 <div>
-                    <Label htmlFor="background_image">URL da Imagem de Perfil</Label>
-                    <Input
-                        id="background_image"
-                        name="background_image"
-                        value={formData.background_image || ''}
-                        onChange={handleChange}
-                        placeholder="https://url-da-imagem.com/..."
-                    />
-                </div>
-              </div>
-            );
       case 'map':
         return (
           <>
