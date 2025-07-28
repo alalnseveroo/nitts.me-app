@@ -132,7 +132,7 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
                             {Icon}
                         </div>
                         <div className="flex-grow flex flex-col items-start justify-center">
-                             <h3 className="font-bold text-lg break-words w-full" style={{ color: data.text_color ?? 'currentColor' }}>
+                             <h3 className="font-bold text-lg break-words w-full whitespace-pre-wrap" style={{ color: data.text_color ?? 'currentColor' }}>
                                 {data.title || data.link}
                             </h3>
                             {isYoutube ? (
@@ -154,7 +154,7 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
             return (
                 <CardWrapper data={data} source={source}>
                     <div className="w-full h-full flex items-center justify-start p-2">
-                        <h2 className="text-4xl font-bold">{data.title}</h2>
+                        <h3 className="text-4xl font-bold">{data.title}</h3>
                     </div>
                 </CardWrapper>
             );

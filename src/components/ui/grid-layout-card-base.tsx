@@ -163,7 +163,7 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
                             {Icon}
                         </div>
                          <div className="flex-grow flex flex-col items-start justify-center">
-                             <h3 className="font-bold text-lg break-words w-full" style={{ color: currentData.text_color ?? 'currentColor' }}>
+                             <h3 className="font-bold text-lg break-words w-full whitespace-pre-wrap" style={{ color: currentData.text_color ?? 'currentColor' }}>
                                 {currentData.title || currentData.link}
                             </h3>
                             {isYoutube ? (
@@ -182,9 +182,9 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
             }
             case 'title':
                  return (
-                    <h2 className={cn("w-full h-full flex items-center p-2 text-4xl font-bold pointer-events-none", isDisabled && "pointer-events-none")}>
+                    <h3 className={cn("w-full h-full flex items-center p-2 text-4xl font-bold pointer-events-none", isDisabled && "pointer-events-none")}>
                         {currentData.title}
-                    </h2>
+                    </h3>
                 );
             case 'note':
                 return (
