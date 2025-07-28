@@ -158,16 +158,16 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
                 const Icon = getDomainIcon(currentData.link);
                 const isYoutube = card.link?.includes('youtube.com') || card.link?.includes('youtu.be');
                 return (
-                    <div className={cn("flex flex-col items-center justify-center text-center p-4 gap-2 h-full", isDisabled && "pointer-events-none")}>
+                    <div className={cn("flex flex-col items-start justify-center text-left p-4 gap-2 h-full", isDisabled && "pointer-events-none")}>
                         <div className="flex-shrink-0" style={{ color: currentData.text_color ?? 'currentColor' }}>
                             {Icon}
                         </div>
-                         <div className="flex-grow flex flex-col items-center justify-center">
+                         <div className="flex-grow flex flex-col items-start justify-center">
                              <h3 className="font-bold text-lg break-words w-full" style={{ color: currentData.text_color ?? 'currentColor' }}>
                                 {currentData.title || currentData.link}
                             </h3>
                             {isYoutube ? (
-                                <div className='text-center mt-2'>
+                                <div className='text-left mt-2'>
                                     <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white font-bold rounded-full pointer-events-none">
                                         Subscribe
                                     </Button>
