@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import type { CardData } from "@/lib/types"
+import { scrapeSubstack } from "@/ai/flows/substack-scraper-flow"
+import { useToast } from "@/hooks/use-toast"
+import { Loader2 } from "lucide-react"
 
 interface EditCardSheetProps {
   isOpen: boolean;
@@ -18,14 +21,16 @@ interface EditCardSheetProps {
 
 const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCardSheetProps) => {
   const [formData, setFormData] = useState<Partial<CardData>>({});
+  const [isScraping, setIsScraping] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // When a new card is selected or the sheet opens, reset the form data
     if (card) {
       setFormData({
         title: card.title,
         link: card.link,
         content: card.content,
+        background_image: card.background_image,
       });
     }
   }, [card, isOpen]); 
@@ -42,11 +47,34 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
     if (formData.title !== undefined) updatesToSave.title = formData.title;
     if (formData.content !== undefined) updatesToSave.content = formData.content;
     if (formData.link !== undefined) updatesToSave.link = formData.link;
+    if (formData.background_image !== undefined) updatesToSave.background_image = formData.background_image;
     
     onUpdate(card.id, updatesToSave);
     onOpenChange(false);
   };
   
+  const handleScrape = async () => {
+    if (!formData.link || !formData.link.includes('substack.com')) {
+        toast({ title: 'URL Inválida', description: 'Por favor, insira uma URL válida do Substack.', variant: 'destructive' });
+        return;
+    }
+    setIsScraping(true);
+    try {
+        const result = await scrapeSubstack({ url: formData.link });
+        setFormData(prev => ({
+            ...prev,
+            title: result.profileName,
+            background_image: result.profileImage,
+        }));
+        toast({ title: 'Sucesso!', description: 'Dados do Substack importados.' });
+    } catch (error) {
+        console.error('Scraping error:', error);
+        toast({ title: 'Erro de importação', description: 'Não foi possível buscar os dados. Verifique a URL.', variant: 'destructive' });
+    } finally {
+        setIsScraping(false);
+    }
+  };
+
   const renderFormContent = () => {
     switch (card.type) {
       case 'title':
@@ -120,6 +148,46 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
             </div>
           </div>
         );
+        case 'substack':
+            return (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="link">URL do Perfil Substack</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="link"
+                      name="link"
+                      value={formData.link || ''}
+                      onChange={handleChange}
+                      placeholder="https://exemplo.substack.com"
+                    />
+                    <Button onClick={handleScrape} disabled={isScraping}>
+                        {isScraping ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Importar'}
+                    </Button>
+                  </div>
+                </div>
+                 <div>
+                    <Label htmlFor="title">Nome do Perfil</Label>
+                    <Input
+                        id="title"
+                        name="title"
+                        value={formData.title || ''}
+                        onChange={handleChange}
+                        placeholder="Nome do Autor/Publicação"
+                    />
+                </div>
+                 <div>
+                    <Label htmlFor="background_image">URL da Imagem de Perfil</Label>
+                    <Input
+                        id="background_image"
+                        name="background_image"
+                        value={formData.background_image || ''}
+                        onChange={handleChange}
+                        placeholder="https://url-da-imagem.com/..."
+                    />
+                </div>
+              </div>
+            );
       case 'map':
         return (
           <>

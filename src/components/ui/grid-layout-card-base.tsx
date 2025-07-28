@@ -10,6 +10,8 @@ import { Loader2, UploadCloud } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { CardData } from '@/lib/types';
+import { Avatar, AvatarImage, AvatarFallback } from './avatar';
+import { SubstackIcon } from './substack-icon';
 
 interface GridLayoutCardBaseProps {
     card: CardData;
@@ -159,6 +161,21 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
                         disabled={!isEditing}
                     />
                 );
+            case 'substack':
+                 return (
+                    <div className="w-full h-full p-4 flex flex-col justify-between pointer-events-none">
+                        <div className="flex items-start justify-between">
+                             <Avatar className="w-12 h-12 border-2 border-black/10">
+                                <AvatarImage src={currentData.background_image || ''} alt={currentData.title || 'substack'} />
+                                <AvatarFallback>{currentData.title?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <SubstackIcon className="h-6 w-6 text-black/80" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-lg text-black/90">{currentData.title}</h3>
+                        </div>
+                    </div>
+                );
             case 'map':
                  return (
                     <div className={cn("p-4 flex items-center justify-center text-muted-foreground", isDisabled && "pointer-events-none")}>
@@ -172,6 +189,8 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
     
     const isTitleCard = card.type === 'title';
     const isNoteCard = card.type === 'note';
+    const isSubstackCard = card.type === 'substack';
+
 
     return (
         <Card 
@@ -180,7 +199,7 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
                 isTitleCard ? 'bg-transparent border-none shadow-none' : 'bg-card',
             )}
             style={{ 
-                backgroundColor: isNoteCard ? currentData.background_color ?? '#FFFFFF' : undefined 
+                backgroundColor: isNoteCard || isSubstackCard ? currentData.background_color ?? undefined : undefined 
             }}
         >
              <div className={cn(

@@ -27,6 +27,7 @@ import { Label } from '@/components/ui/label'
 import AnalyticsCard from '@/components/ui/analytics-card'
 import { AnalyticsToggle } from '@/components/ui/analytics-toggle'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { SubstackIcon } from '@/components/ui/substack-icon'
 
 export default function EditUserPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -342,8 +343,12 @@ export default function EditUserPage() {
     if (!user) return;
     
     const cols = isMobile ? 2 : 4;
-    const w = type === 'title' ? cols : 1;
-    const h = type === 'title' ? 0.5 : 1;
+    let w = type === 'title' ? cols : 1;
+    let h = type === 'title' ? 0.5 : 1;
+    if (type === 'substack') {
+        w = isMobile ? 2 : 2;
+        h = 1;
+    }
 
     const finalData: Omit<CardData, 'id' | 'user_id' | 'created_at'> & { user_id: string } = {
         user_id: user.id,
@@ -363,6 +368,9 @@ export default function EditUserPage() {
     }
     if (type === 'note') {
       finalData.background_color = '#FFFFFF';
+    }
+    if (type === 'substack') {
+        finalData.background_color = '#FFF5E6'; // Laranja claro
     }
 
     const { data: newCard, error } = await supabase.from('cards').insert(finalData).select().single();
@@ -631,6 +639,7 @@ export default function EditUserPage() {
                       {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
                   </Button>
                   <Button title="Adicionar Nota" variant="ghost" size="icon" onClick={() => addNewCard('note')}><StickyNote className="h-5 w-5" /></Button>
+                   <Button title="Adicionar Card Substack" variant="ghost" size="icon" onClick={() => addNewCard('substack')}><SubstackIcon className="h-5 w-5" /></Button>
                   <Button title="Adicionar Mapa" variant="ghost" size="icon" onClick={() => addNewCard('map')}><MapIcon className="h-5 w-5" /></Button>
                   <Button title="Adicionar Título" variant="ghost" size="icon" onClick={() => addNewCard('title')}><Type className="h-5 w-5" /></Button>
                 </div>
