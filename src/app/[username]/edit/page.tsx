@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Eye, Link as LinkIcon, ImageIcon, StickyNote, Map as MapIcon, Type, BarChart2 } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Eye, Link as LinkIcon, ImageIcon, StickyNote, Map as MapIcon, Type, BarChart2, Check } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '@/components/ui/skeleton'
 import GridLayoutComponent from '@/components/ui/grid-layout'
@@ -343,25 +343,42 @@ export default function EditUserPage() {
 
   const addNewCard = async (type: string, extraData: Record<string, any> = {}) => {
     if (!user) return;
-    
-    const cols = isMobile ? 2 : 4;
-    let w = type === 'title' ? cols : 1;
-    let h = type === 'title' ? 0.5 : 1;
-    if (type === 'substack') {
-        w = isMobile ? 2 : 2;
-        h = 1;
-    }
 
-    const newCardData: Omit<CardData, 'id' | 'created_at'> = {
+    let newCardData: Omit<CardData, 'id' | 'created_at'> | null = null;
+    const baseCard = {
         user_id: user.id,
         type: type,
-        title: type === 'title' ? 'Novo Título' : (type === 'link' ? 'Novo Link' : ''),
+        title: '',
         content: '',
         link: '',
         background_image: '',
-        background_color: type === 'note' ? '#FFFFFF' : (type === 'substack' ? '#FFF5E6' : ''),
+        background_color: '',
         ...extraData,
     };
+
+    switch (type) {
+        case 'title':
+            newCardData = { ...baseCard, title: 'Novo Título' };
+            break;
+        case 'link':
+            newCardData = { ...baseCard, title: 'Novo Link' };
+            break;
+        case 'note':
+            newCardData = { ...baseCard, background_color: '#FFFFFF' };
+            break;
+        case 'substack':
+             newCardData = { ...baseCard, title: 'Perfil Substack', background_color: '#FFF5E6' };
+            break;
+        case 'map':
+            newCardData = { ...baseCard, title: 'Mapa' };
+            break;
+        case 'image':
+            newCardData = { ...baseCard, title: 'Nova Imagem', ...extraData };
+            break;
+        default:
+             toast({ title: 'Erro', description: 'Tipo de card desconhecido.', variant: 'destructive'});
+            return;
+    }
 
     const { data: newCard, error } = await supabase.from('cards').insert(newCardData).select().single();
 
@@ -371,6 +388,14 @@ export default function EditUserPage() {
         return;
     }
     
+    const cols = isMobile ? 2 : 4;
+    let w = type === 'title' ? cols : 1;
+    let h = type === 'title' ? 0.5 : 1;
+     if (type === 'substack') {
+        w = isMobile ? 2 : 2;
+        h = 1;
+    }
+
     const newLayoutItem: Layout = { 
       i: newCard.id, 
       x: 0, 
@@ -681,5 +706,3 @@ export default function EditUserPage() {
       </div>
   )
 }
-
-    
