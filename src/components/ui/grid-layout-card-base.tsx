@@ -6,14 +6,16 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase/client';
-import { Loader2, UploadCloud, Link as LinkIcon } from 'lucide-react';
+import { Loader2, UploadCloud, Link as LinkIcon, Subtitles } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { CardData } from '@/lib/types';
 import { SubstackIcon } from './substack-icon';
 import { YoutubeIcon } from './youtube-icon';
 import { TiktokIcon } from './tiktok-icon';
-
+import { FacebookIcon } from './facebook-icon';
+import { InstagramIcon } from './instagram-icon';
+import { DiscordIcon } from './discord-icon';
 
 interface GridLayoutCardBaseProps {
     card: CardData;
@@ -24,26 +26,36 @@ interface GridLayoutCardBaseProps {
 }
 
 const getDomainIcon = (link: string | null) => {
-    if (!link) return <LinkIcon className="h-6 w-6" />;
+    if (!link) return <LinkIcon className="h-8 w-8" />;
     
     try {
         const url = new URL(link);
         const domain = url.hostname.replace('www.', '');
 
         if (domain.includes('youtube.com') || domain.includes('youtu.be')) {
-            return <YoutubeIcon className="h-6 w-6" />;
+            return <YoutubeIcon className="h-8 w-8" />;
         }
         if (domain.includes('tiktok.com')) {
-            return <TiktokIcon className="h-6 w-6" />;
+            return <TiktokIcon className="h-8 w-8" />;
         }
         if (domain.includes('substack.com')) {
-            return <SubstackIcon className="h-6 w-6" />;
+            return <SubstackIcon className="h-8 w-8" />;
+        }
+        if (domain.includes('instagram.com')) {
+            return <InstagramIcon className="h-8 w-8" />;
+        }
+        if (domain.includes('discord')) {
+            return <DiscordIcon className="h-8 w-8" />;
+        }
+        if (domain.includes('facebook.com')) {
+            return <FacebookIcon className="h-8 w-8" />;
         }
 
-        return <LinkIcon className="h-6 w-6" />;
+
+        return <LinkIcon className="h-8 w-8" />;
 
     } catch (error) {
-        return <LinkIcon className="h-6 w-6" />;
+        return <LinkIcon className="h-8 w-8" />;
     }
 }
 
@@ -142,35 +154,23 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
                         )}
                     </div>
                 );
-            case 'link':
+            case 'link': {
                 const Icon = getDomainIcon(currentData.link);
+                const linkColorClass = currentData.text_color ? 'opacity-70' : 'text-muted-foreground';
                 return (
-                    <div className={cn("flex items-center p-4 gap-4 w-full h-full", isDisabled && "pointer-events-none")}>
-                        <div className="flex-shrink-0 text-muted-foreground">
+                    <div className={cn("flex flex-col items-center justify-center text-center p-4 gap-2 w-full h-full", isDisabled && "pointer-events-none")}>
+                         <div className="flex-shrink-0">
                             {Icon}
                         </div>
-                        <div className="flex-grow overflow-hidden">
-                            <Input
-                                name="title"
-                                placeholder="Título do link"
-                                value={currentData.title || ''}
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                className="font-semibold border-none focus:ring-0 shadow-none p-0 h-auto w-full truncate"
-                                disabled={isDisabled}
-                            />
-                            <Input
-                                name="link"
-                                placeholder="https://exemplo.com"
-                                value={currentData.link || ''}
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                className="border-none focus:ring-0 shadow-none p-0 h-auto text-muted-foreground w-full truncate"
-                                disabled={isDisabled}
-                            />
+                        <div className="flex-grow flex flex-col items-center justify-center overflow-hidden w-full">
+                           <h3 className="font-semibold text-lg break-words w-full">
+                                {currentData.title || currentData.link}
+                            </h3>
+                            {currentData.link && <p className={cn("text-sm break-all w-full", linkColorClass)}>{currentData.link.replace(/^(https?:\/\/)?(www\.)?/, '')}</p>}
                         </div>
                     </div>
                 );
+            }
             case 'title':
                  return (
                     <h2 className={cn("w-full h-full flex items-center p-2 text-4xl font-bold pointer-events-none", isDisabled && "pointer-events-none")}>
@@ -207,15 +207,18 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
     const isTitleCard = card.type === 'title';
     const isNoteCard = card.type === 'note';
 
+    const cardStyle = {
+        backgroundColor: currentData.background_color ?? undefined,
+        color: currentData.text_color ?? undefined
+    };
+
     return (
         <Card 
             className={cn(
                 'w-full h-full flex flex-col overflow-hidden rounded-3xl md:rounded-lg',
-                isTitleCard ? 'bg-transparent border-none shadow-none' : 'bg-card',
+                isTitleCard ? 'bg-transparent border-none shadow-none' : (card.type !== 'link' && 'bg-card')
             )}
-            style={{ 
-                backgroundColor: isNoteCard ? currentData.background_color ?? undefined : undefined 
-            }}
+            style={cardStyle}
         >
              <div className={cn(
                 "w-full h-full p-0", 

@@ -28,7 +28,35 @@ import AnalyticsCard from '@/components/ui/analytics-card'
 import { AnalyticsToggle } from '@/components/ui/analytics-toggle'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { CardColorControls } from '@/components/ui/card-color-controls'
-import { scrapeUrlMetadata } from "@/ai/flows/substack-scraper-flow"
+import { scrapeUrlMetadata } from "@/ai/flows/url-metadata-scraper-flow"
+
+const getSocialConfig = (url: string) => {
+    try {
+        const hostname = new URL(url).hostname;
+        if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
+            return { color: '#FF0000', textColor: '#FFFFFF' };
+        }
+        if (hostname.includes('tiktok.com')) {
+            return { color: '#000000', textColor: '#FFFFFF' };
+        }
+        if (hostname.includes('substack.com')) {
+            return { color: '#FF6719', textColor: '#FFFFFF' };
+        }
+        if (hostname.includes('instagram.com')) {
+            return { color: '#E4405F', textColor: '#FFFFFF' };
+        }
+        if (hostname.includes('discord')) {
+            return { color: '#5865F2', textColor: '#FFFFFF' };
+        }
+        if (hostname.includes('facebook.com')) {
+            return { color: '#1877F2', textColor: '#FFFFFF' };
+        }
+    } catch (e) {
+        // Invalid URL
+    }
+    return null;
+};
+
 
 export default function EditUserPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -80,6 +108,7 @@ export default function EditUserPage() {
           link: c.link,
           background_image: c.background_image,
           background_color: c.background_color,
+          text_color: c.text_color,
       }));
       
       const { error: cardsError } = await supabase.from('cards').upsert(cardsToUpsert);
@@ -310,13 +339,22 @@ export default function EditUserPage() {
     let finalUpdates = { ...updates };
 
     const isLinkCardUpdate = originalCard.type === 'link' && updates.link && updates.link !== originalCard.link;
-
+    
     if (isLinkCardUpdate) {
         toast({ title: 'Importando dados...', description: 'Estamos buscando as informações do seu link.' });
         try {
-            const result = await scrapeUrlMetadata({ url: updates.link });
+            const result = await scrapeUrlMetadata({ url: updates.link as string });
             finalUpdates.title = result.title;
-            finalUpdates.background_image = result.imageUrl;
+            
+            const socialConfig = getSocialConfig(updates.link as string);
+            if (socialConfig) {
+                finalUpdates.background_color = socialConfig.color;
+                finalUpdates.text_color = socialConfig.textColor;
+            } else {
+                 finalUpdates.background_color = null; // Reset to default
+                 finalUpdates.text_color = null;
+            }
+
             toast({ title: 'Sucesso!', description: 'Título do link atualizado.' });
         } catch (error) {
             console.error('Scraping error:', error);
@@ -372,7 +410,8 @@ export default function EditUserPage() {
         content: '',
         link: '',
         background_image: '',
-        background_color: '',
+        background_color: null,
+        text_color: null,
         ...extraData
     };
 
@@ -384,7 +423,7 @@ export default function EditUserPage() {
             newCardData = { ...baseData, type, title: 'Novo Link' };
             break;
         case 'note':
-            newCardData = { ...baseData, type, background_color: '#FFFFFF' };
+            newCardData = { ...baseData, type, background_color: '#FFFFFF', text_color: '#000000' };
             break;
         case 'map':
             newCardData = { ...baseData, type, title: 'Mapa' };
@@ -696,7 +735,9 @@ export default function EditUserPage() {
                   <div className="bg-neutral-900 text-white rounded-2xl shadow-lg border border-neutral-700 flex justify-between items-center p-2 gap-2">
                       <CardResizeControls onResize={(w,h) => handleResizeCard(selectedEditingCard.id, w, h)} />
                       <div className="flex-1 flex items-center justify-center gap-2">
-                        <CardColorControls onColorChange={(color) => handleUpdateCard(selectedEditingCard.id, { background_color: color })} />
+                        <CardColorControls 
+                            onColorChange={(color, textColor) => handleUpdateCard(selectedEditingCard.id, { background_color: color, text_color: textColor })} 
+                        />
                       </div>
                       <Button
                           onClick={() => setSelectedCardId(null)}

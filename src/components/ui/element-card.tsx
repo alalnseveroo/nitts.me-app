@@ -2,13 +2,16 @@
 'use client'
 
 import { supabase } from '@/lib/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link as LinkIconLucide, ArrowUpRight } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Link as LinkIconLucide, ArrowUpRight, Subtitles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CardData } from '@/lib/types';
 import { SubstackIcon } from './substack-icon';
 import { YoutubeIcon } from './youtube-icon';
 import { TiktokIcon } from './tiktok-icon';
+import { FacebookIcon } from './facebook-icon';
+import { InstagramIcon } from './instagram-icon';
+import { DiscordIcon } from './discord-icon';
 
 interface ElementCardProps {
     data: CardData;
@@ -16,26 +19,36 @@ interface ElementCardProps {
 }
 
 const getDomainIcon = (link: string | null) => {
-    if (!link) return <LinkIconLucide className="h-6 w-6" />;
+    if (!link) return <LinkIconLucide className="h-8 w-8" />;
     
     try {
         const url = new URL(link);
         const domain = url.hostname.replace('www.', '');
 
         if (domain.includes('youtube.com') || domain.includes('youtu.be')) {
-            return <YoutubeIcon className="h-6 w-6" />;
+            return <YoutubeIcon className="h-8 w-8" />;
         }
         if (domain.includes('tiktok.com')) {
-            return <TiktokIcon className="h-6 w-6" />;
+            return <TiktokIcon className="h-8 w-8" />;
         }
         if (domain.includes('substack.com')) {
-            return <SubstackIcon className="h-6 w-6" />;
+            return <SubstackIcon className="h-8 w-8" />;
+        }
+        if (domain.includes('instagram.com')) {
+            return <InstagramIcon className="h-8 w-8" />;
+        }
+        if (domain.includes('discord')) {
+            return <DiscordIcon className="h-8 w-8" />;
+        }
+        if (domain.includes('facebook.com')) {
+            return <FacebookIcon className="h-8 w-8" />;
         }
 
-        return <LinkIconLucide className="h-6 w-6" />;
+
+        return <LinkIconLucide className="h-8 w-8" />;
 
     } catch (error) {
-        return <LinkIconLucide className="h-6 w-6" />;
+        return <LinkIconLucide className="h-8 w-8" />;
     }
 }
 
@@ -100,21 +113,37 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
     };
     
     switch (data.type) {
-        case 'link':
+        case 'link': {
             const Icon = getDomainIcon(data.link);
+            const cardStyle = {
+                backgroundColor: data.background_color ?? undefined,
+                color: data.text_color ?? undefined,
+            };
+            const linkColorClass = data.text_color ? 'opacity-70' : 'text-muted-foreground';
+
             return (
-                <Card asChild className="w-full h-full bg-card hover:bg-secondary/50 transition-colors">
-                    <a href={data.link || '#'} onClick={handleLinkClick} target="_blank" rel="noopener noreferrer" className="flex items-center p-4 gap-4">
+                <Card 
+                    asChild 
+                    className={cn(
+                        "w-full h-full transition-colors",
+                        !data.background_color && "bg-card hover:bg-secondary/50"
+                    )}
+                    style={cardStyle}
+                >
+                    <a href={data.link || '#'} onClick={handleLinkClick} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center text-center p-4 gap-2">
                         <div className="flex-shrink-0">
                             {Icon}
                         </div>
-                        <div className="flex-grow overflow-hidden">
-                            <CardTitle className="text-base font-semibold truncate">{data.title || data.link}</CardTitle>
-                            {data.link && <CardDescription className="text-sm truncate text-muted-foreground">{data.link}</CardDescription>}
+                        <div className="flex-grow flex flex-col items-center justify-center overflow-hidden">
+                            <h3 className="font-semibold text-lg break-words w-full">
+                                {data.title || data.link}
+                            </h3>
+                            {data.link && <p className={cn("text-sm break-all w-full", linkColorClass)}>{data.link.replace(/^(https?:\/\/)?(www\.)?/, '')}</p>}
                         </div>
                     </a>
                 </Card>
             );
+        }
         case 'title':
             return (
                 <CardWrapper data={data} source={source}>
@@ -128,9 +157,12 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
                  <CardWrapper data={data} source={source}>
                     <Card
                         className="w-full h-full p-4 flex items-center justify-center text-center"
-                        style={{ backgroundColor: data.background_color ?? '#FFFFFF' }}
+                        style={{ 
+                            backgroundColor: data.background_color ?? '#FFFFFF',
+                            color: data.text_color ?? '#000000'
+                        }}
                     >
-                        <p className="text-xl font-medium text-foreground whitespace-pre-wrap">{data.content}</p>
+                        <p className="text-xl font-medium whitespace-pre-wrap">{data.content}</p>
                     </Card>
                  </CardWrapper>
             );

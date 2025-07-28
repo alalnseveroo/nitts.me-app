@@ -1,6 +1,4 @@
-
 'use server';
-
 /**
  * @fileOverview Um agente para fazer web scraping de metadados de qualquer URL.
  *
@@ -24,6 +22,7 @@ export type ScrapeInput = z.infer<typeof ScrapeInputSchema>;
 const ScrapeOutputSchema = z.object({
   title: z.string().describe('O título da página (de og:title ou <title>).'),
   imageUrl: z.string().optional().describe('A URL da imagem principal (de og:image).'),
+  faviconUrl: z.string().optional().describe('A URL do favicon da página.'),
 });
 export type ScrapeOutput = z.infer<typeof ScrapeOutputSchema>;
 
@@ -50,7 +49,6 @@ const metadataScraperFlow = ai.defineFlow(
         }
     });
     const html = response.data;
-
     const $ = cheerio.load(html);
 
     // Tenta pegar og:title, senão o <title> normal
@@ -58,6 +56,13 @@ const metadataScraperFlow = ai.defineFlow(
     
     // Pega a imagem principal de og:image
     const imageUrl = $('meta[property="og:image"]').attr('content');
+    
+    // Pega o favicon
+    let faviconUrl = $('link[rel="icon"]').attr('href') || $('link[rel="shortcut icon"]').attr('href');
+    
+    if (faviconUrl && !faviconUrl.startsWith('http')) {
+      faviconUrl = new URL(faviconUrl, input.url).href;
+    }
 
     if (!title) {
         throw new Error('Não foi possível extrair o título do HTML.');
@@ -66,6 +71,7 @@ const metadataScraperFlow = ai.defineFlow(
     const output: ScrapeOutput = {
       title,
       imageUrl,
+      faviconUrl
     };
 
     return output;

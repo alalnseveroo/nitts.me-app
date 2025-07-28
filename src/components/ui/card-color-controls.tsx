@@ -10,15 +10,15 @@ import {
 } from "@/components/ui/popover"
 
 interface CardColorControlsProps {
-    onColorChange: (color: string) => void;
+    onColorChange: (color: string, textColor: string) => void;
 }
 
 const colors = [
-    { name: 'Branco', value: '#FFFFFF' },
-    { name: 'Amarelo', value: '#FFFACD' },
-    { name: 'Azul', value: '#E0F2FE' },
-    { name: 'Verde', value: '#DFF2E3' },
-    { name: 'Rosa', value: '#FFE4E1' },
+    { name: 'Branco', value: '#FFFFFF', textColor: '#000000'},
+    { name: 'Amarelo', value: '#FFFACD', textColor: '#000000'},
+    { name: 'Azul', value: '#E0F2FE', textColor: '#000000'},
+    { name: 'Verde', value: '#DFF2E3', textColor: '#000000'},
+    { name: 'Rosa', value: '#FFE4E1', textColor: '#000000'},
 ]
 
 export const CardColorControls = ({ onColorChange }: CardColorControlsProps) => {
@@ -38,7 +38,7 @@ export const CardColorControls = ({ onColorChange }: CardColorControlsProps) => 
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 rounded-full p-0 border border-black/20 hover:bg-transparent"
-                            onClick={() => onColorChange(color.value)}
+                            onClick={() => onColorChange(color.value, color.textColor)}
                         >
                             <div
                                 className="h-6 w-6 rounded-full"
