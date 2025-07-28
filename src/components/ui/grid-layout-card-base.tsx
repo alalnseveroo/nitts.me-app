@@ -182,7 +182,7 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
             }
             case 'title':
                  return (
-                    <h3 className={cn("w-full h-full flex items-center p-2 text-4xl font-bold pointer-events-none", isDisabled && "pointer-events-none")}>
+                    <h3 className={cn("w-full h-full flex items-center justify-start p-2 text-2xl font-bold pointer-events-none", isDisabled && "pointer-events-none")}>
                         {currentData.title}
                     </h3>
                 );

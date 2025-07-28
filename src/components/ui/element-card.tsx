@@ -154,7 +154,7 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
             return (
                 <CardWrapper data={data} source={source}>
                     <div className="w-full h-full flex items-center justify-start p-2">
-                        <h3 className="text-4xl font-bold">{data.title}</h3>
+                        <h3 className="text-2xl font-bold">{data.title}</h3>
                     </div>
                 </CardWrapper>
             );
