@@ -3,16 +3,40 @@
 
 import { supabase } from '@/lib/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LinkIcon, ArrowUpRight } from 'lucide-react';
+import { Link as LinkIconLucide, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CardData } from '@/lib/types';
-import { useEffect, useState } from 'react';
-import { Avatar, AvatarImage, AvatarFallback } from './avatar';
 import { SubstackIcon } from './substack-icon';
+import { YoutubeIcon } from './youtube-icon';
+import { TiktokIcon } from './tiktok-icon';
 
 interface ElementCardProps {
     data: CardData;
     source?: string;
+}
+
+const getDomainIcon = (link: string | null) => {
+    if (!link) return <LinkIconLucide className="h-6 w-6" />;
+    
+    try {
+        const url = new URL(link);
+        const domain = url.hostname.replace('www.', '');
+
+        if (domain.includes('youtube.com') || domain.includes('youtu.be')) {
+            return <YoutubeIcon className="h-6 w-6" />;
+        }
+        if (domain.includes('tiktok.com')) {
+            return <TiktokIcon className="h-6 w-6" />;
+        }
+        if (domain.includes('substack.com')) {
+            return <SubstackIcon className="h-6 w-6" />;
+        }
+
+        return <LinkIconLucide className="h-6 w-6" />;
+
+    } catch (error) {
+        return <LinkIconLucide className="h-6 w-6" />;
+    }
 }
 
 const CardWrapper = ({ data, children, source }: { data: CardData, children: React.ReactNode, source?: string }) => {
@@ -56,7 +80,6 @@ const CardWrapper = ({ data, children, source }: { data: CardData, children: Rea
     return <>{content}</>;
 }
 
-
 export const ElementCard = ({ data, source }: ElementCardProps) => {
     const handleLinkClick = async (e: React.MouseEvent) => {
         if (!data.link) return;
@@ -76,44 +99,19 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
         }
     };
     
-    // Check if it's a Substack-enhanced link card
-    const isSubstackEnhanced = data.type === 'link' && data.link?.includes('substack.com') && data.background_image;
-
-    if (isSubstackEnhanced) {
-        return (
-            <CardWrapper data={data} source={source}>
-                <Card
-                    className="w-full h-full p-4 flex flex-col justify-between"
-                    style={{ 
-                        backgroundColor: data.background_color ?? '#FF6719', 
-                        color: '#FFFFFF'
-                    }}
-                >
-                    <div className="flex items-start justify-between">
-                         <div className="flex items-center gap-3">
-                            <Avatar className="w-12 h-12 border-2 border-white/20">
-                                <AvatarImage src={data.background_image || ''} alt={data.title || 'substack'} />
-                                <AvatarFallback>{data.title?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                             <h3 className="font-bold text-lg">{data.title}</h3>
-                        </div>
-                        <SubstackIcon className="h-6 w-6" />
-                    </div>
-                </Card>
-            </CardWrapper>
-        );
-    }
-    
     switch (data.type) {
         case 'link':
+            const Icon = getDomainIcon(data.link);
             return (
                 <Card asChild className="w-full h-full bg-card hover:bg-secondary/50 transition-colors">
-                    <a href={data.link || '#'} onClick={handleLinkClick} target="_blank" rel="noopener noreferrer" className="flex flex-col justify-between p-4">
-                        <div>
-                            <CardTitle className="text-base font-semibold">{data.title}</CardTitle>
-                            {data.link && <CardDescription className="text-sm truncate">{data.link}</CardDescription>}
+                    <a href={data.link || '#'} onClick={handleLinkClick} target="_blank" rel="noopener noreferrer" className="flex items-center p-4 gap-4">
+                        <div className="flex-shrink-0">
+                            {Icon}
                         </div>
-                        <LinkIcon className="h-4 w-4 text-muted-foreground self-end"/>
+                        <div className="flex-grow overflow-hidden">
+                            <CardTitle className="text-base font-semibold truncate">{data.title || data.link}</CardTitle>
+                            {data.link && <CardDescription className="text-sm truncate text-muted-foreground">{data.link}</CardDescription>}
+                        </div>
                     </a>
                 </Card>
             );

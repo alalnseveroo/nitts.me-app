@@ -28,7 +28,7 @@ import AnalyticsCard from '@/components/ui/analytics-card'
 import { AnalyticsToggle } from '@/components/ui/analytics-toggle'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { CardColorControls } from '@/components/ui/card-color-controls'
-import { scrapeSubstack } from "@/ai/flows/substack-scraper-flow"
+import { scrapeUrlMetadata } from "@/ai/flows/substack-scraper-flow"
 
 export default function EditUserPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -309,16 +309,15 @@ export default function EditUserPage() {
 
     let finalUpdates = { ...updates };
 
-    const isSubstackLink = originalCard.type === 'link' && updates.link && updates.link.includes('substack.com') && updates.link !== originalCard.link;
+    const isLinkCardUpdate = originalCard.type === 'link' && updates.link && updates.link !== originalCard.link;
 
-    if (isSubstackLink) {
-        toast({ title: 'Importando dados...', description: 'Estamos buscando as informações do seu perfil Substack.' });
+    if (isLinkCardUpdate) {
+        toast({ title: 'Importando dados...', description: 'Estamos buscando as informações do seu link.' });
         try {
-            const result = await scrapeSubstack({ url: updates.link });
-            finalUpdates.title = result.profileName;
-            finalUpdates.background_image = result.profileImage;
-            finalUpdates.background_color = '#FF6719'; // Substack Orange
-            toast({ title: 'Sucesso!', description: 'Dados do Substack importados.' });
+            const result = await scrapeUrlMetadata({ url: updates.link });
+            finalUpdates.title = result.title;
+            finalUpdates.background_image = result.imageUrl;
+            toast({ title: 'Sucesso!', description: 'Título do link atualizado.' });
         } catch (error) {
             console.error('Scraping error:', error);
             toast({ title: 'Erro de importação', description: 'Não foi possível buscar os dados. O link foi salvo.', variant: 'destructive' });

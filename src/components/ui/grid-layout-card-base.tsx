@@ -6,12 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase/client';
-import { Loader2, UploadCloud } from 'lucide-react';
+import { Loader2, UploadCloud, Link as LinkIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { CardData } from '@/lib/types';
-import { Avatar, AvatarImage, AvatarFallback } from './avatar';
 import { SubstackIcon } from './substack-icon';
+import { YoutubeIcon } from './youtube-icon';
+import { TiktokIcon } from './tiktok-icon';
+
 
 interface GridLayoutCardBaseProps {
     card: CardData;
@@ -19,6 +21,30 @@ interface GridLayoutCardBaseProps {
     isDisabled?: boolean;
     isEditing?: boolean;
     isMobile: boolean;
+}
+
+const getDomainIcon = (link: string | null) => {
+    if (!link) return <LinkIcon className="h-6 w-6" />;
+    
+    try {
+        const url = new URL(link);
+        const domain = url.hostname.replace('www.', '');
+
+        if (domain.includes('youtube.com') || domain.includes('youtu.be')) {
+            return <YoutubeIcon className="h-6 w-6" />;
+        }
+        if (domain.includes('tiktok.com')) {
+            return <TiktokIcon className="h-6 w-6" />;
+        }
+        if (domain.includes('substack.com')) {
+            return <SubstackIcon className="h-6 w-6" />;
+        }
+
+        return <LinkIcon className="h-6 w-6" />;
+
+    } catch (error) {
+        return <LinkIcon className="h-6 w-6" />;
+    }
 }
 
 export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditing = false, isMobile }: GridLayoutCardBaseProps) => {
@@ -77,28 +103,6 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
     };
     
     const renderContent = () => {
-        const isSubstackEnhanced = card.type === 'link' && card.link?.includes('substack.com') && card.background_image;
-
-        if (isSubstackEnhanced) {
-             return (
-                <div 
-                    className="w-full h-full p-4 flex flex-col justify-between pointer-events-none"
-                    style={{ color: '#FFFFFF' }}
-                >
-                    <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                            <Avatar className="w-12 h-12 border-2 border-white/20">
-                                <AvatarImage src={currentData.background_image || ''} alt={currentData.title || 'substack'} />
-                                <AvatarFallback>{currentData.title?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                             <h3 className="font-bold text-lg">{currentData.title}</h3>
-                        </div>
-                        <SubstackIcon className="h-6 w-6" />
-                    </div>
-                </div>
-            );
-        }
-
         switch (card.type) {
             case 'image':
                 return (
@@ -139,26 +143,32 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
                     </div>
                 );
             case 'link':
+                const Icon = getDomainIcon(currentData.link);
                 return (
-                    <div className={cn("space-y-2 p-4 w-full", isDisabled && "pointer-events-none")}>
-                        <Input
-                            name="title"
-                            placeholder="Título"
-                            value={currentData.title || ''}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            className="font-semibold border-none focus:ring-0 shadow-none p-0 h-auto"
-                            disabled={isDisabled}
-                        />
-                        <Input
-                            name="link"
-                            placeholder="https://exemplo.com"
-                            value={currentData.link || ''}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                             className="border-none focus:ring-0 shadow-none p-0 h-auto text-muted-foreground"
-                             disabled={isDisabled}
-                        />
+                    <div className={cn("flex items-center p-4 gap-4 w-full h-full", isDisabled && "pointer-events-none")}>
+                        <div className="flex-shrink-0 text-muted-foreground">
+                            {Icon}
+                        </div>
+                        <div className="flex-grow overflow-hidden">
+                            <Input
+                                name="title"
+                                placeholder="Título do link"
+                                value={currentData.title || ''}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                className="font-semibold border-none focus:ring-0 shadow-none p-0 h-auto w-full truncate"
+                                disabled={isDisabled}
+                            />
+                            <Input
+                                name="link"
+                                placeholder="https://exemplo.com"
+                                value={currentData.link || ''}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                className="border-none focus:ring-0 shadow-none p-0 h-auto text-muted-foreground w-full truncate"
+                                disabled={isDisabled}
+                            />
+                        </div>
                     </div>
                 );
             case 'title':
@@ -196,8 +206,6 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
     
     const isTitleCard = card.type === 'title';
     const isNoteCard = card.type === 'note';
-    const isSubstackEnhanced = card.type === 'link' && card.link?.includes('substack.com') && card.background_image;
-
 
     return (
         <Card 
@@ -206,7 +214,7 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
                 isTitleCard ? 'bg-transparent border-none shadow-none' : 'bg-card',
             )}
             style={{ 
-                backgroundColor: isNoteCard ? currentData.background_color ?? undefined : isSubstackEnhanced ? currentData.background_color ?? '#FF6719' : undefined 
+                backgroundColor: isNoteCard ? currentData.background_color ?? undefined : undefined 
             }}
         >
              <div className={cn(

@@ -44,8 +44,16 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
   };
 
   const handleSaveChanges = () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    
     onUpdate(card.id, formData);
-    onOpenChange(false);
+
+    // Give some time for the potential scraping to show a toast
+    setTimeout(() => {
+      onOpenChange(false);
+      setIsSaving(false);
+    }, 1000);
   };
   
   const renderFormContent = () => {
@@ -69,15 +77,6 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="title">Título</Label>
-              <Input
-                id="title"
-                name="title"
-                value={formData.title || ''}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
               <Label htmlFor="link">URL do Link</Label>
                <Input
                   id="link"
@@ -86,11 +85,16 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
                   onChange={handleChange}
                   placeholder="https://exemplo.com"
                 />
-                {(formData.link?.includes('substack.com')) && (
-                    <p className="text-sm text-muted-foreground mt-2">
-                        Detectamos um link do Substack! Salve para importar os dados automaticamente.
-                    </p>
-                )}
+            </div>
+            <div>
+              <Label htmlFor="title">Título (Opcional)</Label>
+              <Input
+                id="title"
+                name="title"
+                value={formData.title || ''}
+                onChange={handleChange}
+                placeholder="O título será preenchido automaticamente"
+              />
             </div>
           </div>
         );
@@ -163,5 +167,3 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
 };
 
 export const EditCardSheet = memo(EditCardSheetComponent);
-
-    
