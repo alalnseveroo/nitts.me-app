@@ -32,8 +32,10 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
         content: card.content,
         background_image: card.background_image,
       });
+    } else {
+      setFormData({});
     }
-  }, [card, isOpen]); 
+  }, [card]); 
 
   if (!card) return null;
 
@@ -68,7 +70,8 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
             background_image: result.profileImage,
         };
         setFormData(prev => ({ ...prev, ...updates }));
-        onUpdate(card.id, updates); // Update immediately
+        // Also update the card in the main state immediately
+        onUpdate(card.id, updates);
         toast({ title: 'Sucesso!', description: 'Dados do Substack importados.' });
     } catch (error) {
         console.error('Scraping error:', error);
@@ -117,9 +120,10 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
                   name="link"
                   value={formData.link || ''}
                   onChange={handleChange}
+                  placeholder="https://exemplo.com"
                 />
                 {isSubstackLink && (
-                    <Button onClick={handleScrape} disabled={isScraping}>
+                    <Button onClick={handleScrape} disabled={isScraping} variant="outline">
                         {isScraping ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Importar'}
                     </Button>
                 )}
