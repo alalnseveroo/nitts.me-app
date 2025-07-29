@@ -749,8 +749,8 @@ export default function EditUserPage() {
           )}
 
           {isMobile && isNoteCardSelected && (
-              <div data-card-edit-controls className="fixed bottom-4 left-1/2 -translate-x/2 w-[calc(100%-2rem)] max-w-sm z-50">
-                  <div className="bg-neutral-900 text-white rounded-2xl shadow-lg border border-neutral-700 flex justify-between items-center p-2 gap-2">
+              <div data-card-edit-controls className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm z-50">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border flex justify-between items-center p-2 gap-2">
                       <CardResizeControls onResize={(w,h) => handleResizeCard(selectedEditingCard.id, w, h)} />
                       <div className="flex-1 flex items-center justify-center gap-2">
                         <CardColorControls 
@@ -777,6 +777,8 @@ export default function EditUserPage() {
       </div>
   )
 }
+
+    
 
     
 
