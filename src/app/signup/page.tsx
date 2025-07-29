@@ -32,7 +32,7 @@ export default function SignUpPage() {
           .eq('id', session.user.id)
           .single();
         if (profile?.username) {
-          router.push(`/${profile.username}/edit`);
+          window.location.href = `/${profile.username}/edit`;
           return;
         }
       }
@@ -47,14 +47,13 @@ export default function SignUpPage() {
     setLoading(true)
     const trimmedUsername = username.trim().toLowerCase();
     
-    // Check if username is already taken
     const { data: existingProfile, error: existingProfileError } = await supabase
         .from('profiles')
         .select('username')
         .eq('username', trimmedUsername)
         .single();
 
-    if (existingProfileError && existingProfileError.code !== 'PGRST116') { // PGRST116: "No rows found"
+    if (existingProfileError && existingProfileError.code !== 'PGRST116') {
         setError('Erro ao verificar o nome de usuário. Tente novamente.');
         setLoading(false);
         return;
@@ -87,8 +86,6 @@ export default function SignUpPage() {
       setLoading(false);
       return;
     }
-    
-    // The profile will be created by a trigger in Supabase.
     
     toast({
       title: 'Conta criada com sucesso!',
