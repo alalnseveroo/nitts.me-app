@@ -48,11 +48,17 @@ export default function SignUpPage() {
     const trimmedUsername = username.trim().toLowerCase();
     
     // Check if username is already taken
-    const { data: existingProfile } = await supabase
+    const { data: existingProfile, error: existingProfileError } = await supabase
         .from('profiles')
         .select('username')
         .eq('username', trimmedUsername)
         .single();
+
+    if (existingProfileError && existingProfileError.code !== 'PGRST116') { // PGRST116: "No rows found"
+        setError('Erro ao verificar o nome de usuário. Tente novamente.');
+        setLoading(false);
+        return;
+    }
 
     if (existingProfile) {
         setError('Este nome de usuário já está em uso. Por favor, escolha outro.');
@@ -82,9 +88,10 @@ export default function SignUpPage() {
       .insert({ id: signUpData.user.id, username: trimmedUsername });
 
     if (profileError) {
-      setError('Não foi possível criar seu perfil. Tente novamente.');
+      setError(`Não foi possível criar seu perfil: ${profileError.message}. Tente novamente.`);
       // Optional: clean up the created user in auth if profile creation fails
-      // await supabase.auth.deleteUser(signUpData.user.id);
+      // This is complex because you might need admin rights.
+      // For now, we'll just show the error.
       setLoading(false);
       return;
     }
