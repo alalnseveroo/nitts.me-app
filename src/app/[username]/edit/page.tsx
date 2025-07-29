@@ -417,7 +417,7 @@ export default function EditUserPage() {
   const addNewCard = async (type: string, extraData: Partial<CardData> = {}) => {
     if (!user) return;
 
-    let newCardData: Omit<CardData, 'id' | 'created_at'>;
+    let newCardData: Omit<CardData, 'id' | 'created_at' | 'user_id'> & { user_id: string };
 
     const baseData = {
         user_id: user.id,
@@ -426,19 +426,19 @@ export default function EditUserPage() {
 
     switch (type) {
         case 'title':
-            newCardData = { ...baseData, title: 'Novo Título' };
+            newCardData = { ...baseData, title: 'Novo Título', content: null, link: null, background_image: null, background_color: null, text_color: null, price: null, original_file_path: null, processed_file_path: null, obscuration_settings: null };
             break;
         case 'link':
-            newCardData = { ...baseData, title: 'Novo Link' };
+            newCardData = { ...baseData, title: 'Novo Link', content: null, link: null, background_image: null, background_color: null, text_color: null, price: null, original_file_path: null, processed_file_path: null, obscuration_settings: null };
             break;
         case 'note':
-            newCardData = { ...baseData, content: 'Sua nota aqui', background_color: '#FFFFFF', text_color: '#000000' };
+            newCardData = { ...baseData, content: 'Sua nota aqui', background_color: '#FFFFFF', text_color: '#000000', title: null, link: null, background_image: null, price: null, original_file_path: null, processed_file_path: null, obscuration_settings: null };
             break;
         case 'map':
-            newCardData = { ...baseData, title: 'Mapa' };
+            newCardData = { ...baseData, title: 'Mapa', content: null, link: null, background_image: null, background_color: null, text_color: null, price: null, original_file_path: null, processed_file_path: null, obscuration_settings: null };
             break;
         case 'image':
-             newCardData = { ...baseData, title: '', ...extraData };
+             newCardData = { ...baseData, title: '', ...extraData, content: null, link: null, background_color: null, text_color: null, price: null, original_file_path: null, processed_file_path: null, obscuration_settings: null };
             break;
         case 'document':
             newCardData = {
@@ -446,7 +446,13 @@ export default function EditUserPage() {
                 title: 'Documento Monetizado',
                 content: 'Descrição do seu documento.',
                 price: 'R$ 0,00',
-                link: ''
+                link: '',
+                background_image: null, 
+                background_color: null, 
+                text_color: null, 
+                original_file_path: null, 
+                processed_file_path: null, 
+                obscuration_settings: null
             };
             break;
         default:
@@ -593,187 +599,185 @@ export default function EditUserPage() {
   }
 
   return (
-      <div className="flex flex-col min-h-screen bg-background">
-          <input
-              type="file"
-              ref={imageInputRef}
-              onChange={handleImageFileSelected}
-              className="hidden"
-              accept="image/*"
-          />
-          
-          <div className="grid grid-cols-12 md:gap-8 flex-1 px-6 md:px-8 py-4">
-              <aside className="col-span-12 md:col-span-3 md:py-8">
-                  <div className="sticky top-8">
-                      <div className="flex items-start justify-between">
-                        <div className="relative mb-4 w-32 h-32">
-                            <Avatar className="w-32 h-32 text-lg">
-                                <AvatarImage src={profile?.avatar_url || ''} alt={profile?.username || 'avatar'} />
-                                <AvatarFallback>{profile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
-                            </Avatar>
-                            <label htmlFor="avatar-upload" className="absolute bottom-1 right-1 bg-primary text-primary-foreground rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-all">
-                                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                            </label>
-                            <input id="avatar-upload" type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={uploading}/>
-                        </div>
-
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground"><Settings/></Button></DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Opções</DropdownMenu</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                             <DropdownMenuItem asChild>
-                                <Link href={`/${pageUsername}`} target="_blank" className="cursor-pointer">
-                                    <Eye className="mr-2 h-4 w-4"/>
-                                    <span>Ver Página Pública</span>
-                                </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem disabled><UserRound className="mr-2 h-4 w-4"/><span>Alterar Usuário</span></DropdownMenuItem>
-                            <DropdownMenuItem disabled><KeyRound className="mr-2 h-4 w-4"/><span>Alterar Senha</span></DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4"/><span>Sair</span></DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+    <div className="flex flex-col min-h-screen bg-background">
+        <input
+            type="file"
+            ref={imageInputRef}
+            onChange={handleImageFileSelected}
+            className="hidden"
+            accept="image/*"
+        />
+        
+        <div className="grid grid-cols-12 md:gap-8 flex-1 px-6 md:px-8 py-4">
+            <aside className="col-span-12 md:col-span-3 md:py-8">
+                <div className="sticky top-8">
+                    <div className="flex items-start justify-between">
+                      <div className="relative mb-4 w-32 h-32">
+                          <Avatar className="w-32 h-32 text-lg">
+                              <AvatarImage src={profile?.avatar_url || ''} alt={profile?.username || 'avatar'} />
+                              <AvatarFallback>{profile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <label htmlFor="avatar-upload" className="absolute bottom-1 right-1 bg-primary text-primary-foreground rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-all">
+                              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                          </label>
+                          <input id="avatar-upload" type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={uploading}/>
                       </div>
 
-                      <Input
-                      className="text-4xl font-bold border-none focus:ring-0 shadow-none p-0 h-auto mb-2 bg-transparent"
-                      value={profile?.name || ''}
-                      onChange={(e) => setProfile(p => p ? { ...p, name: e.target.value } : null)}
-                      placeholder="Seu Nome"
-                      />
-                      <Textarea
-                        ref={textareaRef}
-                        className="text-muted-foreground mt-2 border-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none resize-none p-0 bg-transparent overflow-hidden"
-                        value={profile?.bio || ''}
-                        onChange={(e) => {
-                          setProfile(p => p ? { ...p, bio: e.target.value } : null)
-                          adjustTextareaHeight();
-                        }}
-                        placeholder="Sua biografia..."
-                        rows={1}
-                      />
-                      
-                      <div className="space-y-4 mt-6">
-                         <div className="flex items-center space-x-2">
-                            <AnalyticsToggle 
-                                id="analytics-mode" 
-                                checked={showAnalytics}
-                                onCheckedChange={setShowAnalytics}
-                            />
-                            <Label htmlFor="analytics-mode">Análise de dados</Label>
-                        </div>
-                        <Accordion type="single" collapsible className="w-full">
-                            <AccordionItem value="item-1">
-                                <AccordionTrigger>
-                                <div className="flex items-center gap-2">
-                                    <BarChart2 className="h-4 w-4" />
-                                    Integrações
-                                </div>
-                                </AccordionTrigger>
-                                <AccordionContent className="space-y-4 pt-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="ga_tracking_id">Google Analytics ID</Label>
-                                        <Input
-                                            id="ga_tracking_id"
-                                            placeholder="G-XXXXXXXXXX"
-                                            value={profile?.ga_tracking_id || ''}
-                                            onChange={(e) => setProfile(p => p ? { ...p, ga_tracking_id: e.target.value } : null)}
-                                        />
-                                    </div>
-                                     <div className="space-y-2">
-                                        <Label htmlFor="fb_pixel_id">Facebook Pixel ID</Label>
-                                        <Input
-                                            id="fb_pixel_id"
-                                            placeholder="123456789012345"
-                                            value={profile?.fb_pixel_id || ''}
-                                            onChange={(e) => setProfile(p => p ? { ...p, fb_pixel_id: e.target.value } : null)}
-                                        />
-                                    </div>
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Accordion>
-                      </div>
-                  </div>
-              </aside>
-              
-              <main className="col-span-12 md:col-span-9 mb-24 md:mb-0 mt-6 md:mt-0">
-                  {user && (
-                  <>
-                    {showAnalytics && (
-                        <div className="mb-6">
-                            <AnalyticsCard 
-                                viewCount={viewCount}
-                                period={analyticsPeriod}
-                                onPeriodChange={handlePeriodChange}
-                            />
-                        </div>
-                    )}
-                    <GridLayoutComponent
-                        cards={cards}
-                        layoutConfig={currentLayout}
-                        onLayoutChange={handleLayoutChange}
-                        onUpdateCard={handleUpdateCard}
-                        onDeleteCard={handleDeleteCard}
-                        onEditCard={handleEditCard}
-                        isMobile={isMobile}
-                        selectedCardId={selectedCardId}
-                        onSelectCard={handleSelectCard}
-                        rowHeight={rowHeight}
+                      <DropdownMenu>
+                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground"><Settings/></Button></DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Opções</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                           <DropdownMenuItem asChild>
+                              <Link href={`/${pageUsername}`} target="_blank" className="cursor-pointer">
+                                  <Eye className="mr-2 h-4 w-4"/>
+                                  <span>Ver Página Pública</span>
+                              </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem disabled><UserRound className="mr-2 h-4 w-4"/><span>Alterar Usuário</span></DropdownMenuItem>
+                          <DropdownMenuItem disabled><KeyRound className="mr-2 h-4 w-4"/><span>Alterar Senha</span></DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4"/><span>Sair</span></DropdownMenuItem>
+                          </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    <Input
+                    className="text-4xl font-bold border-none focus:ring-0 shadow-none p-0 h-auto mb-2 bg-transparent"
+                    value={profile?.name || ''}
+                    onChange={(e) => setProfile(p => p ? { ...p, name: e.target.value } : null)}
+                    placeholder="Seu Nome"
                     />
-                  </>
-                  )}
-              </main>
-          </div>
-
-          {isMobile && !selectedCardId && (
-            <footer className="fixed bottom-0 left-0 right-0 p-4 z-50">
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border flex justify-between items-center p-1.5 gap-2 max-w-sm mx-auto">
-                <div className="flex items-center gap-1">
-                  <Button title="Adicionar Link" variant="ghost" size="icon" onClick={() => addNewCard('link')}><LinkIcon className="h-5 w-5" /></Button>
-                  <Button title="Adicionar Imagem" variant="ghost" size="icon" onClick={() => imageInputRef.current?.click()} disabled={isUploadingImage}>
-                      {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
-                  </Button>
-                  <Button title="Adicionar Nota" variant="ghost" size="icon" onClick={() => addNewCard('note')}><StickyNote className="h-5 w-5" /></Button>
-                  <Button title="Adicionar Mapa" variant="ghost" size="icon" onClick={() => addNewCard('map')}><MapIcon className="h-5 w-5" /></Button>
-                  <Button title="Adicionar Título" variant="ghost" size="icon" onClick={() => addNewCard('title')}><Type className="h-5 w-5" /></Button>
-                  <Button title="Adicionar Documento" variant="ghost" size="icon" onClick={() => addNewCard('document')}><FileText className="h-5 w-5" /></Button>
+                    <Textarea
+                      ref={textareaRef}
+                      className="text-muted-foreground mt-2 border-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none resize-none p-0 bg-transparent overflow-hidden"
+                      value={profile?.bio || ''}
+                      onChange={(e) => {
+                        setProfile(p => p ? { ...p, bio: e.target.value } : null)
+                        adjustTextareaHeight();
+                      }}
+                      placeholder="Sua biografia..."
+                      rows={1}
+                    />
+                    
+                    <div className="space-y-4 mt-6">
+                       <div className="flex items-center space-x-2">
+                          <AnalyticsToggle 
+                              id="analytics-mode" 
+                              checked={showAnalytics}
+                              onCheckedChange={setShowAnalytics}
+                          />
+                          <Label htmlFor="analytics-mode">Análise de dados</Label>
+                      </div>
+                      <Accordion type="single" collapsible className="w-full">
+                          <AccordionItem value="item-1">
+                              <AccordionTrigger>
+                              <div className="flex items-center gap-2">
+                                  <BarChart2 className="h-4 w-4" />
+                                  Integrações
+                              </div>
+                              </AccordionTrigger>
+                              <AccordionContent className="space-y-4 pt-4">
+                                  <div className="space-y-2">
+                                      <Label htmlFor="ga_tracking_id">Google Analytics ID</Label>
+                                      <Input
+                                          id="ga_tracking_id"
+                                          placeholder="G-XXXXXXXXXX"
+                                          value={profile?.ga_tracking_id || ''}
+                                          onChange={(e) => setProfile(p => p ? { ...p, ga_tracking_id: e.target.value } : null)}
+                                      />
+                                  </div>
+                                   <div className="space-y-2">
+                                      <Label htmlFor="fb_pixel_id">Facebook Pixel ID</Label>
+                                      <Input
+                                          id="fb_pixel_id"
+                                          placeholder="123456789012345"
+                                          value={profile?.fb_pixel_id || ''}
+                                          onChange={(e) => setProfile(p => p ? { ...p, fb_pixel_id: e.target.value } : null)}
+                                      />
+                                  </div>
+                              </AccordionContent>
+                          </AccordionItem>
+                      </Accordion>
+                    </div>
                 </div>
-                <Button 
-                    onClick={handleShare} 
-                    disabled={saving}
-                    className="bg-accent text-accent-foreground hover:bg-accent/90 px-3 text-sm h-9"
-                >
-                    {saving ? 'Salvando...' : 'Copiar Link'}
+            </aside>
+            
+            <main className="col-span-12 md:col-span-9 mb-24 md:mb-0 mt-6 md:mt-0">
+                {user && (
+                <>
+                  {showAnalytics && (
+                      <div className="mb-6">
+                          <AnalyticsCard 
+                              viewCount={viewCount}
+                              period={analyticsPeriod}
+                              onPeriodChange={handlePeriodChange}
+                          />
+                      </div>
+                  )}
+                  <GridLayoutComponent
+                      cards={cards}
+                      layoutConfig={currentLayout}
+                      onLayoutChange={handleLayoutChange}
+                      onUpdateCard={handleUpdateCard}
+                      onDeleteCard={handleDeleteCard}
+                      onEditCard={handleEditCard}
+                      isMobile={isMobile}
+                      selectedCardId={selectedCardId}
+                      onSelectCard={handleSelectCard}
+                      rowHeight={rowHeight}
+                  />
+                </>
+                )}
+            </main>
+        </div>
+
+        {isMobile && !selectedCardId && (
+          <footer className="fixed bottom-0 left-0 right-0 p-4 z-50">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border flex justify-between items-center p-1.5 gap-2 max-w-sm mx-auto">
+              <div className="flex items-center gap-1">
+                <Button title="Adicionar Link" variant="ghost" size="icon" onClick={() => addNewCard('link')}><LinkIcon className="h-5 w-5" /></Button>
+                <Button title="Adicionar Imagem" variant="ghost" size="icon" onClick={() => imageInputRef.current?.click()} disabled={isUploadingImage}>
+                    {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
                 </Button>
+                <Button title="Adicionar Nota" variant="ghost" size="icon" onClick={() => addNewCard('note')}><StickyNote className="h-5 w-5" /></Button>
+                <Button title="Adicionar Mapa" variant="ghost" size="icon" onClick={() => addNewCard('map')}><MapIcon className="h-5 w-5" /></Button>
+                <Button title="Adicionar Título" variant="ghost" size="icon" onClick={() => addNewCard('title')}><Type className="h-5 w-5" /></Button>
+                <Button title="Adicionar Documento" variant="ghost" size="icon" onClick={() => addNewCard('document')}><FileText className="h-5 w-5" /></Button>
               </div>
-            </footer>
-          )}
+              <Button 
+                  onClick={handleShare} 
+                  disabled={saving}
+                  className="bg-accent text-accent-foreground hover:bg-accent/90 px-3 text-sm h-9"
+              >
+                  {saving ? 'Salvando...' : 'Copiar Link'}
+              </Button>
+            </div>
+          </footer>
+        )}
 
-          {isMobile && isEditableCardSelected && (
-              <CardEditControls 
-                  card={selectedEditingCard}
-                  onUpdate={handleUpdateCard}
-                  onResize={handleResizeCard}
-                  onDone={() => setSelectedCardId(null)}
-              />
-          )}
-          
-          <EditCardSheet
-              isOpen={isEditSheetOpen}
-              onOpenChange={setIsEditSheetOpen}
-              card={editingCard}
-              onUpdate={handleUpdateCard}
-          />
-
-          <EditDocumentSheet
-            isOpen={isDocumentSheetOpen}
-            onOpenChange={setIsDocumentSheetOpen}
-            card={editingDocumentCard}
+        {isMobile && isEditableCardSelected && (
+            <CardEditControls 
+                card={selectedEditingCard!}
+                onUpdate={handleUpdateCard}
+                onResize={handleResizeCard}
+                onDone={() => setSelectedCardId(null)}
+            />
+        )}
+        
+        <EditCardSheet
+            isOpen={isEditSheetOpen}
+            onOpenChange={setIsEditSheetOpen}
+            card={editingCard}
             onUpdate={handleUpdateCard}
-          />
-      </div>
+        />
+
+        <EditDocumentSheet
+          isOpen={isDocumentSheetOpen}
+          onOpenChange={setIsDocumentSheetOpen}
+          card={editingDocumentCard}
+          onUpdate={handleUpdateCard}
+        />
+    </div>
   )
 }
-
-    
