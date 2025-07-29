@@ -114,10 +114,9 @@ export default function EditUserPage() {
           background_image: c.background_image,
           background_color: c.background_color,
           text_color: c.text_color,
-          price: c.price,
       }));
       
-      const { error: cardsError } = await supabase.from('cards').upsert(cardsToUpsert.map(({ price, ...rest }) => rest));
+      const { error: cardsError } = await supabase.from('cards').upsert(cardsToUpsert);
       
       const { error: profileError } = await supabase
         .from('profiles')
@@ -411,7 +410,7 @@ export default function EditUserPage() {
   const addNewCard = async (type: string, extraData: Partial<CardData> = {}) => {
     if (!user) return;
 
-    let newCardData: Omit<CardData, 'id' | 'created_at'>;
+    let newCardData: Omit<CardData, 'id' | 'created_at' | 'price'>;
 
     const baseData = {
         user_id: user.id,
@@ -421,7 +420,6 @@ export default function EditUserPage() {
         background_image: '',
         background_color: null,
         text_color: null,
-        price: null,
         ...extraData
     };
 
@@ -442,7 +440,7 @@ export default function EditUserPage() {
             newCardData = { ...baseData, type, title: '' };
             break;
         case 'document':
-            newCardData = { ...baseData, type, title: 'Documento Monetizado', content: 'Descrição do seu documento.', price: 'R$ 49,90' };
+            newCardData = { ...baseData, type, title: 'Documento Monetizado', content: 'Descrição do seu documento.' };
             break;
         default:
              toast({ title: 'Erro', description: 'Tipo de card desconhecido.', variant: 'destructive'});
@@ -778,3 +776,5 @@ export default function EditUserPage() {
       </div>
   )
 }
+
+    
