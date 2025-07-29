@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -45,7 +46,7 @@ export default function SignUpPage() {
     const trimmedUsername = username.trim().toLowerCase();
     
     // Check if username is already taken
-    const { data: existingProfile, error: existingProfileError } = await supabase
+    const { data: existingProfile } = await supabase
         .from('profiles')
         .select('username')
         .eq('username', trimmedUsername)
@@ -58,7 +59,7 @@ export default function SignUpPage() {
     }
 
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email, password, options: { data: { username: trimmedUsername } },
+      email, password,
     });
 
     if (signUpError) {
@@ -67,16 +68,27 @@ export default function SignUpPage() {
       return;
     }
     
-    // If sign up is successful, Supabase automatically logs the user in when email confirmation is disabled.
-    // The new profile is created by a trigger in Supabase. We just need to redirect.
-    if (signUpData.user) {
-        router.push(`/${trimmedUsername}`);
-        router.refresh(); // Refresh to ensure server components get the new session
-    } else {
-        // This case should ideally not happen if email confirmation is off and there's no error.
-        setError("Ocorreu um erro inesperado. Tente novamente.");
-        setLoading(false);
+    if (!signUpData.user) {
+      setError("Não foi possível criar o usuário. Tente novamente.");
+      setLoading(false);
+      return;
     }
+
+    // Explicitly create the profile
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({ id: signUpData.user.id, username: trimmedUsername });
+
+    if (profileError) {
+      setError('Não foi possível criar seu perfil. Tente novamente.');
+      // Optional: clean up the created user in auth if profile creation fails
+      // await supabase.auth.deleteUser(signUpData.user.id);
+      setLoading(false);
+      return;
+    }
+        
+    router.push(`/${trimmedUsername}`);
+    router.refresh(); 
   };
 
   if (checkingSession) {
