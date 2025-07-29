@@ -17,6 +17,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Skeleton } from '@/components/ui/skeleton'
 import GridLayoutComponent from '@/components/ui/grid-layout'
 import { EditCardSheet } from '@/components/ui/edit-card-sheet'
+import { EditDocumentSheet } from '@/components/ui/edit-document-sheet'
 import { CardEditControls } from '@/components/ui/card-edit-controls'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
@@ -76,7 +77,9 @@ export default function EditUserPage() {
   const [error, setError] = useState<string | null>(null);
   const [rowHeight, setRowHeight] = useState(100);
   const [editingCard, setEditingCard] = useState<CardData | undefined>(undefined);
+  const [editingDocumentCard, setEditingDocumentCard] = useState<CardData | undefined>(undefined);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [isDocumentSheetOpen, setIsDocumentSheetOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [viewCount, setViewCount] = useState<number | null>(null)
@@ -116,6 +119,9 @@ export default function EditUserPage() {
           background_color: c.background_color,
           text_color: c.text_color,
           price: c.price,
+          original_file_path: c.original_file_path,
+          processed_file_path: c.processed_file_path,
+          obscuration_settings: c.obscuration_settings,
       }));
       
       const { error: cardsError } = await supabase.from('cards').upsert(cardsToUpsert);
@@ -283,7 +289,7 @@ export default function EditUserPage() {
           setCurrentLayout([]);
       } else {
           const fetchedCards = cardsData || [];
-          setCards(fetchedCards);
+          setCards(fetchedCards as CardData[]);
 
           const savedLayout = profileData.layout_config || [];
           const layoutMap = new Map(savedLayout.map(l => [l.i, l]));
@@ -412,37 +418,40 @@ export default function EditUserPage() {
   const addNewCard = async (type: string, extraData: Partial<CardData> = {}) => {
     if (!user) return;
 
-    const baseData = {
-        user_id: user.id,
+    let baseData: Omit<CardData, 'id' | 'created_at' | 'user_id' | 'type'> = {
         title: '',
         content: '',
         link: '',
         background_image: '',
         background_color: null,
         text_color: null,
-        ...extraData
+        price: null,
+        original_file_path: null,
+        processed_file_path: null,
+        obscuration_settings: null,
+        ...extraData,
     };
-    
+
     let newCardData: Omit<CardData, 'id' | 'created_at'>;
 
     switch (type) {
         case 'title':
-            newCardData = { ...baseData, type, title: 'Novo Título' };
+            newCardData = { ...baseData, user_id: user.id, type, title: 'Novo Título' };
             break;
         case 'link':
-            newCardData = { ...baseData, type, title: 'Novo Link' };
+            newCardData = { ...baseData, user_id: user.id, type, title: 'Novo Link' };
             break;
         case 'note':
-            newCardData = { ...baseData, type, background_color: '#FFFFFF', text_color: '#000000' };
+            newCardData = { ...baseData, user_id: user.id, type, background_color: '#FFFFFF', text_color: '#000000' };
             break;
         case 'map':
-            newCardData = { ...baseData, type, title: 'Mapa' };
+            newCardData = { ...baseData, user_id: user.id, type, title: 'Mapa' };
             break;
         case 'image':
-            newCardData = { ...baseData, type, title: '' };
+            newCardData = { ...baseData, user_id: user.id, type, title: '' };
             break;
         case 'document':
-            newCardData = { ...baseData, type, title: 'Documento Monetizado', content: 'Descrição do seu documento.', price: 'R$ 0,00' };
+            newCardData = { ...baseData, user_id: user.id, type, title: 'Documento Monetizado', content: 'Descrição do seu documento.', price: 'R$ 0,00' };
             break;
         default:
              toast({ title: 'Erro', description: 'Tipo de card desconhecido.', variant: 'destructive'});
@@ -452,7 +461,7 @@ export default function EditUserPage() {
     const { data: newCard, error } = await supabase.from('cards').insert(newCardData).select().single();
 
     if(error || !newCard) {
-        toast({ title: 'Erro', description: 'Erro ao criar novo card.', variant: 'destructive'});
+        toast({ title: 'Erro ao criar card', description: error?.message || 'Não foi possível criar o card.', variant: 'destructive'});
         console.error('Card creation error:', error);
         return;
     }
@@ -474,7 +483,7 @@ export default function EditUserPage() {
       h 
     };
 
-    setCards(currentCards => [...currentCards, newCard]);
+    setCards(currentCards => [...currentCards, newCard as CardData]);
     setCurrentLayout(currentLayout => [...currentLayout, newLayoutItem]);
   }
 
@@ -543,11 +552,16 @@ export default function EditUserPage() {
   }, []);
 
   const handleEditCard = useCallback((cardId: string) => {
-      const cardToEdit = cards.find(c => c.id === cardId);
-      if (cardToEdit && cardToEdit.type !== 'note') {
+    const cardToEdit = cards.find(c => c.id === cardId);
+    if (!cardToEdit) return;
+
+    if (cardToEdit.type === 'document') {
+        setEditingDocumentCard(cardToEdit);
+        setIsDocumentSheetOpen(true);
+    } else if (cardToEdit.type !== 'note') {
         setEditingCard(cardToEdit);
         setIsEditSheetOpen(true);
-      }
+    }
   }, [cards]);
   
   const selectedEditingCard = selectedCardId ? cards.find(c => c.id === selectedCardId) : undefined;
@@ -754,6 +768,13 @@ export default function EditUserPage() {
               onOpenChange={setIsEditSheetOpen}
               card={editingCard}
               onUpdate={handleUpdateCard}
+          />
+
+          <EditDocumentSheet
+            isOpen={isDocumentSheetOpen}
+            onOpenChange={setIsDocumentSheetOpen}
+            card={editingDocumentCard}
+            onUpdate={handleUpdateCard}
           />
       </div>
   )

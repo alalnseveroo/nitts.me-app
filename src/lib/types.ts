@@ -29,7 +29,6 @@ export type CardData = {
   original_file_path?: string | null;
   processed_file_path?: string | null;
   obscuration_settings?: {
-    startPage: number;
     percentage: number;
   } | null;
 };
