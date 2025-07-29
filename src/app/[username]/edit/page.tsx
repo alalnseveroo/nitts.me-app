@@ -432,7 +432,7 @@ export default function EditUserPage() {
             newCardData = { ...baseData, title: 'Novo Link' };
             break;
         case 'note':
-            newCardData = { ...baseData, background_color: '#FFFFFF', text_color: '#000000' };
+            newCardData = { ...baseData, content: 'Sua nota aqui', background_color: '#FFFFFF', text_color: '#000000' };
             break;
         case 'map':
             newCardData = { ...baseData, title: 'Mapa' };
@@ -445,7 +445,8 @@ export default function EditUserPage() {
                 ...baseData,
                 title: 'Documento Monetizado',
                 content: 'Descrição do seu documento.',
-                price: 'R$ 0,00'
+                price: 'R$ 0,00',
+                link: ''
             };
             break;
         default:
@@ -619,7 +620,7 @@ export default function EditUserPage() {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground"><Settings/></Button></DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Opções</DropdownMenuLabel>
+                            <DropdownMenuLabel>Opções</DropdownMenu</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                              <DropdownMenuItem asChild>
                                 <Link href={`/${pageUsername}`} target="_blank" className="cursor-pointer">
@@ -774,3 +775,5 @@ export default function EditUserPage() {
       </div>
   )
 }
+
+    
