@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -30,7 +31,7 @@ export default function LoginPage() {
           .eq('id', session.user.id)
           .single();
         if (profile?.username) {
-          router.push(`/${profile.username}`);
+          router.push(`/${profile.username}/edit`);
           return;
         }
       }
@@ -75,7 +76,7 @@ export default function LoginPage() {
       return
     }
     
-    router.push(`/${profile.username}`)
+    router.push(`/${profile.username}/edit`)
     router.refresh(); // Refresh the page to update server-side session
   }
   

@@ -10,9 +10,11 @@ import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import Link from 'next/link'
+import { useToast } from '@/hooks/use-toast'
 
 export default function SignUpPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
@@ -30,7 +32,7 @@ export default function SignUpPage() {
           .eq('id', session.user.id)
           .single();
         if (profile?.username) {
-          router.push(`/${profile.username}`);
+          router.push(`/${profile.username}/edit`);
           return;
         }
       }
@@ -86,9 +88,12 @@ export default function SignUpPage() {
       setLoading(false);
       return;
     }
-        
-    router.push(`/${trimmedUsername}`);
-    router.refresh(); 
+    
+    toast({
+      title: 'Conta criada com sucesso!',
+      description: 'Faça login para continuar.',
+    });
+    router.push(`/login`);
   };
 
   if (checkingSession) {
