@@ -345,7 +345,7 @@ export default function EditUserPage() {
 
     let finalUpdates = { ...updates };
 
-    const isLinkCardUpdate = originalCard.type === 'link' && updates.link && updates.link !== originalCard.link;
+    const isLinkCardUpdate = (originalCard.type === 'link' || originalCard.type === 'note') && updates.link && updates.link !== originalCard.link;
     
     if (isLinkCardUpdate) {
         toast({ title: 'Importando dados...', description: 'Estamos buscando as informações do seu link.' });
@@ -420,7 +420,6 @@ export default function EditUserPage() {
         background_image: '',
         background_color: null,
         text_color: null,
-        price: null,
         ...extraData
     };
     
@@ -552,7 +551,7 @@ export default function EditUserPage() {
   }, [cards]);
   
   const selectedEditingCard = selectedCardId ? cards.find(c => c.id === selectedCardId) : undefined;
-  const isNoteCardSelected = selectedEditingCard?.type === 'note';
+  const isEditableCardSelected = selectedEditingCard && selectedEditingCard.type !== 'title' && selectedEditingCard.type !== 'map';
 
   if (loading) {
     return (
@@ -741,33 +740,13 @@ export default function EditUserPage() {
             </footer>
           )}
 
-          {isMobile && selectedEditingCard && !isNoteCardSelected && (
+          {isMobile && isEditableCardSelected && (
               <CardEditControls 
                   card={selectedEditingCard}
                   onUpdate={handleUpdateCard}
                   onResize={handleResizeCard}
                   onDone={() => setSelectedCardId(null)}
               />
-          )}
-
-          {isMobile && isNoteCardSelected && (
-              <div data-card-edit-controls className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm z-50">
-                  <div className="bg-neutral-900/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/10 flex justify-between items-center p-2 gap-2">
-                      <CardResizeControls onResize={(w,h) => handleResizeCard(selectedEditingCard.id, w, h)} />
-                      <div className="flex-1 flex items-center justify-center gap-2">
-                        <CardColorControls 
-                            onColorChange={(color, textColor) => handleUpdateCard(selectedEditingCard.id, { background_color: color, text_color: textColor })} 
-                        />
-                      </div>
-                      <Button
-                          onClick={() => setSelectedCardId(null)}
-                          className="bg-green-500 hover:bg-green-600 text-white rounded-lg px-4"
-                      >
-                          <Check className="h-4 w-4 mr-1" />
-                          Feito
-                      </Button>
-                  </div>
-              </div>
           )}
           
           <EditCardSheet
