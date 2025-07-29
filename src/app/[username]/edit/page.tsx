@@ -1,5 +1,4 @@
 
-
 'use client'
 
 import { useEffect, useState, ChangeEvent, useRef, useCallback } from 'react'
@@ -418,40 +417,46 @@ export default function EditUserPage() {
   const addNewCard = async (type: string, extraData: Partial<CardData> = {}) => {
     if (!user) return;
 
-    let baseData: Omit<CardData, 'id' | 'created_at' | 'user_id' | 'type'> = {
-        title: '',
-        content: '',
-        link: '',
-        background_image: '',
+    const baseData = {
+        user_id: user.id,
+        type: type,
+        title: null,
+        content: null,
+        link: null,
+        background_image: null,
         background_color: null,
         text_color: null,
         price: null,
         original_file_path: null,
         processed_file_path: null,
         obscuration_settings: null,
-        ...extraData,
     };
 
     let newCardData: Omit<CardData, 'id' | 'created_at'>;
 
     switch (type) {
         case 'title':
-            newCardData = { ...baseData, user_id: user.id, type, title: 'Novo Título' };
+            newCardData = { ...baseData, title: 'Novo Título' };
             break;
         case 'link':
-            newCardData = { ...baseData, user_id: user.id, type, title: 'Novo Link' };
+            newCardData = { ...baseData, title: 'Novo Link' };
             break;
         case 'note':
-            newCardData = { ...baseData, user_id: user.id, type, background_color: '#FFFFFF', text_color: '#000000' };
+            newCardData = { ...baseData, background_color: '#FFFFFF', text_color: '#000000' };
             break;
         case 'map':
-            newCardData = { ...baseData, user_id: user.id, type, title: 'Mapa' };
+            newCardData = { ...baseData, title: 'Mapa' };
             break;
         case 'image':
-            newCardData = { ...baseData, user_id: user.id, type, title: '' };
+             newCardData = { ...baseData, title: '', ...extraData };
             break;
         case 'document':
-            newCardData = { ...baseData, user_id: user.id, type, title: 'Documento Monetizado', content: 'Descrição do seu documento.', price: 'R$ 0,00' };
+            newCardData = {
+                ...baseData,
+                title: 'Documento Monetizado',
+                content: 'Descrição do seu documento.',
+                price: 'R$ 0,00'
+            };
             break;
         default:
              toast({ title: 'Erro', description: 'Tipo de card desconhecido.', variant: 'destructive'});
