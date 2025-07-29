@@ -48,7 +48,18 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
     if (isSaving) return;
     setIsSaving(true);
     
-    onUpdate(card.id, formData);
+    // Filtra apenas os campos que foram realmente alterados
+    const changedData: Partial<CardData> = {};
+    for (const key in formData) {
+        if (formData.hasOwnProperty(key)) {
+            const formKey = key as keyof CardData;
+            if (formData[formKey] !== card[formKey]) {
+                (changedData as any)[formKey] = formData[formKey];
+            }
+        }
+    }
+
+    onUpdate(card.id, changedData);
 
     // Give some time for the potential scraping to show a toast
     setTimeout(() => {
