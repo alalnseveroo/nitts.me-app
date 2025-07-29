@@ -43,20 +43,40 @@ export default function SignUpPage() {
     setError(null)
     setLoading(true)
     const trimmedUsername = username.trim().toLowerCase();
+    
+    // Check if username is already taken
+    const { data: existingProfile, error: existingProfileError } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', trimmedUsername)
+        .single();
+
+    if (existingProfile) {
+        setError('Este nome de usuário já está em uso. Por favor, escolha outro.');
+        setLoading(false);
+        return;
+    }
+
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email, password, options: { data: { username: trimmedUsername } },
     });
+
     if (signUpError) {
       setError(signUpError.message);
       setLoading(false);
       return;
     }
+    
+    // If sign up is successful, Supabase automatically logs the user in when email confirmation is disabled.
+    // The new profile is created by a trigger in Supabase. We just need to redirect.
     if (signUpData.user) {
-        router.push(`/check-email`);
+        router.push(`/${trimmedUsername}`);
+        router.refresh(); // Refresh to ensure server components get the new session
     } else {
-        setError("Verifique seu e-mail para confirmar a conta antes de fazer login.");
+        // This case should ideally not happen if email confirmation is off and there's no error.
+        setError("Ocorreu um erro inesperado. Tente novamente.");
+        setLoading(false);
     }
-    setLoading(false);
   };
 
   if (checkingSession) {
