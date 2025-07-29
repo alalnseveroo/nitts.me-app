@@ -67,7 +67,13 @@ export default function SignUpPage() {
     }
 
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email, password,
+      email, 
+      password,
+      options: {
+        data: {
+          username: trimmedUsername,
+        }
+      }
     });
 
     if (signUpError) {
@@ -81,24 +87,12 @@ export default function SignUpPage() {
       setLoading(false);
       return;
     }
-
-    // Explicitly create the profile
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({ id: signUpData.user.id, username: trimmedUsername });
-
-    if (profileError) {
-      setError(`Não foi possível criar seu perfil: ${profileError.message}. Tente novamente.`);
-      // Optional: clean up the created user in auth if profile creation fails
-      // This is complex because you might need admin rights.
-      // For now, we'll just show the error.
-      setLoading(false);
-      return;
-    }
+    
+    // The profile will be created by a trigger in Supabase.
     
     toast({
       title: 'Conta criada com sucesso!',
-      description: 'Faça login para continuar.',
+      description: 'Você já pode fazer login com suas novas credenciais.',
     });
     router.push(`/login`);
   };
