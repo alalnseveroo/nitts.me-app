@@ -117,7 +117,7 @@ export default function EditUserPage() {
           price: c.price,
       }));
       
-      const { error: cardsError } = await supabase.from('cards').upsert(cardsToUpsert);
+      const { error: cardsError } = await supabase.from('cards').upsert(cardsToUpsert.map(({ price, ...rest }) => rest));
       
       const { error: profileError } = await supabase
         .from('profiles')
