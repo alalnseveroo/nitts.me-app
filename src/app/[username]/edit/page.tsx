@@ -453,7 +453,7 @@ export default function EditUserPage() {
             return;
     }
     
-    const { data: newCard, error } = await supabase.from('cards').insert(newCardData).select().single();
+    const { data: newCard, error } = await supabase.from('cards').insert([newCardData]).select().single();
 
     if(error || !newCard) {
         toast({ title: 'Erro ao criar card', description: error?.message || 'Não foi possível criar o card.', variant: 'destructive'});
