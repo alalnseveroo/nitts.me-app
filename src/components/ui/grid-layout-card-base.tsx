@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase/client';
-import { Loader2, UploadCloud, Link as LinkIcon, Subtitles } from 'lucide-react';
+import { Loader2, UploadCloud, Link as LinkIcon, Subtitles, FileText } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { CardData } from '@/lib/types';
@@ -201,6 +201,24 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
                         )}
                         disabled={!isEditing}
                     />
+                );
+            case 'document':
+                 return (
+                    <div className="w-full h-full relative group/doc-card pointer-events-none bg-secondary">
+                        <img 
+                            src={currentData.background_image || 'https://placehold.co/400x600.png'} 
+                            alt={currentData.title || 'Document cover'} 
+                            className="w-full h-full object-cover"
+                            data-ai-hint="book cover"
+                        />
+                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 flex flex-col justify-end">
+                            <h3 className="text-white font-bold text-lg">{currentData.title}</h3>
+                            <p className="text-white/80 text-sm">{currentData.content}</p>
+                             <div className="mt-4 bg-accent text-accent-foreground rounded-md text-center py-2 text-sm font-semibold">
+                                {currentData.price ? `Desbloquear por ${currentData.price}` : 'Acessar Conteúdo'}
+                            </div>
+                        </div>
+                    </div>
                 );
             case 'map':
                  return (

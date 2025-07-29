@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Eye, Link as LinkIcon, ImageIcon, StickyNote, Map as MapIcon, Type, BarChart2, Check, Subtitles } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Eye, Link as LinkIcon, ImageIcon, StickyNote, Map as MapIcon, Type, BarChart2, Check, Subtitles, FileText } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '@/components/ui/skeleton'
 import GridLayoutComponent from '@/components/ui/grid-layout'
@@ -35,7 +35,7 @@ const getSocialConfig = (url: string) => {
         const hostname = new URL(url).hostname;
         const colorWithOpacity = (r: number, g: number, b: number) => ({
             color: `rgba(${r}, ${g}, ${b}, 0.1)`,
-            textColor: `rgb(0, 0, 0)` // Texto preto para melhor legibilidade no fundo claro
+            textColor: `rgb(0, 0, 0)`
         });
 
         if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
@@ -114,6 +114,7 @@ export default function EditUserPage() {
           background_image: c.background_image,
           background_color: c.background_color,
           text_color: c.text_color,
+          price: c.price,
       }));
       
       const { error: cardsError } = await supabase.from('cards').upsert(cardsToUpsert);
@@ -420,6 +421,7 @@ export default function EditUserPage() {
         background_image: '',
         background_color: null,
         text_color: null,
+        price: null,
         ...extraData
     };
 
@@ -439,6 +441,9 @@ export default function EditUserPage() {
         case 'image':
             newCardData = { ...baseData, type, title: '' };
             break;
+        case 'document':
+            newCardData = { ...baseData, type, title: 'Documento Monetizado', content: 'Descrição do seu documento.', price: 'R$ 49,90' };
+            break;
         default:
              toast({ title: 'Erro', description: 'Tipo de card desconhecido.', variant: 'destructive'});
             return;
@@ -455,6 +460,11 @@ export default function EditUserPage() {
     const cols = isMobile ? 2 : 4;
     let w = type === 'title' ? cols : 1;
     let h = type === 'title' ? 0.5 : 1;
+    if (type === 'document') {
+        w = 2;
+        h = 2;
+    }
+
 
     const newLayoutItem: Layout = { 
       i: newCard.id, 
@@ -717,6 +727,7 @@ export default function EditUserPage() {
                   <Button title="Adicionar Nota" variant="ghost" size="icon" onClick={() => addNewCard('note')}><StickyNote className="h-5 w-5" /></Button>
                   <Button title="Adicionar Mapa" variant="ghost" size="icon" onClick={() => addNewCard('map')}><MapIcon className="h-5 w-5" /></Button>
                   <Button title="Adicionar Título" variant="ghost" size="icon" onClick={() => addNewCard('title')}><Type className="h-5 w-5" /></Button>
+                  <Button title="Adicionar Documento" variant="ghost" size="icon" onClick={() => addNewCard('document')}><FileText className="h-5 w-5" /></Button>
                 </div>
                 <Button 
                     onClick={handleShare} 

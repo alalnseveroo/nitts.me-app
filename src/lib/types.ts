@@ -18,10 +18,18 @@ export type CardData = {
   user_id: string;
   type: string;
   title: string | null;
-  content: string | null;
-  link: string | null;
-  background_image: string | null;
+  content: string | null; // Usado para 'note', ou 'description' para 'document'
+  link: string | null; // Usado para 'link', ou 'payment_link' para 'document'
+  background_image: string | null; // Usado para 'image', ou 'cover_image' para 'document'
   background_color?: string | null;
   text_color?: string | null;
   created_at: string;
+  // Campos específicos para 'document'
+  price?: string | null;
+  original_file_path?: string | null;
+  processed_file_path?: string | null;
+  obscuration_settings?: {
+    startPage: number;
+    percentage: number;
+  } | null;
 };

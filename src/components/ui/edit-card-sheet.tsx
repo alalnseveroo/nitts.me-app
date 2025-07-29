@@ -30,6 +30,7 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
         link: card.link,
         content: card.content,
         background_image: card.background_image,
+        price: card.price,
       });
     } else {
       setFormData({});
@@ -128,6 +129,30 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
                <p className="text-sm text-muted-foreground mt-2">
                   Este texto aparecerá sobre a imagem no canto inferior esquerdo.
                </p>
+            </div>
+          </div>
+        );
+       case 'document':
+        return (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Configure os detalhes do seu documento para venda. A lógica de upload e ofuscação será implementada em breve.
+            </p>
+            <div>
+              <Label htmlFor="title">Título do Documento</Label>
+              <Input id="title" name="title" value={formData.title || ''} onChange={handleChange} />
+            </div>
+             <div>
+              <Label htmlFor="content">Descrição Curta</Label>
+              <Textarea id="content" name="content" value={formData.content || ''} onChange={handleChange} rows={3}/>
+            </div>
+            <div>
+              <Label htmlFor="price">Preço (ex: R$ 49,90)</Label>
+              <Input id="price" name="price" value={formData.price || ''} onChange={handleChange} />
+            </div>
+             <div>
+              <Label htmlFor="link">Link de Pagamento (URL)</Label>
+              <Input id="link" name="link" type="url" value={formData.link || ''} onChange={handleChange} placeholder="https://seu-link-de-venda.com" />
             </div>
           </div>
         );
