@@ -417,22 +417,12 @@ export default function EditUserPage() {
   const addNewCard = async (type: string, extraData: Partial<CardData> = {}) => {
     if (!user) return;
 
+    let newCardData: Omit<CardData, 'id' | 'created_at'>;
+
     const baseData = {
         user_id: user.id,
         type: type,
-        title: null,
-        content: null,
-        link: null,
-        background_image: null,
-        background_color: null,
-        text_color: null,
-        price: null,
-        original_file_path: null,
-        processed_file_path: null,
-        obscuration_settings: null,
     };
-
-    let newCardData: Omit<CardData, 'id' | 'created_at'>;
 
     switch (type) {
         case 'title':

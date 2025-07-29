@@ -84,7 +84,7 @@ const CardWrapper = ({ data, children, source }: { data: CardData, children: Rea
         </div>
     );
 
-    if (data.link) {
+    if (data.link && data.type !== 'document') {
         return (
             <a href={data.link} onClick={handleLinkClick} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
                 {content}
@@ -193,7 +193,7 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
         case 'document':
              return (
                 <CardWrapper data={data} source={source}>
-                    <Card className="w-full h-full overflow-hidden relative group/doc-card bg-secondary">
+                    <Card className="w-full h-full overflow-hidden relative group/doc-card bg-secondary cursor-pointer" onClick={handleLinkClick}>
                         <img 
                             src={data.background_image || 'https://placehold.co/400x600.png'} 
                             alt={data.title || 'Document cover'} 

@@ -6,7 +6,7 @@ import { Responsive, WidthProvider, Layout } from 'react-grid-layout';
 import { GridLayoutCard } from './grid-layout-card';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
-import type { CardData } from '@/app/[username]/page';
+import type { CardData } from '@/lib/types';
 
 interface GridLayoutProps {
     cards: CardData[];
@@ -14,7 +14,6 @@ interface GridLayoutProps {
     onLayoutChange: (layout: Layout[]) => void;
     onUpdateCard: (id: string, updates: Partial<CardData>) => void;
     onDeleteCard: (cardId: string) => void;
-    onResizeCard: (cardId: string, w: number, h: number) => void;
     onEditCard: (cardId: string) => void;
     isMobile: boolean;
     selectedCardId: string | null;
@@ -30,7 +29,6 @@ const GridLayoutComponent = ({
     onLayoutChange,
     onUpdateCard, 
     onDeleteCard, 
-    onResizeCard,
     onEditCard,
     isMobile,
     selectedCardId,
@@ -77,7 +75,6 @@ const GridLayoutComponent = ({
                             card={card}
                             onUpdate={onUpdateCard}
                             onDelete={onDeleteCard}
-                            onResize={onResizeCard}
                             onEdit={onEditCard}
                             isMobile={isMobile}
                             isSelected={selectedCardId === card.id}
@@ -91,5 +88,3 @@ const GridLayoutComponent = ({
 };
 
 export default React.memo(GridLayoutComponent);
-
-    

@@ -84,7 +84,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
         
         return (
             <div 
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-center p-4 z-10"
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-center p-4 z-10 cursor-pointer"
                 onClick={(e) => { e.stopPropagation(); onEdit(card.id); }}
             >
                 <UploadCloud className="h-10 w-10 text-white mb-2" />

@@ -82,7 +82,6 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
     };
 
     const handleBlur = () => {
-        // Only trigger update if data has actually changed
         if (JSON.stringify(currentData) !== JSON.stringify(card)) {
             onUpdate(card.id, currentData);
         }
