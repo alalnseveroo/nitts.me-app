@@ -1,4 +1,5 @@
 
+
 'use client'
 
 import { useEffect, useState, ChangeEvent, useRef, useCallback } from 'react'
@@ -411,8 +412,6 @@ export default function EditUserPage() {
   const addNewCard = async (type: string, extraData: Partial<CardData> = {}) => {
     if (!user) return;
 
-    let newCardData: Omit<CardData, 'id' | 'created_at'>;
-
     const baseData = {
         user_id: user.id,
         title: '',
@@ -421,8 +420,11 @@ export default function EditUserPage() {
         background_image: '',
         background_color: null,
         text_color: null,
+        price: null,
         ...extraData
     };
+    
+    let newCardData: Omit<CardData, 'id' | 'created_at'>;
 
     switch (type) {
         case 'title':
@@ -447,7 +449,7 @@ export default function EditUserPage() {
              toast({ title: 'Erro', description: 'Tipo de card desconhecido.', variant: 'destructive'});
             return;
     }
-
+    
     const { data: newCard, error } = await supabase.from('cards').insert(newCardData).select().single();
 
     if(error || !newCard) {
@@ -750,7 +752,7 @@ export default function EditUserPage() {
 
           {isMobile && isNoteCardSelected && (
               <div data-card-edit-controls className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm z-50">
-                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border flex justify-between items-center p-2 gap-2">
+                  <div className="bg-neutral-900/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/10 flex justify-between items-center p-2 gap-2">
                       <CardResizeControls onResize={(w,h) => handleResizeCard(selectedEditingCard.id, w, h)} />
                       <div className="flex-1 flex items-center justify-center gap-2">
                         <CardColorControls 
@@ -777,9 +779,3 @@ export default function EditUserPage() {
       </div>
   )
 }
-
-    
-
-    
-
-    
