@@ -8,7 +8,8 @@ export type UserRole =
   | 'annual'
   | 'lifetime'
   | 'guest'
-  | 'ambassador';
+  | 'ambassador'
+  | null; // Allow null for default/unset role
 
 export type Profile = {
   id: string;
@@ -20,7 +21,7 @@ export type Profile = {
   show_analytics: boolean | null;
   fb_pixel_id?: string | null;
   ga_tracking_id?: string | null;
-  role?: UserRole | null;
+  role?: UserRole;
 };
 
 export type CardData = {

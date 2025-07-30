@@ -34,7 +34,9 @@ import {
 } from "@/components/ui/popover"
 import { LinkIcon, ImageIcon, NoteIcon, TitleIcon, MapIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
-import { EditDocumentSheet } from '@/components/ui/edit-document-sheet'
+import { UpgradeModal } from '@/components/ui/upgrade-modal'
+import { InviteCodeModal } from '@/components/ui/invite-code-modal'
+
 
 const getSocialConfig = (url: string) => {
     try {
@@ -82,12 +84,14 @@ export default function EditUserPage() {
   const [rowHeight, setRowHeight] = useState(100);
   const [editingCard, setEditingCard] = useState<CardData | undefined>(undefined);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
-  const [isDocumentSheetOpen, setIsDocumentSheetOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [viewCount, setViewCount] = useState<number | null>(null)
   const [analyticsPeriod, setAnalyticsPeriod] = useState<'today' | '7d' | '30d'>('7d')
   const [isAddCardPopoverOpen, setIsAddCardPopoverOpen] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+
 
   
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -124,7 +128,6 @@ export default function EditUserPage() {
           background_image: c.background_image,
           background_color: c.background_color,
           text_color: c.text_color,
-          price: c.price,
         };
         // Remove undefined keys to avoid sending them in upsert
         Object.keys(baseCard).forEach(key => baseCard[key as keyof typeof baseCard] === undefined && delete baseCard[key as keyof typeof baseCard]);
@@ -209,11 +212,7 @@ export default function EditUserPage() {
     if (isMobile) {
       const cardToEdit = cards.find(c => c.id === cardId);
       setEditingCard(cardToEdit);
-      if (cardToEdit?.type === 'document') {
-          setIsDocumentSheetOpen(true);
-      } else {
-          setSelectedCardId(prevId => (prevId === cardId ? null : cardId));
-      }
+      setSelectedCardId(prevId => (prevId === cardId ? null : cardId));
     }
   }, [isMobile, cards]);
 
@@ -310,8 +309,8 @@ export default function EditUserPage() {
           const finalLayout = fetchedCards.map((card, index) => {
               const existingLayout = layoutMap.get(card.id);
               const cols = isMobile ? 2 : 4;
-              const defaultWidth = card.type === 'title' ? cols : (card.type === 'document' ? 2 : 1);
-              const defaultHeight = card.type === 'title' ? 0.5 : (card.type === 'document' ? 2 : 1);
+              const defaultWidth = card.type === 'title' ? cols : 1;
+              const defaultHeight = card.type === 'title' ? 0.5 : 1;
               if (existingLayout) {
                   return {
                       ...existingLayout,
@@ -354,9 +353,15 @@ export default function EditUserPage() {
   };
 
   const handleShare = () => {
-    const url = `${window.location.origin}/${pageUsername}`;
-    navigator.clipboard.writeText(url);
-    toast({ title: 'Link copiado!', description: 'O link do seu perfil foi copiado para a área de transferência.' });
+    const isFreeUser = !profile?.role || profile.role === 'free';
+    
+    if (isFreeUser) {
+        setIsUpgradeModalOpen(true);
+    } else {
+        const url = `${window.location.origin}/${pageUsername}`;
+        navigator.clipboard.writeText(url);
+        toast({ title: 'Link copiado!', description: 'O link do seu perfil foi copiado para a área de transferência.' });
+    }
   };
   
   const handleUpdateCard = useCallback(async (id: string, updates: Partial<CardData>) => {
@@ -429,7 +434,7 @@ export default function EditUserPage() {
     return layout.reduce((maxY, item) => Math.max(maxY, (item.y ?? 0) + (item.h ?? 0)), 0);
   };
 
-  const addNewCard = async (type: 'link' | 'image' | 'note' | 'title' | 'map' | 'document', extraData: Partial<CardData> = {}) => {
+  const addNewCard = async (type: 'link' | 'image' | 'note' | 'title' | 'map', extraData: Partial<CardData> = {}) => {
     if (!user) return;
     setIsAddCardPopoverOpen(false);
 
@@ -444,7 +449,6 @@ export default function EditUserPage() {
         background_image: null,
         background_color: null,
         text_color: null,
-        price: null,
     };
     
     switch (type) {
@@ -463,9 +467,6 @@ export default function EditUserPage() {
         case 'image':
              newCardData = { ...baseData, title: '', ...extraData };
             break;
-        case 'document':
-             newCardData = { ...baseData, title: 'Novo Documento', content: 'Descrição do seu documento digital.', price: 'R$ 0,00' };
-            break;
         default:
              toast({ title: 'Erro', description: 'Tipo de card desconhecido.', variant: 'destructive'});
             return;
@@ -480,8 +481,8 @@ export default function EditUserPage() {
     }
     
     const cols = isMobile ? 2 : 4;
-    let w = type === 'title' ? cols : (type === 'document' ? 2 : 1);
-    let h = type === 'title' ? 0.5 : (type === 'document' ? 2 : 1);
+    let w = type === 'title' ? cols : 1;
+    let h = type === 'title' ? 0.5 : 1;
     
     const newLayoutItem: Layout = { 
       i: newCard.id, 
@@ -494,10 +495,6 @@ export default function EditUserPage() {
     setCards(currentCards => [...currentCards, newCard as CardData]);
     setCurrentLayout(currentLayout => [...currentLayout, newLayoutItem]);
     
-    if (type === 'document') {
-      setEditingCard(newCard as CardData);
-      setIsDocumentSheetOpen(true);
-    }
   }
 
   const handleDeleteCard = useCallback(async (cardId: string) => {
@@ -569,14 +566,24 @@ export default function EditUserPage() {
     const cardToEdit = cards.find(c => c.id === cardId);
     if (!cardToEdit) return;
     setEditingCard(cardToEdit);
-
-    if (cardToEdit.type === 'document') {
-      setIsDocumentSheetOpen(true);
-    } else {
-      setIsEditSheetOpen(true);
-    }
+    setIsEditSheetOpen(true);
   }, [cards]);
   
+  const handleInviteSuccess = useCallback(async () => {
+      if (!user) return;
+      const { data, error } = await supabase.from('profiles').update({ role: 'guest' }).eq('id', user.id).select().single();
+      
+      if(error || !data) {
+          toast({ title: "Erro", description: "Não foi possível atualizar seu status. Tente novamente.", variant: "destructive"});
+          return;
+      }
+
+      setProfile(data as ProfileType);
+      setIsInviteModalOpen(false);
+      toast({ title: "Sucesso!", description: "Seu acesso foi liberado. Bem-vindo(a)!" });
+
+  }, [user, toast]);
+
   const selectedEditingCard = selectedCardId ? cards.find(c => c.id === selectedCardId) : undefined;
   const isEditableCardSelected = selectedEditingCard && selectedEditingCard.type !== 'title' && selectedEditingCard.type !== 'map';
 
@@ -810,15 +817,19 @@ export default function EditUserPage() {
             card={editingCard}
             onUpdate={handleUpdateCard}
         />
-        <EditDocumentSheet
-            isOpen={isDocumentSheetOpen}
-            onOpenChange={(isOpen) => {
-              setIsDocumentSheetOpen(isOpen);
-              if (!isOpen) setEditingCard(undefined);
-            }}
-            card={editingCard}
-            onUpdate={handleUpdateCard}
+        <UpgradeModal
+          isOpen={isUpgradeModalOpen}
+          onOpenChange={setIsUpgradeModalOpen}
+          onInviteClick={() => {
+            setIsUpgradeModalOpen(false);
+            setIsInviteModalOpen(true);
+          }}
+        />
+        <InviteCodeModal
+          isOpen={isInviteModalOpen}
+          onOpenChange={setIsInviteModalOpen}
+          onSuccess={handleInviteSuccess}
         />
     </div>
-  )
+  );
 }
