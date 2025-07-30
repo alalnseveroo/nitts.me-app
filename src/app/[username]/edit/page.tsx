@@ -465,28 +465,13 @@ export default function EditUserPage() {
         return;
     }
     
-    const cols = isMobile ? 2 : 4;
-    let w = type === 'title' ? cols : 1;
-    let h = type === 'title' ? 0.5 : 1;
-    
-    const newLayoutItem: Layout = { 
-      i: newCard.id, 
-      x: 0, 
-      y: getNextY(currentLayout), 
-      w, 
-      h 
-    };
-
     setCards(currentCards => [...currentCards, newCard as CardData]);
-    setCurrentLayout(currentLayout => [...currentLayout, newLayoutItem]);
-    
   }
 
   const handleDeleteCard = useCallback(async (cardId: string) => {
     if (!user) return;
     
     setCards(prev => prev.filter(c => c.id !== cardId));
-    setCurrentLayout(prev => prev.filter(l => l.i !== cardId));
     setSelectedCardId(null);
 
     const { error } = await supabase.from('cards').delete().eq('id', cardId);
@@ -532,6 +517,37 @@ export default function EditUserPage() {
     setCurrentLayout(newLayout);
   }, []);
   
+  useEffect(() => {
+        if (loading) return;
+
+        const layoutMap = new Map(currentLayout.map(l => [l.i, l]));
+        const cols = isMobile ? 2 : 4;
+        let needsUpdate = false;
+
+        const newLayout = cards.map((card, index) => {
+            const existingLayout = layoutMap.get(card.id);
+            if (existingLayout) {
+                return existingLayout;
+            }
+            
+            needsUpdate = true;
+            const defaultWidth = card.type === 'title' ? cols : 1;
+            const defaultHeight = card.type === 'title' ? 0.5 : 1;
+            return {
+                i: card.id,
+                x: (index % cols),
+                y: Infinity, // This will be handled by compactType
+                w: defaultWidth,
+                h: defaultHeight,
+            };
+        });
+        
+        if(needsUpdate) {
+            setCurrentLayout(newLayout);
+        }
+
+    }, [cards, loading, isMobile, currentLayout]);
+
   const handleResizeCard = useCallback((cardId: string, w: number, h: number) => {
       setCurrentLayout(prevLayout => {
           return prevLayout.map(item => {
@@ -565,29 +581,6 @@ export default function EditUserPage() {
 
   }, [user, toast]);
   
-  const getLayoutConfig = () => {
-    if (!cards || cards.length === 0) return [];
-    
-    const layoutMap = new Map(currentLayout.map(l => [l.i, l]));
-
-    return cards.map((card, index) => {
-        const existingLayout = layoutMap.get(card.id);
-        const cols = isMobile ? 2 : 4;
-        const defaultWidth = card.type === 'title' ? cols : 1;
-        const defaultHeight = card.type === 'title' ? 0.5 : 1;
-        if (existingLayout) {
-            return {
-                ...existingLayout,
-                i: String(existingLayout.i),
-                x: existingLayout.x ?? 0,
-                y: existingLayout.y ?? Infinity, // Default to bottom
-                w: existingLayout.w ?? defaultWidth,
-                h: existingLayout.h ?? defaultHeight,
-            };
-        }
-        return { i: card.id, x: (index % cols), y: Infinity, w: defaultWidth, h: defaultHeight };
-    });
-  };
 
   const selectedEditingCard = selectedCardId ? cards.find(c => c.id === selectedCardId) : undefined;
   const isEditableCardSelected = selectedEditingCard && selectedEditingCard.type !== 'title' && selectedEditingCard.type !== 'map';
@@ -748,7 +741,7 @@ export default function EditUserPage() {
                   )}
                   <GridLayoutComponent
                       cards={cards}
-                      layoutConfig={getLayoutConfig()}
+                      layoutConfig={currentLayout}
                       onLayoutChange={handleLayoutChange}
                       onUpdateCard={handleUpdateCard}
                       onDeleteCard={handleDeleteCard}
