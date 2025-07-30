@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import type { CardData } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2 } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface EditCardSheetProps {
   isOpen: boolean;
@@ -17,6 +18,13 @@ interface EditCardSheetProps {
   card: CardData | undefined;
   onUpdate: (id: string, updates: Partial<CardData>) => void;
 }
+
+const predefinedTags = [
+  { group: "Urgência e Escassez", tags: ["Promoção Limitada", "Últimas Vagas", "Últimas Unidades", "Termina em 24h"] },
+  { group: "Prova Social e Autoridade", tags: ["Mais Clicado", "Mais Popular", "Recomendado", "Destaque"] },
+  { group: "Valor e Custo-Benefício", tags: ["Frete Grátis", "Comece Grátis", "Teste Grátis"] },
+  { group: "Novidade", tags: ["NOVO!"] }
+];
 
 const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCardSheetProps) => {
   const [formData, setFormData] = useState<Partial<CardData>>({});
@@ -42,6 +50,10 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleTagChange = (value: string) => {
+    setFormData(prev => ({ ...prev, tag: value === "none" ? null : value }));
   };
 
   const handleSaveChanges = () => {
@@ -84,37 +96,55 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
           </div>
         );
       case 'link':
+      case 'image':
+        const isLink = card.type === 'link';
         return (
           <div className="space-y-4">
-            <div>
+             <div>
               <Label htmlFor="tag">Tag (Opcional)</Label>
-              <Input
-                id="tag"
-                name="tag"
-                value={formData.tag || ''}
-                onChange={handleChange}
-                placeholder="Ex: NOVO!, Promoção"
-              />
+               <Select onValueChange={handleTagChange} value={formData.tag || 'none'}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma tag" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma</SelectItem>
+                  {predefinedTags.map(group => (
+                    <React.Fragment key={group.group}>
+                      <Label className="px-2 py-1.5 text-xs text-muted-foreground">{group.group}</Label>
+                      {group.tags.map(tag => (
+                        <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+            {isLink && (
+              <div>
+                <Label htmlFor="link">URL do Link</Label>
+                <Input
+                    id="link"
+                    name="link"
+                    value={formData.link || ''}
+                    onChange={handleChange}
+                    placeholder="https://exemplo.com"
+                  />
+              </div>
+            )}
             <div>
-              <Label htmlFor="link">URL do Link</Label>
-               <Input
-                  id="link"
-                  name="link"
-                  value={formData.link || ''}
-                  onChange={handleChange}
-                  placeholder="https://exemplo.com"
-                />
-            </div>
-            <div>
-              <Label htmlFor="title">Título (Opcional)</Label>
+              <Label htmlFor="title">{isLink ? "Título (Opcional)" : "Legenda da Imagem (Opcional)"}</Label>
               <Input
                 id="title"
                 name="title"
                 value={formData.title || ''}
                 onChange={handleChange}
-                placeholder="O título será preenchido automaticamente"
+                placeholder={isLink ? "O título será preenchido automaticamente" : "Minha Viagem ao Rio"}
               />
+               {!isLink && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Este texto aparecerá sobre a imagem.
+                  </p>
+                )}
             </div>
           </div>
         );
@@ -130,34 +160,6 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
                 onChange={handleChange}
                 rows={8}
               />
-            </div>
-          </div>
-        );
-      case 'image':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="tag">Tag (Opcional)</Label>
-              <Input
-                id="tag"
-                name="tag"
-                value={formData.tag || ''}
-                onChange={handleChange}
-                placeholder="Ex: Últimas Unidades"
-              />
-            </div>
-            <div>
-              <Label htmlFor="title">Legenda da Imagem (Opcional)</Label>
-              <Input
-                id="title"
-                name="title"
-                placeholder="Ex: Minha Viagem ao Rio de Janeiro"
-                value={formData.title || ''}
-                onChange={handleChange}
-              />
-               <p className="text-sm text-muted-foreground mt-2">
-                  Este texto aparecerá sobre a imagem no canto inferior esquerdo.
-               </p>
             </div>
           </div>
         );
