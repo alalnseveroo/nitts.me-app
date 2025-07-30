@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 // Link Icon - Blue
@@ -43,5 +44,15 @@ export const MapIcon = () => (
     <path d="M9 22L15 19L22 22L16 25L9 22Z" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     <path d="M15 19V7L9 10" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     <path d="M22 22V10L15 7" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+// Document Icon - Gray
+export const DocIcon = () => (
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="32" height="32" rx="8" fill="#F3F4F6"/>
+    <path d="M12 7H21C21.5523 7 22 7.44772 22 8V24L17 19L12 24V8C12 7.44772 12.4477 7 13 7Z" stroke="#4B5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M20 7H13C12.4477 7 12 7.44772 12 8V24L17 19L22 24V8C22 7.44772 21.5523 7 21 7H20Z" stroke="#4B5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M16 13H18" stroke="#4B5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
