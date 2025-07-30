@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Loader2 } from "lucide-react"
+import { supabase } from "@/lib/supabase/client"
 
 interface InviteCodeModalProps {
   isOpen: boolean
@@ -20,26 +21,33 @@ interface InviteCodeModalProps {
   onSuccess: () => void
 }
 
-const VALID_INVITE_CODE = "1234" // Simulação - idealmente viria do backend
-
 export const InviteCodeModal = ({ isOpen, onOpenChange, onSuccess }: InviteCodeModalProps) => {
   const [code, setCode] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleVerifyCode = () => {
+  const handleVerifyCode = async () => {
     setError(null)
     setIsLoading(true)
 
-    // Simula uma chamada de API
-    setTimeout(() => {
-      if (code === VALID_INVITE_CODE) {
-        onSuccess()
-      } else {
-        setError("Código de convite inválido ou expirado.")
-      }
-      setIsLoading(false)
-    }, 1000)
+    const { data, error: rpcError } = await supabase.rpc('claim_invite', {
+      invite_code: code,
+    });
+
+    if (rpcError) {
+      console.error("RPC Error:", rpcError);
+      setError("Ocorreu um erro inesperado. Tente novamente.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (data && data.success) {
+      onSuccess();
+    } else {
+      setError(data.message || "Código de convite inválido ou expirado.");
+    }
+    
+    setIsLoading(false)
   }
 
   const handleOpenChange = (open: boolean) => {
@@ -58,16 +66,15 @@ export const InviteCodeModal = ({ isOpen, onOpenChange, onSuccess }: InviteCodeM
         <DialogHeader>
           <DialogTitle>Ativar com Convite</DialogTitle>
           <DialogDescription>
-            Insira o código de 4 dígitos que você recebeu para ativar seu acesso.
-          </DialogDescription>
+            Insira o código de convite que você recebeu para ativar seu acesso.
+          </d_ocumentDescription>
         </DialogHeader>
         <div className="py-4 space-y-2">
           <Input
             value={code}
-            onChange={(e) => setCode(e.target.value)}
-            maxLength={4}
-            placeholder="----"
-            className="text-center text-2xl tracking-[1rem] font-mono"
+            onChange={(e) => setCode(e.target.value.toUpperCase())}
+            placeholder="SEU-CODIGO-AQUI"
+            className="text-center text-xl tracking-widest font-mono"
             disabled={isLoading}
           />
           {error && <p className="text-destructive text-sm text-center">{error}</p>}
