@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 
 function SignUpComponent() {
   const router = useRouter()
@@ -17,6 +17,7 @@ function SignUpComponent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   
@@ -27,7 +28,6 @@ function SignUpComponent() {
     if (prefilledUsername) {
       setUsername(prefilledUsername);
     } else {
-      // Redirect if no username is provided, as it's now required
       router.push('/');
     }
   }, [searchParams, router]);
@@ -38,10 +38,6 @@ function SignUpComponent() {
 
     setError(null)
     setLoading(true)
-    
-    // The username check is already done on the homepage button, 
-    // but a server-side check is always a good practice for robustness.
-    // For this flow, we'll trust the client-side check.
     
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email, 
@@ -82,7 +78,7 @@ function SignUpComponent() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-sm text-center">
             <h1 className="text-4xl md:text-5xl font-extrabold text-foreground mb-4 break-words">
                 Seu @{username} recebeu o selo visionário!
@@ -92,27 +88,41 @@ function SignUpComponent() {
             </p>
 
             <form onSubmit={handleSignUp} className="space-y-4">
-                <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="Seu melhor e-mail" 
-                    value={email} 
-                    onChange={(e) => setEmail(e.target.value)} 
-                    required 
-                    disabled={loading}
-                    className="h-14 bg-gray-100 border-none rounded-2xl text-center text-base"
-                />
-                <Input 
-                    id="password" 
-                    type="password" 
-                    placeholder="Crie uma senha forte" 
-                    minLength={6} 
-                    value={password} 
-                    onChange={(e) => setPassword(e.target.value)} 
-                    required 
-                    disabled={loading}
-                    className="h-14 bg-gray-100 border-none rounded-2xl text-center text-base"
-                />
+                <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input 
+                        id="email" 
+                        type="email" 
+                        placeholder="Seu melhor e-mail" 
+                        value={email} 
+                        onChange={(e) => setEmail(e.target.value)} 
+                        required 
+                        disabled={loading}
+                        className="h-14 bg-gray-100 border-none rounded-2xl text-center text-base pl-12"
+                    />
+                </div>
+                <div className="relative">
+                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input 
+                        id="password" 
+                        type={showPassword ? 'text' : 'password'} 
+                        placeholder="Crie uma senha forte" 
+                        minLength={6} 
+                        value={password} 
+                        onChange={(e) => setPassword(e.target.value)} 
+                        required 
+                        disabled={loading}
+                        className="h-14 bg-gray-100 border-none rounded-2xl text-center text-base pl-12 pr-12"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={showPassword ? 'Esconder senha' : 'Mostrar senha'}
+                    >
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                </div>
                 
                 {error && <p className="text-red-500 text-sm">{error}</p>}
                 
@@ -135,7 +145,7 @@ function SignUpComponent() {
 
 export default function SignUpPage() {
   return (
-    <Suspense fallback={<div>Carregando...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
       <SignUpComponent />
     </Suspense>
   )
