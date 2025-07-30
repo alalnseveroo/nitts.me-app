@@ -11,19 +11,19 @@ body.no-scroll {
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 222 84% 98%;
     --foreground: 224 71% 4%;
     --card: 0 0% 100%;
     --card-foreground: 224 71% 4%;
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
-    --primary: 240 5.9% 10%;
+    --primary: 196 98% 49%;
     --primary-foreground: 0 0% 98%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 142.1 76.2% 36.3%;
+    --accent: 15 82% 51%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;

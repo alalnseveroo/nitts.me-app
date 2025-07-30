@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Eye, Link as LinkIcon, ImageIcon, StickyNote, Map as MapIcon, Type, BarChart2, Check, Plus } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Eye, Plus } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '@/components/ui/skeleton'
 import GridLayoutComponent from '@/components/ui/grid-layout'
@@ -33,6 +33,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { LinkIcon, ImageIcon, NoteIcon, TitleIcon, MapIcon } from '@/lib/icons'
 
 const getSocialConfig = (url: string) => {
     try {
@@ -119,7 +120,8 @@ export default function EditUserPage() {
           link: c.link,
           background_image: c.background_image,
           background_color: c.background_color,
-          text_color: c.text_color
+          text_color: c.text_color,
+          price: c.price,
       }));
       
       const { error: cardsError } = await supabase.from('cards').upsert(cardsToUpsert);
@@ -302,11 +304,13 @@ export default function EditUserPage() {
                       i: String(existingLayout.i), 
                       x: existingLayout.x ?? 0,
                       y: existingLayout.y ?? index,
-                      w: existingLayout.w ?? (card.type === 'title' ? cols : 1),
-                      h: existingLayout.h ?? (card.type === 'title' ? 0.5 : 1),
+                      w: existingLayout.w ?? (card.type === 'title' ? cols : (card.type === 'document' ? 2 : 1)),
+                      h: existingLayout.h ?? (card.type === 'title' ? 0.5 : (card.type === 'document' ? 2 : 1)),
                   };
               }
-              return { i: card.id, x: (index % cols), y: Math.floor(index / cols), w: card.type === 'title' ? cols : 1, h: card.type === 'title' ? 0.5 : 1 };
+              const defaultWidth = card.type === 'title' ? cols : (card.type === 'document' ? 2 : 1);
+              const defaultHeight = card.type === 'title' ? 0.5 : (card.type === 'document' ? 2 : 1);
+              return { i: card.id, x: (index % cols), y: Math.floor(index / cols), w: defaultWidth, h: defaultHeight };
           });
           setCurrentLayout(finalLayout);
       }
@@ -421,13 +425,6 @@ export default function EditUserPage() {
 
     const baseData = {
         user_id: user.id,
-        title: null,
-        content: null,
-        link: null,
-        background_image: null,
-        background_color: null,
-        text_color: null,
-        ...extraData
     };
     
     switch (type) {
@@ -444,7 +441,7 @@ export default function EditUserPage() {
             newCardData = { ...baseData, type: 'map', title: 'Mapa' };
             break;
         case 'image':
-             newCardData = { ...baseData, type: 'image', title: '' };
+             newCardData = { ...baseData, type: 'image', title: '', ...extraData };
             break;
         default:
              toast({ title: 'Erro', description: 'Tipo de card desconhecido.', variant: 'destructive'});
@@ -583,11 +580,11 @@ export default function EditUserPage() {
   }
 
   const addCardOptions = [
-    { type: 'link', label: 'Link', icon: <LinkIcon className="h-6 w-6" />, action: () => addNewCard('link') },
-    { type: 'image', label: 'Imagem', icon: <ImageIcon className="h-6 w-6" />, action: () => imageInputRef.current?.click() },
-    { type: 'note', label: 'Nota', icon: <StickyNote className="h-6 w-6" />, action: () => addNewCard('note') },
-    { type: 'title', label: 'Título', icon: <Type className="h-6 w-6" />, action: () => addNewCard('title') },
-    { type: 'map', label: 'Mapa', icon: <MapIcon className="h-6 w-6" />, action: () => addNewCard('map') },
+    { type: 'link', label: 'Link', icon: <LinkIcon />, action: () => addNewCard('link') },
+    { type: 'image', label: 'Imagem', icon: <ImageIcon />, action: () => imageInputRef.current?.click() },
+    { type: 'note', label: 'Nota', icon: <NoteIcon />, action: () => addNewCard('note') },
+    { type: 'title', label: 'Título', icon: <TitleIcon />, action: () => addNewCard('title') },
+    { type: 'map', label: 'Mapa', icon: <MapIcon />, action: () => addNewCard('map') },
   ];
 
   return (
@@ -665,7 +662,7 @@ export default function EditUserPage() {
                           <AccordionItem value="item-1">
                               <AccordionTrigger>
                               <div className="flex items-center gap-2">
-                                  <BarChart2 className="h-4 w-4" />
+                                  <Loader2 className="h-4 w-4" />
                                   Integrações
                               </div>
                               </AccordionTrigger>
@@ -726,38 +723,34 @@ export default function EditUserPage() {
 
         {isMobile && !selectedCardId && (
           <footer className="fixed bottom-0 left-0 right-0 p-4 z-50">
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border flex justify-between items-center p-1.5 gap-2 max-w-sm mx-auto">
+            <div className="flex justify-center items-center gap-2">
               <Popover open={isAddCardPopoverOpen} onOpenChange={setIsAddCardPopoverOpen}>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Plus className="h-5 w-5" />
+                  <Button variant="default" className="h-12 w-12 rounded-2xl shadow-lg">
+                    <Plus className="h-6 w-6" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-4 mb-2" side="top" align="start">
-                   <div className="grid grid-cols-4 gap-4">
+                <PopoverContent className="w-auto p-4 mb-2 rounded-2xl" side="top" align="center">
+                   <div className="grid grid-cols-3 gap-4">
                       {addCardOptions.map((option) => (
-                        <div key={option.type} className="flex flex-col items-center gap-2">
-                           <Button
-                              variant="outline"
-                              className="w-14 h-14 rounded-2xl bg-secondary border-none flex items-center justify-center"
-                              onClick={option.action}
-                              disabled={option.type === 'image' && isUploadingImage}
+                        <div key={option.type} className="flex flex-col items-center gap-2 cursor-pointer" onClick={option.action}>
+                           <div
+                              className="w-16 h-16 rounded-2xl bg-secondary border flex items-center justify-center"
+                              
                            >
-                            {option.type === 'image' && isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin"/> : option.icon}
-                          </Button>
-                          <span className="text-xs text-center">{option.label}</span>
+                            {isUploadingImage && option.type === 'image' ? <Loader2 className="h-6 w-6 animate-spin"/> : option.icon}
+                          </div>
+                          <span className="text-xs text-center font-medium">{option.label}</span>
                         </div>
                       ))}
                   </div>
                 </PopoverContent>
               </Popover>
 
-              <div className="flex-1" />
-
               <Button 
                   onClick={handleShare} 
                   disabled={saving}
-                  className="bg-accent text-accent-foreground hover:bg-accent/90 px-3 text-sm h-9"
+                  className="bg-accent text-accent-foreground hover:bg-accent/90 px-5 text-sm h-12 rounded-2xl shadow-lg"
               >
                   {saving ? 'Salvando...' : 'Copiar Link'}
               </Button>
