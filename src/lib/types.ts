@@ -9,7 +9,14 @@ export type UserRole =
   | 'lifetime'
   | 'guest'
   | 'ambassador'
-  | null; // Allow null for default/unset role
+  | null;
+
+export type SubscriptionStatus =
+  | 'active'
+  | 'inactive'
+  | 'past_due'
+  | 'canceled'
+  | null;
 
 export type Profile = {
   id: string;
@@ -22,6 +29,8 @@ export type Profile = {
   fb_pixel_id?: string | null;
   ga_tracking_id?: string | null;
   role?: UserRole;
+  subscription_status?: SubscriptionStatus;
+  subscription_ends_at?: string | null; // ISO 8601 date string
 };
 
 export type CardData = {
