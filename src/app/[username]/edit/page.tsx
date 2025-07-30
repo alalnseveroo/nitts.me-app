@@ -20,7 +20,6 @@ import { CardEditControls } from '@/components/ui/card-edit-controls'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { CardResizeControls } from '@/components/ui/card-resize-controls'
 import { useDebounce } from '@/hooks/use-debounce'
 import type { Profile as ProfileType, CardData } from '@/lib/types';
 import { Label } from '@/components/ui/label'
@@ -34,6 +33,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { LinkIcon, ImageIcon, NoteIcon, TitleIcon, MapIcon } from '@/lib/icons'
+import { cn } from '@/lib/utils'
 
 const getSocialConfig = (url: string) => {
     try {
@@ -121,7 +121,6 @@ export default function EditUserPage() {
           background_image: c.background_image,
           background_color: c.background_color,
           text_color: c.text_color,
-          price: c.price,
       }));
       
       const { error: cardsError } = await supabase.from('cards').upsert(cardsToUpsert);
@@ -304,12 +303,12 @@ export default function EditUserPage() {
                       i: String(existingLayout.i), 
                       x: existingLayout.x ?? 0,
                       y: existingLayout.y ?? index,
-                      w: existingLayout.w ?? (card.type === 'title' ? cols : (card.type === 'document' ? 2 : 1)),
-                      h: existingLayout.h ?? (card.type === 'title' ? 0.5 : (card.type === 'document' ? 2 : 1)),
+                      w: existingLayout.w ?? (card.type === 'title' ? cols : 1),
+                      h: existingLayout.h ?? (card.type === 'title' ? 0.5 : 1),
                   };
               }
-              const defaultWidth = card.type === 'title' ? cols : (card.type === 'document' ? 2 : 1);
-              const defaultHeight = card.type === 'title' ? 0.5 : (card.type === 'document' ? 2 : 1);
+              const defaultWidth = card.type === 'title' ? cols : 1;
+              const defaultHeight = card.type === 'title' ? 0.5 : 1;
               return { i: card.id, x: (index % cols), y: Math.floor(index / cols), w: defaultWidth, h: defaultHeight };
           });
           setCurrentLayout(finalLayout);
@@ -601,8 +600,8 @@ export default function EditUserPage() {
             <aside className="col-span-12 md:col-span-3 md:py-8">
                 <div className="sticky top-8">
                     <div className="flex items-start justify-between">
-                      <div className="relative mb-4 w-32 h-32">
-                          <Avatar className="w-32 h-32 text-lg">
+                      <div className="relative mb-4 w-36 h-36">
+                          <Avatar className="w-36 h-36 text-lg">
                               <AvatarImage src={profile?.avatar_url || ''} alt={profile?.username || 'avatar'} />
                               <AvatarFallback>{profile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
@@ -723,11 +722,14 @@ export default function EditUserPage() {
 
         {isMobile && !selectedCardId && (
           <footer className="fixed bottom-0 left-0 right-0 p-4 z-50">
-            <div className="flex justify-center items-center gap-2">
+            <div className="flex justify-center items-center gap-2 group">
               <Popover open={isAddCardPopoverOpen} onOpenChange={setIsAddCardPopoverOpen}>
                 <PopoverTrigger asChild>
-                  <Button variant="default" className="h-12 w-12 rounded-2xl shadow-lg">
-                    <Plus className="h-6 w-6" />
+                  <Button className="bg-white text-black hover:bg-white/90 h-12 w-12 rounded-2xl shadow-lg relative p-0">
+                     <div className="flex items-center justify-center transition-all duration-300 group-hover:w-28">
+                         <Plus className="h-6 w-6 shrink-0"/>
+                         <span className="ml-2 opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0">Adicionar</span>
+                     </div>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-4 mb-2 rounded-2xl" side="top" align="center">
@@ -750,7 +752,7 @@ export default function EditUserPage() {
               <Button 
                   onClick={handleShare} 
                   disabled={saving}
-                  className="bg-accent text-accent-foreground hover:bg-accent/90 px-5 text-sm h-12 rounded-2xl shadow-lg"
+                  className="bg-black text-white hover:bg-black/90 px-5 text-sm h-12 rounded-2xl shadow-lg"
               >
                   {saving ? 'Salvando...' : 'Copiar Link'}
               </Button>
