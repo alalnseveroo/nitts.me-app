@@ -479,7 +479,6 @@ export default function EditUserPage() {
     if (error) {
         toast({ title: 'Erro', description: 'Não foi possível deletar o card.', variant: 'destructive' });
         console.error("Error deleting card:", error);
-        // Re-fetch data to re-sync state with db. A page refresh is a simple way.
         router.refresh(); 
     }
   }, [user, toast, router]);
@@ -517,36 +516,48 @@ export default function EditUserPage() {
     setCurrentLayout(newLayout);
   }, []);
   
+  // This effect syncs the layout state with the cards state.
+  // It runs when cards are added or deleted.
   useEffect(() => {
-        if (loading) return;
+    if (loading || isInitialMount.current) return;
 
-        const layoutMap = new Map(currentLayout.map(l => [l.i, l]));
-        const cols = isMobile ? 2 : 4;
-        let needsUpdate = false;
+    const layoutMap = new Map(currentLayout.map(l => [l.i, l]));
+    const cols = isMobile ? 2 : 4;
+    
+    // Check for cards that don't have a layout entry
+    const newCardsWithoutLayout = cards.filter(card => !layoutMap.has(card.id));
+    
+    // Check for layout entries that don't have a card (stale entries)
+    const cardIds = new Set(cards.map(c => c.id));
+    const staleLayoutEntries = currentLayout.filter(l => !cardIds.has(l.i));
 
-        const newLayout = cards.map((card, index) => {
-            const existingLayout = layoutMap.get(card.id);
-            if (existingLayout) {
-                return existingLayout;
-            }
-            
-            needsUpdate = true;
-            const defaultWidth = card.type === 'title' ? cols : 1;
-            const defaultHeight = card.type === 'title' ? 0.5 : 1;
-            return {
-                i: card.id,
-                x: (index % cols),
-                y: Infinity, // This will be handled by compactType
-                w: defaultWidth,
-                h: defaultHeight,
-            };
-        });
-        
-        if(needsUpdate) {
-            setCurrentLayout(newLayout);
-        }
+    if (newCardsWithoutLayout.length > 0 || staleLayoutEntries.length > 0) {
+      let nextY = getNextY(currentLayout.filter(l => cardIds.has(l.i)));
 
-    }, [cards, loading, isMobile, currentLayout]);
+      const newLayoutsForNewCards = newCardsWithoutLayout.map((card, index) => {
+        const defaultWidth = card.type === 'title' ? cols : 1;
+        const defaultHeight = card.type === 'title' ? 0.5 : 1;
+        const layout = {
+            i: card.id,
+            x: (index % cols),
+            y: nextY,
+            w: defaultWidth,
+            h: defaultHeight,
+        };
+        nextY += defaultHeight;
+        return layout;
+      });
+
+      // Filter out stale layout entries and add new ones
+      const newLayout = [
+        ...currentLayout.filter(l => cardIds.has(l.i)),
+        ...newLayoutsForNewCards
+      ];
+      
+      setCurrentLayout(newLayout);
+    }
+  }, [cards, loading, isMobile]);
+
 
   const handleResizeCard = useCallback((cardId: string, w: number, h: number) => {
       setCurrentLayout(prevLayout => {
