@@ -2,7 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast'
 
 export default function SignUpPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -21,6 +22,13 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [checkingSession, setCheckingSession] = useState(true);
+
+  useEffect(() => {
+    const prefilledUsername = searchParams.get('username');
+    if (prefilledUsername) {
+      setUsername(prefilledUsername);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const checkSession = async () => {

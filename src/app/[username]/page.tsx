@@ -10,6 +10,7 @@ import { ArrowUpRight } from 'lucide-react';
 import type { Profile, CardData } from '@/lib/types';
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 import { FacebookPixel } from '@/components/analytics/FacebookPixel';
+import { CreateUsernameButton } from '@/components/ui/create-username-button';
 
 
 async function fetchPageData(username: string) {
@@ -78,13 +79,8 @@ export default async function PublicProfilePage({ params, searchParams }: { para
                 <PublicProfileGrid cards={cards} layoutConfig={profile.layout_config} source={source} />
               </main>
           </div>
-          <footer className="w-full flex justify-center py-8">
-            <Button asChild variant="ghost" className="text-muted-foreground">
-              <Link href="/signup">
-                Pegue também seu Nits
-                <ArrowUpRight className="h-4 w-4 ml-2" />
-              </Link>
-            </Button>
+          <footer className="w-full flex justify-center py-8 mt-auto">
+            <CreateUsernameButton />
           </footer>
       </div>
     </>
