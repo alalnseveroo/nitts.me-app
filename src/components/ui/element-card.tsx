@@ -3,7 +3,7 @@
 
 import { supabase } from '@/lib/supabase/client';
 import { Card } from '@/components/ui/card';
-import { Link as LinkIconLucide, ArrowUpRight, FileText } from 'lucide-react';
+import { Link as LinkIconLucide, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CardData } from '@/lib/types';
 import { SubstackIcon } from './substack-icon';
@@ -76,7 +76,7 @@ const CardWrapper = ({ data, children, source }: { data: CardData, children: Rea
     const content = (
         <div className="relative w-full h-full">
             {children}
-            {data.link && data.type !== 'document' && (
+            {data.link && (
                  <div className="absolute top-2 right-2 p-1 bg-black/10 dark:bg-white/10 rounded-full backdrop-blur-sm">
                     <ArrowUpRight className="h-4 w-4" />
                 </div>
@@ -84,7 +84,7 @@ const CardWrapper = ({ data, children, source }: { data: CardData, children: Rea
         </div>
     );
 
-    if (data.link && data.type !== 'document') {
+    if (data.link) {
         return (
             <a href={data.link} onClick={handleLinkClick} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
                 {content}
@@ -95,24 +95,6 @@ const CardWrapper = ({ data, children, source }: { data: CardData, children: Rea
 }
 
 export const ElementCard = ({ data, source }: ElementCardProps) => {
-    const handleLinkClick = async (e: React.MouseEvent) => {
-        if (!data.link) return;
-        e.preventDefault();
-
-        try {
-            await supabase.from('link_clicks').insert({
-                profile_id: data.user_id,
-                card_id: data.id,
-                source: source,
-                destination_url: data.link,
-            });
-        } catch (error) {
-            console.error('Error logging link click:', error);
-        } finally {
-            window.open(data.link, '_blank');
-        }
-    };
-    
     switch (data.type) {
         case 'link': {
             const Icon = getDomainIcon(data.link);
@@ -127,7 +109,13 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
                     )}
                     style={{ backgroundColor: data.background_color ?? undefined }}
                 >
-                    <a href={data.link || '#'} onClick={handleLinkClick} target="_blank" rel="noopener noreferrer" className="flex flex-col items-start justify-center text-left p-4 gap-2 h-full">
+                    <a href={data.link || '#'} onClick={(e) => {
+                        e.preventDefault();
+                        if (data.link) {
+                           CardWrapper({ data, children: <></>, source })
+                           .handleLinkClick(e)
+                        }
+                    }} target="_blank" rel="noopener noreferrer" className="flex flex-col items-start justify-center text-left p-4 gap-2 h-full">
                          <div className="flex-shrink-0" style={{ color: data.text_color ?? 'currentColor' }}>
                             {Icon}
                         </div>
@@ -187,26 +175,6 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
                                 <p className="text-sm font-medium">{data.title}</p>
                             </div>
                         )}
-                    </Card>
-                </CardWrapper>
-            );
-        case 'document':
-             return (
-                <CardWrapper data={data} source={source}>
-                    <Card className="w-full h-full overflow-hidden relative group/doc-card bg-secondary cursor-pointer" onClick={handleLinkClick}>
-                        <img 
-                            src={data.background_image || 'https://placehold.co/400x600.png'} 
-                            alt={data.title || 'Document cover'} 
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover/doc-card:scale-105"
-                            data-ai-hint="book cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 flex flex-col justify-end">
-                            <h3 className="text-white font-bold text-lg">{data.title}</h3>
-                            <p className="text-white/80 text-sm">{data.content}</p>
-                            <Button className="w-full mt-4 bg-accent hover:bg-accent/90 text-accent-foreground">
-                                {data.price ? `Desbloquear por ${data.price}` : 'Acessar Conteúdo'}
-                            </Button>
-                        </div>
                     </Card>
                 </CardWrapper>
             );

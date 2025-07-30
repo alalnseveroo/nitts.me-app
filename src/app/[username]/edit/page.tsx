@@ -11,12 +11,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Eye, Link as LinkIcon, ImageIcon, StickyNote, Map as MapIcon, Type, BarChart2, Check, Subtitles, FileText } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Eye, Link as LinkIcon, ImageIcon, StickyNote, Map as MapIcon, Type, BarChart2, Check, Plus } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '@/components/ui/skeleton'
 import GridLayoutComponent from '@/components/ui/grid-layout'
 import { EditCardSheet } from '@/components/ui/edit-card-sheet'
-import { EditDocumentSheet } from '@/components/ui/edit-document-sheet'
 import { CardEditControls } from '@/components/ui/card-edit-controls'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
@@ -28,8 +27,12 @@ import { Label } from '@/components/ui/label'
 import AnalyticsCard from '@/components/ui/analytics-card'
 import { AnalyticsToggle } from '@/components/ui/analytics-toggle'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { CardColorControls } from '@/components/ui/card-color-controls'
 import { scrapeUrlMetadata } from "@/ai/flows/url-metadata-scraper-flow"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 const getSocialConfig = (url: string) => {
     try {
@@ -76,13 +79,13 @@ export default function EditUserPage() {
   const [error, setError] = useState<string | null>(null);
   const [rowHeight, setRowHeight] = useState(100);
   const [editingCard, setEditingCard] = useState<CardData | undefined>(undefined);
-  const [editingDocumentCard, setEditingDocumentCard] = useState<CardData | undefined>(undefined);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
-  const [isDocumentSheetOpen, setIsDocumentSheetOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [viewCount, setViewCount] = useState<number | null>(null)
   const [analyticsPeriod, setAnalyticsPeriod] = useState<'today' | '7d' | '30d'>('7d')
+  const [isAddCardPopoverOpen, setIsAddCardPopoverOpen] = useState(false);
+
   
   const imageInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -116,11 +119,7 @@ export default function EditUserPage() {
           link: c.link,
           background_image: c.background_image,
           background_color: c.background_color,
-          text_color: c.text_color,
-          price: c.price,
-          original_file_path: c.original_file_path,
-          processed_file_path: c.processed_file_path,
-          obscuration_settings: c.obscuration_settings,
+          text_color: c.text_color
       }));
       
       const { error: cardsError } = await supabase.from('cards').upsert(cardsToUpsert);
@@ -416,44 +415,36 @@ export default function EditUserPage() {
 
   const addNewCard = async (type: string, extraData: Partial<CardData> = {}) => {
     if (!user) return;
+    setIsAddCardPopoverOpen(false);
 
     let newCardData: Omit<CardData, 'id' | 'created_at' | 'user_id'> & { user_id: string };
 
     const baseData = {
         user_id: user.id,
-        type: type,
+        title: null,
+        content: null,
+        link: null,
+        background_image: null,
+        background_color: null,
+        text_color: null,
+        ...extraData
     };
-
+    
     switch (type) {
         case 'title':
-            newCardData = { ...baseData, title: 'Novo Título', content: null, link: null, background_image: null, background_color: null, text_color: null, price: null, original_file_path: null, processed_file_path: null, obscuration_settings: null };
+            newCardData = { ...baseData, type: 'title', title: 'Novo Título' };
             break;
         case 'link':
-            newCardData = { ...baseData, title: 'Novo Link', content: null, link: null, background_image: null, background_color: null, text_color: null, price: null, original_file_path: null, processed_file_path: null, obscuration_settings: null };
+            newCardData = { ...baseData, type: 'link', title: 'Novo Link' };
             break;
         case 'note':
-            newCardData = { ...baseData, content: 'Sua nota aqui', background_color: '#FFFFFF', text_color: '#000000', title: null, link: null, background_image: null, price: null, original_file_path: null, processed_file_path: null, obscuration_settings: null };
+            newCardData = { ...baseData, type: 'note', content: 'Sua nota aqui', background_color: '#FFFFFF', text_color: '#000000' };
             break;
         case 'map':
-            newCardData = { ...baseData, title: 'Mapa', content: null, link: null, background_image: null, background_color: null, text_color: null, price: null, original_file_path: null, processed_file_path: null, obscuration_settings: null };
+            newCardData = { ...baseData, type: 'map', title: 'Mapa' };
             break;
         case 'image':
-             newCardData = { ...baseData, title: '', ...extraData, content: null, link: null, background_color: null, text_color: null, price: null, original_file_path: null, processed_file_path: null, obscuration_settings: null };
-            break;
-        case 'document':
-            newCardData = {
-                ...baseData,
-                title: 'Documento Monetizado',
-                content: 'Descrição do seu documento.',
-                price: 'R$ 0,00',
-                link: '',
-                background_image: null, 
-                background_color: null, 
-                text_color: null, 
-                original_file_path: null, 
-                processed_file_path: null, 
-                obscuration_settings: null
-            };
+             newCardData = { ...baseData, type: 'image', title: '' };
             break;
         default:
              toast({ title: 'Erro', description: 'Tipo de card desconhecido.', variant: 'destructive'});
@@ -471,12 +462,7 @@ export default function EditUserPage() {
     const cols = isMobile ? 2 : 4;
     let w = type === 'title' ? cols : 1;
     let h = type === 'title' ? 0.5 : 1;
-    if (type === 'document') {
-        w = 2;
-        h = 2;
-    }
-
-
+    
     const newLayoutItem: Layout = { 
       i: newCard.id, 
       x: 0, 
@@ -514,6 +500,7 @@ export default function EditUserPage() {
     if (!event.target.files || event.target.files.length === 0 || !user) {
         return;
     }
+    setIsAddCardPopoverOpen(false);
 
     const file = event.target.files[0];
     const fileExt = file.name.split('.').pop();
@@ -557,10 +544,7 @@ export default function EditUserPage() {
     const cardToEdit = cards.find(c => c.id === cardId);
     if (!cardToEdit) return;
 
-    if (cardToEdit.type === 'document') {
-        setEditingDocumentCard(cardToEdit);
-        setIsDocumentSheetOpen(true);
-    } else if (cardToEdit.type !== 'note') {
+    if (cardToEdit.type !== 'note') {
         setEditingCard(cardToEdit);
         setIsEditSheetOpen(true);
     }
@@ -597,6 +581,14 @@ export default function EditUserPage() {
       </div>
     )
   }
+
+  const addCardOptions = [
+    { type: 'link', label: 'Link', icon: <LinkIcon className="h-6 w-6" />, action: () => addNewCard('link') },
+    { type: 'image', label: 'Imagem', icon: <ImageIcon className="h-6 w-6" />, action: () => imageInputRef.current?.click() },
+    { type: 'note', label: 'Nota', icon: <StickyNote className="h-6 w-6" />, action: () => addNewCard('note') },
+    { type: 'title', label: 'Título', icon: <Type className="h-6 w-6" />, action: () => addNewCard('title') },
+    { type: 'map', label: 'Mapa', icon: <MapIcon className="h-6 w-6" />, action: () => addNewCard('map') },
+  ];
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -735,16 +727,33 @@ export default function EditUserPage() {
         {isMobile && !selectedCardId && (
           <footer className="fixed bottom-0 left-0 right-0 p-4 z-50">
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border flex justify-between items-center p-1.5 gap-2 max-w-sm mx-auto">
-              <div className="flex items-center gap-1">
-                <Button title="Adicionar Link" variant="ghost" size="icon" onClick={() => addNewCard('link')}><LinkIcon className="h-5 w-5" /></Button>
-                <Button title="Adicionar Imagem" variant="ghost" size="icon" onClick={() => imageInputRef.current?.click()} disabled={isUploadingImage}>
-                    {isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
-                </Button>
-                <Button title="Adicionar Nota" variant="ghost" size="icon" onClick={() => addNewCard('note')}><StickyNote className="h-5 w-5" /></Button>
-                <Button title="Adicionar Mapa" variant="ghost" size="icon" onClick={() => addNewCard('map')}><MapIcon className="h-5 w-5" /></Button>
-                <Button title="Adicionar Título" variant="ghost" size="icon" onClick={() => addNewCard('title')}><Type className="h-5 w-5" /></Button>
-                <Button title="Adicionar Documento" variant="ghost" size="icon" onClick={() => addNewCard('document')}><FileText className="h-5 w-5" /></Button>
-              </div>
+              <Popover open={isAddCardPopoverOpen} onOpenChange={setIsAddCardPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-4 mb-2" side="top" align="start">
+                   <div className="grid grid-cols-4 gap-4">
+                      {addCardOptions.map((option) => (
+                        <div key={option.type} className="flex flex-col items-center gap-2">
+                           <Button
+                              variant="outline"
+                              className="w-14 h-14 rounded-2xl bg-secondary border-none flex items-center justify-center"
+                              onClick={option.action}
+                              disabled={option.type === 'image' && isUploadingImage}
+                           >
+                            {option.type === 'image' && isUploadingImage ? <Loader2 className="h-5 w-5 animate-spin"/> : option.icon}
+                          </Button>
+                          <span className="text-xs text-center">{option.label}</span>
+                        </div>
+                      ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              <div className="flex-1" />
+
               <Button 
                   onClick={handleShare} 
                   disabled={saving}
@@ -770,13 +779,6 @@ export default function EditUserPage() {
             onOpenChange={setIsEditSheetOpen}
             card={editingCard}
             onUpdate={handleUpdateCard}
-        />
-
-        <EditDocumentSheet
-          isOpen={isDocumentSheetOpen}
-          onOpenChange={setIsDocumentSheetOpen}
-          card={editingDocumentCard}
-          onUpdate={handleUpdateCard}
         />
     </div>
   )

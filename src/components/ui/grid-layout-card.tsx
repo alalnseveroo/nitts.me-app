@@ -1,11 +1,10 @@
 
-
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { GridLayoutCardBase } from './grid-layout-card-base';
 import { Button } from '@/components/ui/button';
-import { Move, Trash2, Edit, Check, UploadCloud } from 'lucide-react';
+import { Move, Trash2, Edit, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CardData } from '@/lib/types';
 
@@ -36,7 +35,6 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
 
     const isTitleCard = card.type === 'title';
     const isNoteCard = card.type === 'note';
-    const isDocumentCard = card.type === 'document';
 
     const handleClick = (e: React.MouseEvent) => {
         const target = e.target as HTMLElement;
@@ -79,21 +77,6 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
         }
     };
 
-    const renderDocumentUploadOverlay = () => {
-        if (!isDocumentCard || card.original_file_path) return null;
-        
-        return (
-            <div 
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-center p-4 z-10 cursor-pointer"
-                onClick={(e) => { e.stopPropagation(); onEdit(card.id); }}
-            >
-                <UploadCloud className="h-10 w-10 text-white mb-2" />
-                <h3 className="text-white font-semibold">Adicionar Documento</h3>
-                <p className="text-white/80 text-sm">Clique para fazer o upload e configurar seu PDF.</p>
-            </div>
-        );
-    };
-
     return (
         <div 
             className="w-full h-full relative group/card"
@@ -106,7 +89,6 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
                 isMobile && !isSelected && "cursor-pointer",
                 !isMobile && !isNoteCard && "cursor-pointer"
             )}>
-                 {renderDocumentUploadOverlay()}
                  <GridLayoutCardBase
                     card={card}
                     onUpdate={onUpdate}
