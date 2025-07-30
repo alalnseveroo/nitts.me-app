@@ -32,11 +32,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { LinkIcon, ImageIcon, NoteIcon, TitleIcon, MapIcon } from '@/lib/icons'
+import { LinkIcon, ImageIcon, NoteIcon, TitleIcon, MapIcon, DocIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { UpgradeModal } from '@/components/ui/upgrade-modal'
 import { InviteCodeModal } from '@/components/ui/invite-code-modal'
-
+import { EditDocumentSheet } from '@/components/ui/edit-document-sheet'
 
 const getSocialConfig = (url: string) => {
     try {
@@ -84,6 +84,7 @@ export default function EditUserPage() {
   const [rowHeight, setRowHeight] = useState(100);
   const [editingCard, setEditingCard] = useState<CardData | undefined>(undefined);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [isEditDocSheetOpen, setIsEditDocSheetOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [viewCount, setViewCount] = useState<number | null>(null)
@@ -125,6 +126,8 @@ export default function EditUserPage() {
           title: c.title,
           content: c.content,
           link: c.link,
+          price: c.price,
+          original_file_path: c.original_file_path,
           background_image: c.background_image,
           background_color: c.background_color,
           text_color: c.text_color,
@@ -214,8 +217,13 @@ export default function EditUserPage() {
   const handleSelectCard = useCallback((cardId: string) => {
     if (isMobile) {
       const cardToEdit = cards.find(c => c.id === cardId);
-      setEditingCard(cardToEdit);
-      setSelectedCardId(prevId => (prevId === cardId ? null : cardId));
+      if(cardToEdit?.type === 'document') {
+        setEditingCard(cardToEdit);
+        setIsEditDocSheetOpen(true);
+      } else {
+        setEditingCard(cardToEdit);
+        setSelectedCardId(prevId => (prevId === cardId ? null : cardId));
+      }
     }
   }, [isMobile, cards]);
 
@@ -263,59 +271,6 @@ export default function EditUserPage() {
   }, [updateRowHeight]);
 
   useEffect(() => {
-    const fetchPageData = async (currentUser: User) => {
-      setLoading(true);
-      setError(null);
-
-      const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('username', pageUsername)
-          .single();
-
-      if (profileError || !profileData) {
-        setError('Usuário não encontrado.');
-        setLoading(false);
-        return;
-      }
-      
-      if (currentUser.id !== profileData.id) {
-          setError('Acesso não autorizado.');
-          setLoading(false);
-          router.push(`/${pageUsername}`);
-          return;
-      }
-
-      setProfile(profileData as ProfileType);
-      setShowAnalytics(profileData.show_analytics || false);
-      if(profileData.show_analytics && profileData.id) {
-        fetchViewCount('7d', profileData.id);
-      }
-
-      const { data: cardsData, error: cardsError } = await supabase
-        .from('cards')
-        .select('*')
-        .eq('user_id', profileData.id);
-
-      if (cardsError) {
-          console.error('Error fetching cards:', cardsError);
-          setCards([]);
-      } else {
-          const fetchedCards = cardsData || [];
-          setCards(fetchedCards as CardData[]);
-
-          const savedLayout = profileData.layout_config || [];
-          setCurrentLayout(savedLayout);
-      }
-      
-      setLoading(false);
-      setTimeout(() => {
-        isInitialMount.current = false;
-        updateRowHeight();
-      }, 50);
-
-    }
-    
     const fetchSessionAndProfile = async () => {
       setLoading(true)
       const { data: { session } } = await supabase.auth.getSession()
@@ -327,7 +282,63 @@ export default function EditUserPage() {
       await fetchPageData(session.user);
     }
     fetchSessionAndProfile()
-  }, [pageUsername, isMobile, updateRowHeight, router, fetchViewCount])
+  }, [pageUsername, router]);
+
+  const fetchPageData = async (currentUser: User) => {
+    setError(null);
+
+    const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('username', pageUsername)
+        .single();
+
+    if (profileError || !profileData) {
+      setError('Usuário não encontrado.');
+      setLoading(false);
+      return;
+    }
+    
+    if (currentUser.id !== profileData.id) {
+        setError('Acesso não autorizado.');
+        setLoading(false);
+        router.push(`/${pageUsername}`);
+        return;
+    }
+
+    setProfile(profileData as ProfileType);
+    setShowAnalytics(profileData.show_analytics || false);
+    if(profileData.show_analytics && profileData.id) {
+      fetchViewCount('7d', profileData.id);
+    }
+
+    const { data: cardsData, error: cardsError } = await supabase
+      .from('cards')
+      .select('*')
+      .eq('user_id', profileData.id);
+
+    if (cardsError) {
+        console.error('Error fetching cards:', cardsError);
+        setCards([]);
+    } else {
+        const fetchedCards = (cardsData || []) as CardData[];
+        setCards(fetchedCards);
+
+        // **VALIDATION AND CLEANUP LOGIC**
+        const savedLayout = profileData.layout_config || [];
+        const cardIds = new Set(fetchedCards.map(c => c.id));
+        const cleanedLayout = savedLayout.filter(l => cardIds.has(l.i));
+        
+        setCurrentLayout(cleanedLayout);
+    }
+    
+    setLoading(false);
+    setTimeout(() => {
+      isInitialMount.current = false;
+      updateRowHeight();
+    }, 50);
+
+  }
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -416,7 +427,7 @@ export default function EditUserPage() {
     return layout.reduce((maxY, item) => Math.max(maxY, (item.y ?? 0) + (item.h ?? 0)), 0);
   };
 
-  const addNewCard = async (type: 'link' | 'image' | 'note' | 'title' | 'map', extraData: Partial<CardData> = {}) => {
+  const addNewCard = async (type: 'link' | 'image' | 'note' | 'title' | 'map' | 'document', extraData: Partial<CardData> = {}) => {
     if (!user) return;
     setIsAddCardPopoverOpen(false);
 
@@ -434,6 +445,8 @@ export default function EditUserPage() {
         tag: null,
         tag_bg_color: null,
         tag_text_color: null,
+        price: null,
+        original_file_path: null,
     };
     
     switch (type) {
@@ -448,6 +461,9 @@ export default function EditUserPage() {
             break;
         case 'map':
             newCardData = { ...baseData, title: 'Mapa' };
+            break;
+        case 'document':
+             newCardData = { ...baseData, title: 'Documento PDF', content: 'Descrição do seu documento aqui.' };
             break;
         case 'image':
              newCardData = { ...baseData, title: '', ...extraData };
@@ -479,9 +495,10 @@ export default function EditUserPage() {
     if (error) {
         toast({ title: 'Erro', description: 'Não foi possível deletar o card.', variant: 'destructive' });
         console.error("Error deleting card:", error);
-        router.refresh(); 
+        // Force a full refresh from server data if deletion fails to avoid state mismatch
+        fetchPageData(user);
     }
-  }, [user, toast, router]);
+  }, [user, toast]);
 
   const handleImageFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0 || !user) {
@@ -516,18 +533,15 @@ export default function EditUserPage() {
     setCurrentLayout(newLayout);
   }, []);
   
-  // This effect syncs the layout state with the cards state.
-  // It runs when cards are added or deleted.
+  // This effect syncs the layout state when cards are added or deleted.
   useEffect(() => {
     if (loading || isInitialMount.current) return;
 
     const layoutMap = new Map(currentLayout.map(l => [l.i, l]));
     const cols = isMobile ? 2 : 4;
     
-    // Check for cards that don't have a layout entry
     const newCardsWithoutLayout = cards.filter(card => !layoutMap.has(card.id));
     
-    // Check for layout entries that don't have a card (stale entries)
     const cardIds = new Set(cards.map(c => c.id));
     const staleLayoutEntries = currentLayout.filter(l => !cardIds.has(l.i));
 
@@ -535,8 +549,20 @@ export default function EditUserPage() {
       let nextY = getNextY(currentLayout.filter(l => cardIds.has(l.i)));
 
       const newLayoutsForNewCards = newCardsWithoutLayout.map((card, index) => {
-        const defaultWidth = card.type === 'title' ? cols : 1;
-        const defaultHeight = card.type === 'title' ? 0.5 : 1;
+        let defaultWidth = 1;
+        let defaultHeight = 1;
+        
+        switch (card.type) {
+            case 'title':
+                defaultWidth = cols;
+                defaultHeight = 0.5;
+                break;
+            case 'document':
+                defaultWidth = cols;
+                defaultHeight = 1;
+                break;
+        }
+
         const layout = {
             i: card.id,
             x: (index % cols),
@@ -548,7 +574,6 @@ export default function EditUserPage() {
         return layout;
       });
 
-      // Filter out stale layout entries and add new ones
       const newLayout = [
         ...currentLayout.filter(l => cardIds.has(l.i)),
         ...newLayoutsForNewCards
@@ -556,7 +581,7 @@ export default function EditUserPage() {
       
       setCurrentLayout(newLayout);
     }
-  }, [cards, loading, isMobile]);
+  }, [cards, loading, isMobile, currentLayout]);
 
 
   const handleResizeCard = useCallback((cardId: string, w: number, h: number) => {
@@ -574,7 +599,12 @@ export default function EditUserPage() {
     const cardToEdit = cards.find(c => c.id === cardId);
     if (!cardToEdit) return;
     setEditingCard(cardToEdit);
-    setIsEditSheetOpen(true);
+
+    if (cardToEdit.type === 'document') {
+      setIsEditDocSheetOpen(true);
+    } else {
+      setIsEditSheetOpen(true);
+    }
   }, [cards]);
   
   const handleInviteSuccess = useCallback(async () => {
@@ -594,7 +624,7 @@ export default function EditUserPage() {
   
 
   const selectedEditingCard = selectedCardId ? cards.find(c => c.id === selectedCardId) : undefined;
-  const isEditableCardSelected = selectedEditingCard && selectedEditingCard.type !== 'title' && selectedEditingCard.type !== 'map';
+  const isEditableCardSelected = selectedEditingCard && selectedEditingCard.type !== 'title' && selectedEditingCard.type !== 'map' && selectedEditingCard.type !== 'document';
 
   if (loading) {
     return (
@@ -631,6 +661,7 @@ export default function EditUserPage() {
     { type: 'note', label: 'Nota', icon: <NoteIcon />, action: () => addNewCard('note') },
     { type: 'title', label: 'Título', icon: <TitleIcon />, action: () => addNewCard('title') },
     { type: 'map', label: 'Mapa', icon: <MapIcon />, action: () => addNewCard('map') },
+    { type: 'document', label: 'Documento', icon: <DocIcon />, action: () => addNewCard('document') }
   ];
 
   return (
@@ -826,6 +857,15 @@ export default function EditUserPage() {
             card={editingCard}
             onUpdate={handleUpdateCard}
         />
+        <EditDocumentSheet
+            isOpen={isEditDocSheetOpen}
+            onOpenChange={(isOpen) => {
+                setIsEditDocSheetOpen(isOpen)
+                if (!isOpen) setEditingCard(undefined)
+            }}
+            card={editingCard}
+            onUpdate={handleUpdateCard}
+        />
         <UpgradeModal
           isOpen={isUpgradeModalOpen}
           onOpenChange={setIsUpgradeModalOpen}
@@ -842,3 +882,5 @@ export default function EditUserPage() {
     </div>
   );
 }
+
+    
