@@ -30,6 +30,7 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
         link: card.link,
         content: card.content,
         background_image: card.background_image,
+        tag: card.tag,
       });
     } else {
       setFormData({});
@@ -86,6 +87,16 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
         return (
           <div className="space-y-4">
             <div>
+              <Label htmlFor="tag">Tag (Opcional)</Label>
+              <Input
+                id="tag"
+                name="tag"
+                value={formData.tag || ''}
+                onChange={handleChange}
+                placeholder="Ex: NOVO!, Promoção"
+              />
+            </div>
+            <div>
               <Label htmlFor="link">URL do Link</Label>
                <Input
                   id="link"
@@ -125,6 +136,16 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
       case 'image':
         return (
           <div className="space-y-4">
+            <div>
+              <Label htmlFor="tag">Tag (Opcional)</Label>
+              <Input
+                id="tag"
+                name="tag"
+                value={formData.tag || ''}
+                onChange={handleChange}
+                placeholder="Ex: Últimas Unidades"
+              />
+            </div>
             <div>
               <Label htmlFor="title">Legenda da Imagem (Opcional)</Label>
               <Input

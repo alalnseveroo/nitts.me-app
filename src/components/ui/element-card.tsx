@@ -81,6 +81,11 @@ const CardWrapper = ({ data, children, source }: { data: CardData, children: Rea
                     <ArrowUpRight className="h-4 w-4" />
                 </div>
             )}
+             {data.tag && (
+                <div className="absolute top-2 left-2 z-10 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full shadow-md pointer-events-none">
+                    {data.tag}
+                </div>
+            )}
         </div>
     );
 
@@ -115,8 +120,13 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
                            CardWrapper({ data, children: <></>, source })
                            .handleLinkClick(e)
                         }
-                    }} target="_blank" rel="noopener noreferrer" className="flex flex-col items-start justify-center text-left p-4 gap-2 h-full">
-                         <div className="flex-shrink-0" style={{ color: data.text_color ?? 'currentColor' }}>
+                    }} target="_blank" rel="noopener noreferrer" className="flex flex-col items-start justify-center text-left p-4 gap-2 h-full relative">
+                         {data.tag && (
+                            <div className="absolute top-2 left-2 z-10 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                                {data.tag}
+                            </div>
+                        )}
+                         <div className="flex-shrink-0 pt-6" style={{ color: data.text_color ?? 'currentColor' }}>
                             {Icon}
                         </div>
                         <div className="flex-grow flex flex-col items-start justify-center">

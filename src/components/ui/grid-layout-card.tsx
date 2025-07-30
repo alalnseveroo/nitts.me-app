@@ -96,6 +96,12 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
                     isMobile={isMobile}
                 />
             </div>
+
+            {card.tag && (
+                <div className="absolute top-2 left-2 z-10 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full shadow-md pointer-events-none">
+                    {card.tag}
+                </div>
+            )}
             
             {/* --- DESKTOP CONTROLS --- */}
             {!isMobile && (

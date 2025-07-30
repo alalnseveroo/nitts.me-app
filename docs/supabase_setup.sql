@@ -1,126 +1,77 @@
--- Adiciona o tipo ENUM para os papéis de usuário, para garantir a consistência dos dados.
-CREATE TYPE user_role AS ENUM (
-  'free',
-  'weekly',
-  'monthly',
-  'annual',
-  'lifetime',
-  'guest',
-  'ambassador'
-);
+-- Adiciona a coluna 'role' à tabela de perfis, se ela não existir.
+-- Define 'free' como o papel padrão para novos usuários.
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'free';
 
--- Adiciona o tipo ENUM para os status de assinatura.
-CREATE TYPE subscription_status AS ENUM (
-  'active',
-  'inactive',
-  'past_due',
-  'canceled'
-);
+-- Adiciona a coluna 'subscription_status' para rastrear o status do pagamento.
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_status TEXT;
+
+-- Adiciona a coluna 'subscription_ends_at' para saber quando a assinatura expira.
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_ends_at TIMESTAMPTZ;
+
+-- Adiciona a coluna 'tag' à tabela de cards, se ela não existir.
+-- Esta coluna armazenará o texto da tag de marketing.
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS tag TEXT;
 
 
--- Habilita a extensão pgcrypto se ainda não estiver habilitada (necessária para gen_random_uuid())
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+-- Habilitar Row Level Security (RLS) para as tabelas
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cards ENABLE ROW LEVEL SECURITY;
 
--- Tabela para armazenar perfis de usuário
-CREATE TABLE profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  username TEXT UNIQUE,
-  name TEXT,
-  bio TEXT,
-  avatar_url TEXT,
-  layout_config JSONB,
-  show_analytics BOOLEAN DEFAULT false,
-  fb_pixel_id TEXT,
-  ga_tracking_id TEXT,
-  
-  -- Coluna para o tipo de usuário
-  role user_role DEFAULT 'free',
-  
-  -- Colunas para gerenciar o status de pagamento
-  subscription_status subscription_status DEFAULT 'inactive',
-  subscription_ends_at TIMESTAMPTZ,
+-- Apagar políticas antigas para garantir que as novas sejam aplicadas corretamente
+DROP POLICY IF EXISTS "Public profiles are viewable by everyone." ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert their own profile." ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile." ON public.profiles;
+DROP POLICY IF EXISTS "Public cards are viewable by everyone." ON public.cards;
+DROP POLICY IF EXISTS "Users can insert their own cards." ON public.cards;
+DROP POLICY IF EXISTS "Users can update their own cards." ON public.cards;
+DROP POLICY IF EXISTS "Users can delete their own cards." ON public.cards;
 
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Tabela para armazenar os cards do usuário
-CREATE TABLE cards (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    type TEXT NOT NULL,
-    title TEXT,
-    content TEXT,
-    link TEXT,
-    background_image TEXT,
-    background_color TEXT,
-    text_color TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Tabela para registrar visualizações de página
-CREATE TABLE page_views (
-  id BIGSERIAL PRIMARY KEY,
-  profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Tabela para registrar cliques nos links
-CREATE TABLE link_clicks (
-  id BIGSERIAL PRIMARY KEY,
-  profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  card_id UUID NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
-  destination_url TEXT,
-  source TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-
--- Habilitar Row Level Security (RLS)
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE cards ENABLE ROW LEVEL SECURITY;
-
--- Políticas de RLS para a tabela de perfis
--- Permite leitura pública de perfis
+-- Políticas para a tabela 'profiles'
 CREATE POLICY "Public profiles are viewable by everyone."
-  ON profiles FOR SELECT
+  ON public.profiles FOR SELECT
   USING ( true );
--- Permite que usuários atualizem seu próprio perfil
-CREATE POLICY "Users can update their own profile."
-  ON profiles FOR UPDATE
+
+CREATE POLICY "Users can insert their own profile."
+  ON public.profiles FOR INSERT
+  WITH CHECK ( auth.uid() = id );
+
+CREATE POLICY "Users can update own profile."
+  ON public.profiles FOR UPDATE
   USING ( auth.uid() = id );
 
--- Políticas de RLS para a tabela de cards
--- Permite leitura pública de cards
-CREATE POLICY "Cards are viewable by everyone."
-  ON cards FOR SELECT
+-- Políticas para a tabela 'cards'
+CREATE POLICY "Public cards are viewable by everyone."
+  ON public.cards FOR SELECT
   USING ( true );
--- Permite que usuários insiram seus próprios cards
+
 CREATE POLICY "Users can insert their own cards."
-  ON cards FOR INSERT
+  ON public.cards FOR INSERT
   WITH CHECK ( auth.uid() = user_id );
--- Permite que usuários atualizem seus próprios cards
+
 CREATE POLICY "Users can update their own cards."
-  ON cards FOR UPDATE
-  USING ( auth.uid() = user_id );
--- Permite que usuários deletem seus próprios cards
-CREATE POLICY "Users can delete their own cards."
-  ON cards FOR DELETE
+  ON public.cards FOR UPDATE
   USING ( auth.uid() = user_id );
 
--- Políticas para o Storage (avatares)
--- Permite leitura pública de avatares
+CREATE POLICY "Users can delete their own cards."
+  ON public.cards FOR DELETE
+  USING ( auth.uid() = user_id );
+
+-- Políticas para o Storage (Avatares)
+-- Apagar políticas antigas para o bucket 'avatars'
+DROP POLICY IF EXISTS "Avatar images are publicly accessible." ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can upload an avatar." ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can update their own avatar." ON storage.objects;
+
+-- Criar novas políticas para o bucket 'avatars'
 CREATE POLICY "Avatar images are publicly accessible."
   ON storage.objects FOR SELECT
   USING ( bucket_id = 'avatars' );
--- Permite que usuários autenticados insiram/atualizem seus próprios avatares
+
 CREATE POLICY "Anyone can upload an avatar."
   ON storage.objects FOR INSERT
-  TO authenticated
-  WITH CHECK ( bucket_id = 'avatars' );
+  WITH CHECK ( bucket_id = 'avatars' AND auth.role() = 'authenticated' );
 
 CREATE POLICY "Anyone can update their own avatar."
   ON storage.objects FOR UPDATE
-  TO authenticated
   USING ( auth.uid() = owner )
   WITH CHECK ( bucket_id = 'avatars' );
