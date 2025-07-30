@@ -53,7 +53,7 @@ const getDomainIcon = (link: string | null) => {
     }
 }
 
-const CardWrapper = ({ data, children, source }: { data: CardData, children: React.ReactNode, source?: string }) => {
+const CardWrapper = ({ data, children, source }: { data: CardData, children: React.ReactNode, source?: string, onClick?: (e: React.MouseEvent) => void }) => {
     
     const handleLinkClick = async (e: React.MouseEvent) => {
         if (!data.link) return;
@@ -82,7 +82,13 @@ const CardWrapper = ({ data, children, source }: { data: CardData, children: Rea
                 </div>
             )}
              {data.tag && (
-                <div className="absolute top-2 left-2 z-10 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full shadow-md pointer-events-none">
+                <div 
+                    className="absolute top-2 left-2 z-10 text-xs font-bold px-2 py-1 rounded-lg shadow-md pointer-events-none"
+                    style={{
+                        backgroundColor: data.tag_bg_color || '#F97316',
+                        color: data.tag_text_color || '#FFFFFF',
+                    }}
+                >
                     {data.tag}
                 </div>
             )}
@@ -100,6 +106,25 @@ const CardWrapper = ({ data, children, source }: { data: CardData, children: Rea
 }
 
 export const ElementCard = ({ data, source }: ElementCardProps) => {
+    const handleCardClick = async (e: React.MouseEvent) => {
+        if (!data.link) return;
+        e.preventDefault();
+
+        try {
+            await supabase.from('link_clicks').insert({
+                profile_id: data.user_id,
+                card_id: data.id,
+                source: source,
+                destination_url: data.link,
+            });
+        } catch (error) {
+            console.error('Error logging link click:', error);
+        } finally {
+            window.open(data.link, '_blank');
+        }
+    };
+
+
     switch (data.type) {
         case 'link': {
             const Icon = getDomainIcon(data.link);
@@ -114,15 +139,15 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
                     )}
                     style={{ backgroundColor: data.background_color ?? undefined }}
                 >
-                    <a href={data.link || '#'} onClick={(e) => {
-                        e.preventDefault();
-                        if (data.link) {
-                           CardWrapper({ data, children: <></>, source })
-                           .handleLinkClick(e)
-                        }
-                    }} target="_blank" rel="noopener noreferrer" className="flex flex-col items-start justify-center text-left p-4 gap-2 h-full relative">
+                    <a href={data.link || '#'} onClick={handleCardClick} target="_blank" rel="noopener noreferrer" className="flex flex-col items-start justify-center text-left p-4 gap-2 h-full relative">
                          {data.tag && (
-                            <div className="absolute top-2 left-2 z-10 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                            <div 
+                                className="absolute top-2 left-2 z-10 text-xs font-bold px-2 py-1 rounded-lg shadow-md"
+                                style={{
+                                    backgroundColor: data.tag_bg_color || '#F97316',
+                                    color: data.tag_text_color || '#FFFFFF',
+                                }}
+                            >
                                 {data.tag}
                             </div>
                         )}

@@ -45,4 +45,6 @@ export type CardData = {
   text_color?: string | null;
   created_at: string;
   tag?: string | null;
+  tag_bg_color?: string | null;
+  tag_text_color?: string | null;
 };

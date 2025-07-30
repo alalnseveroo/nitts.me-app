@@ -98,7 +98,13 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
             </div>
 
             {card.tag && (
-                <div className="absolute top-2 left-2 z-10 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full shadow-md pointer-events-none">
+                <div 
+                    className="absolute top-2 left-2 z-10 text-xs font-bold px-2 py-1 rounded-lg shadow-md pointer-events-none"
+                    style={{
+                        backgroundColor: card.tag_bg_color || '#F97316',
+                        color: card.tag_text_color || '#FFFFFF',
+                    }}
+                >
                     {card.tag}
                 </div>
             )}
