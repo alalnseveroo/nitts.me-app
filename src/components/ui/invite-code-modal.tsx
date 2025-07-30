@@ -67,7 +67,7 @@ export const InviteCodeModal = ({ isOpen, onOpenChange, onSuccess }: InviteCodeM
           <DialogTitle>Ativar com Convite</DialogTitle>
           <DialogDescription>
             Insira o código de convite que você recebeu para ativar seu acesso.
-          </d_ocumentDescription>
+          </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-2">
           <Input

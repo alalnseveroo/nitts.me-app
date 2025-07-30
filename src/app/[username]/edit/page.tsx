@@ -128,6 +128,9 @@ export default function EditUserPage() {
           background_image: c.background_image,
           background_color: c.background_color,
           text_color: c.text_color,
+          tag: c.tag,
+          tag_bg_color: c.tag_bg_color,
+          tag_text_color: c.tag_text_color,
         };
         // Remove undefined keys to avoid sending them in upsert
         Object.keys(baseCard).forEach(key => baseCard[key as keyof typeof baseCard] === undefined && delete baseCard[key as keyof typeof baseCard]);
@@ -159,7 +162,7 @@ export default function EditUserPage() {
     if (!isInitialMount.current) {
         autoSaveChanges();
     }
-  }, [debouncedProfile, debouncedCards, debouncedLayout, debouncedShowAnalytics, user, profile, cards, currentLayout, showAnalytics, toast]);
+  }, [debouncedProfile, debouncedCards, debouncedLayout, debouncedShowAnalytics, user, toast]);
 
   const fetchViewCount = useCallback(async (period: 'today' | '7d' | '30d', profileId: string) => {
       if (!profileId) return;
@@ -449,6 +452,9 @@ export default function EditUserPage() {
         background_image: null,
         background_color: null,
         text_color: null,
+        tag: null,
+        tag_bg_color: null,
+        tag_text_color: null,
     };
     
     switch (type) {
