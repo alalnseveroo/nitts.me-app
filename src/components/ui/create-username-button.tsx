@@ -25,6 +25,8 @@ export const CreateUsernameButton = () => {
   }, [isActive]);
 
   useEffect(() => {
+    if (!isActive) return;
+
     const checkUsername = async () => {
       if (debouncedUsername.length < 3) {
         if (debouncedUsername.length > 0) {
@@ -53,7 +55,7 @@ export const CreateUsernameButton = () => {
     };
 
     checkUsername();
-  }, [debouncedUsername]);
+  }, [debouncedUsername, isActive]);
 
   const handleButtonClick = () => {
     setIsActive(true);
@@ -98,27 +100,31 @@ export const CreateUsernameButton = () => {
   }
 
   return (
-    <div className="relative flex h-12 w-80 items-center rounded-2xl bg-black px-2 shadow-lg transition-all duration-300">
-      <span className="pl-2 font-bold text-white">Nits.uno/</span>
-      <input
-        ref={inputRef}
-        type="text"
-        value={username}
-        onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-        className="h-full flex-1 bg-neutral-800 px-2 text-white placeholder-neutral-500 focus:outline-none"
-        placeholder="seu-usuario"
-      />
-      <div className="absolute right-20 w-6">{renderStatusIcon()}</div>
-      <button
-        onClick={handleDoneClick}
-        disabled={status !== 'available'}
-        className={cn(
-          "ml-2 h-9 rounded-xl px-4 font-bold text-white transition-colors",
-          status === 'available' ? "bg-green-500 hover:bg-green-600" : "bg-neutral-600 cursor-not-allowed"
-        )}
-      >
-        Feito
-      </button>
+    <div className="relative flex h-12 w-80 items-center rounded-2xl bg-black p-1 shadow-lg transition-all duration-300">
+        <span className="pl-2 pr-1 font-bold text-white">Nits.uno/</span>
+        <div className="relative flex-1">
+            <input
+                ref={inputRef}
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                className="h-full w-full rounded-lg bg-neutral-800 px-2 text-white placeholder-neutral-500 focus:outline-none"
+                placeholder="seu-usuario"
+            />
+            <div className="absolute inset-y-0 right-2 flex items-center">
+                {renderStatusIcon()}
+            </div>
+        </div>
+        <button
+            onClick={handleDoneClick}
+            disabled={status !== 'available'}
+            className={cn(
+                "ml-2 flex h-9 shrink-0 items-center justify-center rounded-xl px-4 font-bold text-white transition-colors",
+                status === 'available' ? "bg-green-500 hover:bg-green-600" : "bg-neutral-600 cursor-not-allowed"
+            )}
+        >
+            Feito
+        </button>
     </div>
   );
 };
