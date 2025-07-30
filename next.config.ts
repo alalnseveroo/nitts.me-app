@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  env: {
+    NEXT_PUBLIC_INVITE_CODE: process.env.INVITE_CODE,
+    NEXT_PUBLIC_INVITE_CODE_ACTIVE: process.env.INVITE_CODE_ACTIVE,
+  }
 };
 
 export default nextConfig;

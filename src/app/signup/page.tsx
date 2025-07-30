@@ -9,6 +9,10 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 
+const INVITE_CODE = process.env.NEXT_PUBLIC_INVITE_CODE || "nittsconvihonra";
+const INVITE_CODE_ACTIVE = process.env.NEXT_PUBLIC_INVITE_CODE_ACTIVE === "true";
+
+
 function SignUpComponent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -39,13 +43,16 @@ function SignUpComponent() {
     setError(null)
     setLoading(true)
     
+    const inviteParam = searchParams.get('inscri');
+    const role = (INVITE_CODE_ACTIVE && inviteParam === INVITE_CODE) ? 'guest' : 'free';
+
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email, 
       password,
       options: {
         data: {
           username: username,
-          role: 'free',
+          role: role,
         }
       }
     });
