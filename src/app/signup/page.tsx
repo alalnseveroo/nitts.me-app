@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import Link from 'next/link'
 import { useToast } from '@/hooks/use-toast'
+import type { UserRole } from '@/lib/types'
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -19,6 +20,7 @@ export default function SignUpPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
+  const [plan, setPlan] = useState<UserRole>('free')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [checkingSession, setCheckingSession] = useState(true);
@@ -27,6 +29,10 @@ export default function SignUpPage() {
     const prefilledUsername = searchParams.get('username');
     if (prefilledUsername) {
       setUsername(prefilledUsername);
+    }
+    const planParam = searchParams.get('plan') as UserRole | null;
+    if (planParam) {
+      setPlan(planParam);
     }
   }, [searchParams]);
 
@@ -79,6 +85,7 @@ export default function SignUpPage() {
       options: {
         data: {
           username: trimmedUsername,
+          role: plan,
         }
       }
     });

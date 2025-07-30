@@ -1,6 +1,15 @@
 
 import type { Layout } from 'react-grid-layout';
 
+export type UserRole = 
+  | 'free'
+  | 'weekly'
+  | 'monthly'
+  | 'annual'
+  | 'lifetime'
+  | 'guest'
+  | 'ambassador';
+
 export type Profile = {
   id: string;
   username: string | null;
@@ -11,6 +20,7 @@ export type Profile = {
   show_analytics: boolean | null;
   fb_pixel_id?: string | null;
   ga_tracking_id?: string | null;
+  role?: UserRole | null;
 };
 
 export type CardData = {
@@ -24,5 +34,4 @@ export type CardData = {
   background_color?: string | null;
   text_color?: string | null;
   created_at: string;
-  price?: string | null;
 };

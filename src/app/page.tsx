@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -91,7 +92,7 @@ export default function Home() {
               </div>
               <div className="space-x-4">
                 <Button asChild>
-                  <Link href="/signup">
+                  <Link href="/pricing">
                     Criar minha página
                   </Link>
                 </Button>
