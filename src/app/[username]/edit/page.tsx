@@ -538,50 +538,68 @@ export default function EditUserPage() {
     if (loading || isInitialMount.current) return;
 
     const layoutMap = new Map(currentLayout.map(l => [l.i, l]));
-    const cols = isMobile ? 2 : 4;
-    
-    const newCardsWithoutLayout = cards.filter(card => !layoutMap.has(card.id));
-    
     const cardIds = new Set(cards.map(c => c.id));
-    const staleLayoutEntries = currentLayout.filter(l => !cardIds.has(l.i));
+    
+    const newCards = cards.filter(card => !layoutMap.has(card.id));
+    const validCurrentLayout = currentLayout.filter(l => cardIds.has(l.i));
 
-    if (newCardsWithoutLayout.length > 0 || staleLayoutEntries.length > 0) {
-      let nextY = getNextY(currentLayout.filter(l => cardIds.has(l.i)));
+    if (newCards.length > 0) {
+      const cols = isMobile ? 2 : 4;
+      let nextY = getNextY(validCurrentLayout);
 
-      const newLayoutsForNewCards = newCardsWithoutLayout.map((card, index) => {
-        let defaultWidth = 1;
-        let defaultHeight = 1;
-        
-        switch (card.type) {
-            case 'title':
-                defaultWidth = cols;
-                defaultHeight = 0.5;
-                break;
-            case 'document':
-                defaultWidth = cols;
-                defaultHeight = 1;
-                break;
-        }
+      const newLayoutItems = newCards.map((card, index) => {
+          let w = 1, h = 1;
+          switch (card.type) {
+              case 'title':
+                  w = cols; h = 0.5; break;
+              case 'document':
+                  w = cols; h = 1; break;
+              case 'image':
+                  w = 1; h = 1; break; // Default, can be changed by user
+              default:
+                  w = 2; h = 1; // Default for link, note etc on mobile
+                  if (!isMobile) w = 2;
+          }
 
-        const layout = {
-            i: card.id,
-            x: (index % cols),
-            y: nextY,
-            w: defaultWidth,
-            h: defaultHeight,
-        };
-        nextY += defaultHeight;
-        return layout;
+          // Simple packing: find next available spot
+          let placeAtX = 0;
+          let placeAtY = nextY;
+          // This is a naive packing, can be improved.
+          // For now, just place at the bottom.
+          if (validCurrentLayout.length > 0) {
+              const lastItem = validCurrentLayout[validCurrentLayout.length -1];
+              placeAtX = (lastItem.x + lastItem.w) % cols;
+              placeAtY = (placeAtX === 0) ? nextY : lastItem.y;
+          }
+
+
+          const layoutItem = {
+              i: card.id,
+              x: placeAtX,
+              y: placeAtY,
+              w: w,
+              h: h,
+          };
+          
+          if(placeAtX + w > cols) {
+            // new row
+            layoutItem.x = 0;
+            layoutItem.y = nextY;
+            nextY += h;
+          } else if (index === newCards.length -1) {
+             nextY += h;
+          }
+
+
+          return layoutItem;
       });
 
-      const newLayout = [
-        ...currentLayout.filter(l => cardIds.has(l.i)),
-        ...newLayoutsForNewCards
-      ];
-      
-      setCurrentLayout(newLayout);
+      setCurrentLayout(prev => [...validCurrentLayout, ...newLayoutItems]);
+    } else if (validCurrentLayout.length !== currentLayout.length) {
+      // Handles deletion
+      setCurrentLayout(validCurrentLayout);
     }
-  }, [cards, loading, isMobile, currentLayout]);
+  }, [cards, loading, isMobile]);
 
 
   const handleResizeCard = useCallback((cardId: string, w: number, h: number) => {
