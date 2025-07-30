@@ -250,8 +250,10 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
       case 'note':
         const isLink = card.type === 'link';
         const isNote = card.type === 'note';
+        const isImage = card.type === 'image';
+
         return (
-          <Accordion type="multiple" className="w-full space-y-2" defaultValue={isNote ? ['content'] : undefined}>
+          <Accordion type="multiple" className="w-full space-y-2" defaultValue={isNote ? ['content'] : ['tag']}>
             <AccordionItem value="tag">
               <AccordionTrigger>
                 <div className="flex items-center gap-3">
@@ -320,7 +322,7 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
               </AccordionItem>
             )}
             
-            {!isNote && (
+            {(isLink || isImage) && (
               <AccordionItem value="title">
                 <AccordionTrigger>
                   <div className="flex items-center gap-3">
