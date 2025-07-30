@@ -247,9 +247,11 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
         );
       case 'link':
       case 'image':
+      case 'note':
         const isLink = card.type === 'link';
+        const isNote = card.type === 'note';
         return (
-          <Accordion type="multiple" className="w-full space-y-2">
+          <Accordion type="multiple" className="w-full space-y-2" defaultValue={isNote ? ['content'] : undefined}>
             <AccordionItem value="tag">
               <AccordionTrigger>
                 <div className="flex items-center gap-3">
@@ -318,50 +320,50 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
               </AccordionItem>
             )}
             
-            <AccordionItem value="title">
-              <AccordionTrigger>
-                 <div className="flex items-center gap-3">
-                  <Text className="h-5 w-5" />
-                  <span className="font-semibold">{isLink ? "Título" : "Legenda"}</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pt-2">
-                <Input
-                  id="title"
-                  name="title"
-                  value={formData.title || ''}
-                  onChange={handleChange}
-                  placeholder={isLink ? "O título será preenchido automaticamente" : "Minha Viagem ao Rio"}
-                />
-                 {!isLink && (
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Este texto aparecerá sobre a imagem.
-                    </p>
-                  )}
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        );
-      case 'note':
-         return (
-          <Accordion type="single" collapsible className="w-full" defaultValue="content">
-            <AccordionItem value="content">
-              <AccordionTrigger>
-                <div className="flex items-center gap-3">
-                  <Edit className="h-5 w-5" />
-                  <span className="font-semibold">Conteúdo da Nota</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pt-2">
-                <Textarea
-                  id="content"
-                  name="content"
-                  value={formData.content || ''}
-                  onChange={handleChange}
-                  rows={8}
-                />
-              </AccordionContent>
-            </AccordionItem>
+            {!isNote && (
+              <AccordionItem value="title">
+                <AccordionTrigger>
+                  <div className="flex items-center gap-3">
+                    <Text className="h-5 w-5" />
+                    <span className="font-semibold">{isLink ? "Título" : "Legenda"}</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pt-2">
+                  <Input
+                    id="title"
+                    name="title"
+                    value={formData.title || ''}
+                    onChange={handleChange}
+                    placeholder={isLink ? "O título será preenchido automaticamente" : "Minha Viagem ao Rio"}
+                  />
+                  {!isLink && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Este texto aparecerá sobre a imagem.
+                      </p>
+                    )}
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
+            {isNote && (
+              <AccordionItem value="content">
+                <AccordionTrigger>
+                  <div className="flex items-center gap-3">
+                    <Edit className="h-5 w-5" />
+                    <span className="font-semibold">Conteúdo da Nota</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pt-2">
+                  <Textarea
+                    id="content"
+                    name="content"
+                    value={formData.content || ''}
+                    onChange={handleChange}
+                    rows={8}
+                  />
+                </AccordionContent>
+              </AccordionItem>
+            )}
           </Accordion>
         );
       case 'map':

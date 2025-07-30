@@ -185,7 +185,7 @@ export const ElementCard = ({ data, source }: ElementCardProps) => {
             return (
                  <CardWrapper data={data} source={source}>
                     <Card
-                        className="w-full h-full p-4 flex items-center justify-center text-center"
+                        className="w-full h-full p-4 flex items-center justify-center text-center relative"
                         style={{ 
                             backgroundColor: data.background_color ?? '#FFFFFF',
                             color: data.text_color ?? '#000000'
