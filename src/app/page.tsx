@@ -92,7 +92,7 @@ export default function Home() {
               </div>
               <div className="space-x-4">
                 <Button asChild>
-                  <Link href="/pricing">
+                  <Link href="/signup">
                     Criar minha página
                   </Link>
                 </Button>
