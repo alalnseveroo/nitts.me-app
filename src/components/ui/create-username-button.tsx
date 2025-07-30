@@ -92,8 +92,8 @@ export const CreateUsernameButton = () => {
       ref={containerRef}
       onClick={handleButtonClick}
       className={cn(
-        "group relative flex h-12 items-center justify-center overflow-hidden rounded-2xl bg-black px-6 text-white shadow-lg transition-all duration-300 ease-in-out",
-        isActive ? 'w-80' : 'hover:w-64 cursor-pointer'
+        "group relative flex h-12 items-center justify-center overflow-hidden rounded-2xl bg-black text-white shadow-lg transition-all duration-300 ease-in-out",
+        isActive ? 'w-80' : 'w-auto px-6 hover:w-64 cursor-pointer'
       )}
     >
       {!isActive ? (
