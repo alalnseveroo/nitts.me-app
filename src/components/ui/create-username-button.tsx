@@ -67,21 +67,6 @@ export const CreateUsernameButton = () => {
     }
   };
 
-  const renderStatusIcon = () => {
-    switch (status) {
-      case 'checking':
-        return <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />;
-      case 'available':
-        return <CheckCircle2 className="h-5 w-5 text-green-500" />;
-      case 'unavailable':
-        return <XCircle className="h-5 w-5 text-red-500" />;
-      case 'invalid':
-         return <XCircle className="h-5 w-5 text-red-500" />;
-      default:
-        return null;
-    }
-  };
-
   if (!isActive) {
     return (
       <button
@@ -102,7 +87,7 @@ export const CreateUsernameButton = () => {
   return (
     <div className="relative flex h-12 w-80 items-center rounded-2xl bg-black p-1 shadow-lg transition-all duration-300">
         <span className="pl-2 pr-1 font-bold text-white">Nits.uno/</span>
-        <div className="relative flex-1">
+        <div className="relative flex-1 h-full">
             <input
                 ref={inputRef}
                 type="text"
@@ -111,15 +96,12 @@ export const CreateUsernameButton = () => {
                 className="h-full w-full rounded-lg bg-neutral-800 px-2 text-white placeholder-neutral-500 focus:outline-none"
                 placeholder="seu-usuario"
             />
-            <div className="absolute inset-y-0 right-2 flex items-center">
-                {renderStatusIcon()}
-            </div>
         </div>
         <button
             onClick={handleDoneClick}
             disabled={status !== 'available'}
             className={cn(
-                "ml-2 flex h-9 shrink-0 items-center justify-center rounded-xl px-4 font-bold text-white transition-colors",
+                "ml-2 flex h-full shrink-0 items-center justify-center rounded-xl px-4 font-bold text-white transition-colors duration-300",
                 status === 'available' ? "bg-green-500 hover:bg-green-600" : "bg-neutral-600 cursor-not-allowed"
             )}
         >
