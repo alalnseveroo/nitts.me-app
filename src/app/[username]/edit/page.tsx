@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Eye, Plus } from 'lucide-react'
+import { Settings, Share, Upload, Loader2, LogOut, KeyRound, UserRound, Eye, Plus, FileText } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '@/components/ui/skeleton'
 import GridLayoutComponent from '@/components/ui/grid-layout'
@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/popover"
 import { LinkIcon, ImageIcon, NoteIcon, TitleIcon, MapIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
+import { EditDocumentSheet } from '@/components/ui/edit-document-sheet'
 
 const getSocialConfig = (url: string) => {
     try {
@@ -81,6 +82,7 @@ export default function EditUserPage() {
   const [rowHeight, setRowHeight] = useState(100);
   const [editingCard, setEditingCard] = useState<CardData | undefined>(undefined);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [isDocumentSheetOpen, setIsDocumentSheetOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [viewCount, setViewCount] = useState<number | null>(null)
@@ -123,9 +125,6 @@ export default function EditUserPage() {
           background_color: c.background_color,
           text_color: c.text_color,
           price: c.price,
-          original_file_path: c.original_file_path,
-          processed_file_path: c.processed_file_path,
-          obscuration_settings: c.obscuration_settings,
         };
         // Remove undefined keys to avoid sending them in upsert
         Object.keys(baseCard).forEach(key => baseCard[key as keyof typeof baseCard] === undefined && delete baseCard[key as keyof typeof baseCard]);
@@ -209,8 +208,9 @@ export default function EditUserPage() {
   const handleSelectCard = useCallback((cardId: string) => {
     if (isMobile) {
       const cardToEdit = cards.find(c => c.id === cardId);
+      setEditingCard(cardToEdit);
       if (cardToEdit?.type === 'document') {
-          setEditingCard(cardToEdit);
+          setIsDocumentSheetOpen(true);
       } else {
           setSelectedCardId(prevId => (prevId === cardId ? null : cardId));
       }
@@ -429,7 +429,7 @@ export default function EditUserPage() {
     return layout.reduce((maxY, item) => Math.max(maxY, (item.y ?? 0) + (item.h ?? 0)), 0);
   };
 
-  const addNewCard = async (type: 'link' | 'image' | 'note' | 'title' | 'map', extraData: Partial<CardData> = {}) => {
+  const addNewCard = async (type: 'link' | 'image' | 'note' | 'title' | 'map' | 'document', extraData: Partial<CardData> = {}) => {
     if (!user) return;
     setIsAddCardPopoverOpen(false);
 
@@ -445,9 +445,6 @@ export default function EditUserPage() {
         background_color: null,
         text_color: null,
         price: null,
-        original_file_path: null,
-        processed_file_path: null,
-        obscuration_settings: null,
     };
     
     switch (type) {
@@ -466,6 +463,9 @@ export default function EditUserPage() {
         case 'image':
              newCardData = { ...baseData, title: '', ...extraData };
             break;
+        case 'document':
+             newCardData = { ...baseData, title: 'Novo Documento', content: 'Descrição do seu documento digital.', price: 'R$ 0,00' };
+            break;
         default:
              toast({ title: 'Erro', description: 'Tipo de card desconhecido.', variant: 'destructive'});
             return;
@@ -480,8 +480,8 @@ export default function EditUserPage() {
     }
     
     const cols = isMobile ? 2 : 4;
-    let w = type === 'title' ? cols : 1;
-    let h = type === 'title' ? 0.5 : 1;
+    let w = type === 'title' ? cols : (type === 'document' ? 2 : 1);
+    let h = type === 'title' ? 0.5 : (type === 'document' ? 2 : 1);
     
     const newLayoutItem: Layout = { 
       i: newCard.id, 
@@ -493,6 +493,11 @@ export default function EditUserPage() {
 
     setCards(currentCards => [...currentCards, newCard as CardData]);
     setCurrentLayout(currentLayout => [...currentLayout, newLayoutItem]);
+    
+    if (type === 'document') {
+      setEditingCard(newCard as CardData);
+      setIsDocumentSheetOpen(true);
+    }
   }
 
   const handleDeleteCard = useCallback(async (cardId: string) => {
@@ -563,10 +568,12 @@ export default function EditUserPage() {
   const handleEditCard = useCallback((cardId: string) => {
     const cardToEdit = cards.find(c => c.id === cardId);
     if (!cardToEdit) return;
+    setEditingCard(cardToEdit);
 
-    if (cardToEdit.type !== 'note') {
-        setEditingCard(cardToEdit);
-        setIsEditSheetOpen(true);
+    if (cardToEdit.type === 'document') {
+      setIsDocumentSheetOpen(true);
+    } else {
+      setIsEditSheetOpen(true);
     }
   }, [cards]);
   
@@ -749,13 +756,13 @@ export default function EditUserPage() {
             <div className="flex justify-center items-center gap-2">
               <Popover open={isAddCardPopoverOpen} onOpenChange={setIsAddCardPopoverOpen}>
                 <PopoverTrigger asChild>
-                  <Button className="group bg-white text-black hover:bg-white/90 h-12 w-12 hover:w-36 rounded-2xl shadow-lg relative p-0 transition-all duration-300 ease-in-out flex items-center justify-center">
-                      <div className="flex items-center justify-center">
-                         <div className="transition-all duration-300 group-hover:mr-16">
-                            <Plus className="h-6 w-6 shrink-0"/>
-                         </div>
-                         <span className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-300">Adicionar</span>
-                     </div>
+                  <Button className="group bg-white text-black hover:bg-white/90 h-12 w-12 hover:w-36 rounded-2xl shadow-lg p-0 transition-all duration-300 ease-in-out flex items-center justify-center">
+                    <div className="flex items-center justify-center gap-2">
+                       <div className="transition-transform duration-300 group-hover:-translate-x-5">
+                          <Plus className="h-6 w-6 shrink-0"/>
+                       </div>
+                       <span className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-base font-medium -translate-x-full group-hover:translate-x-2.5">Adicionar</span>
+                   </div>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-4 mb-2 rounded-2xl" side="top" align="center">
@@ -764,7 +771,6 @@ export default function EditUserPage() {
                         <div key={option.type} className="flex flex-col items-center gap-2 cursor-pointer" onClick={option.action}>
                            <div
                               className="w-16 h-16 rounded-2xl bg-secondary border flex items-center justify-center"
-                              
                            >
                             {isUploadingImage && option.type === 'image' ? <Loader2 className="h-6 w-6 animate-spin"/> : option.icon}
                           </div>
@@ -797,7 +803,19 @@ export default function EditUserPage() {
         
         <EditCardSheet
             isOpen={isEditSheetOpen}
-            onOpenChange={setIsEditSheetOpen}
+            onOpenChange={(isOpen) => {
+              setIsEditSheetOpen(isOpen)
+              if (!isOpen) setEditingCard(undefined)
+            }}
+            card={editingCard}
+            onUpdate={handleUpdateCard}
+        />
+        <EditDocumentSheet
+            isOpen={isDocumentSheetOpen}
+            onOpenChange={(isOpen) => {
+              setIsDocumentSheetOpen(isOpen);
+              if (!isOpen) setEditingCard(undefined);
+            }}
             card={editingCard}
             onUpdate={handleUpdateCard}
         />
