@@ -111,7 +111,8 @@ export default function EditUserPage() {
           ...l, x: l.x ?? 0, y: l.y ?? 0, w: l.w ?? 1, h: l.h ?? 1,
       }));
 
-      const cardsToUpsert = cards.map(c => ({
+      const cardsToUpsert = cards.map(c => {
+        const baseCard: Partial<CardData> = {
           id: c.id,
           user_id: c.user_id,
           type: c.type,
@@ -121,7 +122,15 @@ export default function EditUserPage() {
           background_image: c.background_image,
           background_color: c.background_color,
           text_color: c.text_color,
-      }));
+          price: c.price,
+          original_file_path: c.original_file_path,
+          processed_file_path: c.processed_file_path,
+          obscuration_settings: c.obscuration_settings,
+        };
+        // Remove undefined keys to avoid sending them in upsert
+        Object.keys(baseCard).forEach(key => baseCard[key as keyof typeof baseCard] === undefined && delete baseCard[key as keyof typeof baseCard]);
+        return baseCard;
+      });
       
       const { error: cardsError } = await supabase.from('cards').upsert(cardsToUpsert);
       
@@ -199,9 +208,14 @@ export default function EditUserPage() {
 
   const handleSelectCard = useCallback((cardId: string) => {
     if (isMobile) {
-      setSelectedCardId(prevId => (prevId === cardId ? null : cardId));
+      const cardToEdit = cards.find(c => c.id === cardId);
+      if (cardToEdit?.type === 'document') {
+          setEditingCard(cardToEdit);
+      } else {
+          setSelectedCardId(prevId => (prevId === cardId ? null : cardId));
+      }
     }
-  }, [isMobile]);
+  }, [isMobile, cards]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -296,19 +310,18 @@ export default function EditUserPage() {
           const finalLayout = fetchedCards.map((card, index) => {
               const existingLayout = layoutMap.get(card.id);
               const cols = isMobile ? 2 : 4;
-
+              const defaultWidth = card.type === 'title' ? cols : (card.type === 'document' ? 2 : 1);
+              const defaultHeight = card.type === 'title' ? 0.5 : (card.type === 'document' ? 2 : 1);
               if (existingLayout) {
                   return {
                       ...existingLayout,
                       i: String(existingLayout.i), 
                       x: existingLayout.x ?? 0,
                       y: existingLayout.y ?? index,
-                      w: existingLayout.w ?? (card.type === 'title' ? cols : 1),
-                      h: existingLayout.h ?? (card.type === 'title' ? 0.5 : 1),
+                      w: existingLayout.w ?? defaultWidth,
+                      h: existingLayout.h ?? defaultHeight,
                   };
               }
-              const defaultWidth = card.type === 'title' ? cols : 1;
-              const defaultHeight = card.type === 'title' ? 0.5 : 1;
               return { i: card.id, x: (index % cols), y: Math.floor(index / cols), w: defaultWidth, h: defaultHeight };
           });
           setCurrentLayout(finalLayout);
@@ -416,37 +429,48 @@ export default function EditUserPage() {
     return layout.reduce((maxY, item) => Math.max(maxY, (item.y ?? 0) + (item.h ?? 0)), 0);
   };
 
-  const addNewCard = async (type: string, extraData: Partial<CardData> = {}) => {
+  const addNewCard = async (type: 'link' | 'image' | 'note' | 'title' | 'map', extraData: Partial<CardData> = {}) => {
     if (!user) return;
     setIsAddCardPopoverOpen(false);
 
-    let newCardData: Omit<CardData, 'id' | 'created_at' | 'user_id'> & { user_id: string };
+    let newCardData: Omit<CardData, 'id' | 'created_at'>;
 
     const baseData = {
         user_id: user.id,
+        type: type,
+        title: null,
+        content: null,
+        link: null,
+        background_image: null,
+        background_color: null,
+        text_color: null,
+        price: null,
+        original_file_path: null,
+        processed_file_path: null,
+        obscuration_settings: null,
     };
     
     switch (type) {
         case 'title':
-            newCardData = { ...baseData, type: 'title', title: 'Novo Título' };
+            newCardData = { ...baseData, title: 'Novo Título' };
             break;
         case 'link':
-            newCardData = { ...baseData, type: 'link', title: 'Novo Link' };
+            newCardData = { ...baseData, title: 'Novo Link' };
             break;
         case 'note':
-            newCardData = { ...baseData, type: 'note', content: 'Sua nota aqui', background_color: '#FFFFFF', text_color: '#000000' };
+            newCardData = { ...baseData, content: 'Sua nota aqui', background_color: '#FFFFFF', text_color: '#000000' };
             break;
         case 'map':
-            newCardData = { ...baseData, type: 'map', title: 'Mapa' };
+            newCardData = { ...baseData, title: 'Mapa' };
             break;
         case 'image':
-             newCardData = { ...baseData, type: 'image', title: '', ...extraData };
+             newCardData = { ...baseData, title: '', ...extraData };
             break;
         default:
              toast({ title: 'Erro', description: 'Tipo de card desconhecido.', variant: 'destructive'});
             return;
     }
-    
+
     const { data: newCard, error } = await supabase.from('cards').insert([newCardData]).select().single();
 
     if(error || !newCard) {
@@ -722,13 +746,15 @@ export default function EditUserPage() {
 
         {isMobile && !selectedCardId && (
           <footer className="fixed bottom-0 left-0 right-0 p-4 z-50">
-            <div className="flex justify-center items-center gap-2 group">
+            <div className="flex justify-center items-center gap-2">
               <Popover open={isAddCardPopoverOpen} onOpenChange={setIsAddCardPopoverOpen}>
                 <PopoverTrigger asChild>
-                  <Button className="bg-white text-black hover:bg-white/90 h-12 w-12 rounded-2xl shadow-lg relative p-0">
-                     <div className="flex items-center justify-center transition-all duration-300 group-hover:w-28">
-                         <Plus className="h-6 w-6 shrink-0"/>
-                         <span className="ml-2 opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0">Adicionar</span>
+                  <Button className="group bg-white text-black hover:bg-white/90 h-12 w-12 hover:w-36 rounded-2xl shadow-lg relative p-0 transition-all duration-300 ease-in-out flex items-center justify-center">
+                      <div className="flex items-center justify-center">
+                         <div className="transition-all duration-300 group-hover:mr-16">
+                            <Plus className="h-6 w-6 shrink-0"/>
+                         </div>
+                         <span className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-300">Adicionar</span>
                      </div>
                   </Button>
                 </PopoverTrigger>
