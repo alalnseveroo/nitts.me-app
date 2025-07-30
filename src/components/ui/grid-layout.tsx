@@ -66,23 +66,19 @@ const GridLayoutComponent = ({
             compactType="vertical"
             draggableHandle=".drag-handle"
         >
-            {cards.map(card => {
-                const layoutItem = layoutConfig.find(l => l.i === card.id);
-                if (!layoutItem) return null;
-                return (
-                    <div key={card.id} data-grid={layoutItem}>
-                        <GridLayoutCard
-                            card={card}
-                            onUpdate={onUpdateCard}
-                            onDelete={onDeleteCard}
-                            onEdit={onEditCard}
-                            isMobile={isMobile}
-                            isSelected={selectedCardId === card.id}
-                            onSelectCard={onSelectCard}
-                        />
-                    </div>
-                )
-            })}
+            {cards.map(card => (
+                <div key={card.id}>
+                    <GridLayoutCard
+                        card={card}
+                        onUpdate={onUpdateCard}
+                        onDelete={onDeleteCard}
+                        onEdit={onEditCard}
+                        isMobile={isMobile}
+                        isSelected={selectedCardId === card.id}
+                        onSelectCard={onSelectCard}
+                    />
+                </div>
+            ))}
         </ResponsiveGridLayout>
     );
 };

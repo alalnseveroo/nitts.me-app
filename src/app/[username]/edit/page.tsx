@@ -292,7 +292,6 @@ export default function EditUserPage() {
         fetchViewCount('7d', profileData.id);
       }
 
-
       const { data: cardsData, error: cardsError } = await supabase
         .from('cards')
         .select('*')
@@ -301,32 +300,12 @@ export default function EditUserPage() {
       if (cardsError) {
           console.error('Error fetching cards:', cardsError);
           setCards([]);
-          setCurrentLayout([]);
       } else {
           const fetchedCards = cardsData || [];
           setCards(fetchedCards as CardData[]);
 
           const savedLayout = profileData.layout_config || [];
-          const layoutMap = new Map(savedLayout.map(l => [l.i, l]));
-          
-          const finalLayout = fetchedCards.map((card, index) => {
-              const existingLayout = layoutMap.get(card.id);
-              const cols = isMobile ? 2 : 4;
-              const defaultWidth = card.type === 'title' ? cols : 1;
-              const defaultHeight = card.type === 'title' ? 0.5 : 1;
-              if (existingLayout) {
-                  return {
-                      ...existingLayout,
-                      i: String(existingLayout.i), 
-                      x: existingLayout.x ?? 0,
-                      y: existingLayout.y ?? index,
-                      w: existingLayout.w ?? defaultWidth,
-                      h: existingLayout.h ?? defaultHeight,
-                  };
-              }
-              return { i: card.id, x: (index % cols), y: Math.floor(index / cols), w: defaultWidth, h: defaultHeight };
-          });
-          setCurrentLayout(finalLayout);
+          setCurrentLayout(savedLayout);
       }
       
       setLoading(false);
@@ -515,12 +494,8 @@ export default function EditUserPage() {
     if (error) {
         toast({ title: 'Erro', description: 'Não foi possível deletar o card.', variant: 'destructive' });
         console.error("Error deleting card:", error);
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session?.user) {
-            // Re-fetch data to re-sync state with db
-            router.refresh();
-        }
-        return; 
+        // Re-fetch data to re-sync state with db. A page refresh is a simple way.
+        router.refresh(); 
     }
   }, [user, toast, router]);
 
@@ -589,6 +564,30 @@ export default function EditUserPage() {
       toast({ title: "Sucesso!", description: "Seu acesso foi liberado. Bem-vindo(a)!" });
 
   }, [user, toast]);
+  
+  const getLayoutConfig = () => {
+    if (!cards || cards.length === 0) return [];
+    
+    const layoutMap = new Map(currentLayout.map(l => [l.i, l]));
+
+    return cards.map((card, index) => {
+        const existingLayout = layoutMap.get(card.id);
+        const cols = isMobile ? 2 : 4;
+        const defaultWidth = card.type === 'title' ? cols : 1;
+        const defaultHeight = card.type === 'title' ? 0.5 : 1;
+        if (existingLayout) {
+            return {
+                ...existingLayout,
+                i: String(existingLayout.i),
+                x: existingLayout.x ?? 0,
+                y: existingLayout.y ?? Infinity, // Default to bottom
+                w: existingLayout.w ?? defaultWidth,
+                h: existingLayout.h ?? defaultHeight,
+            };
+        }
+        return { i: card.id, x: (index % cols), y: Infinity, w: defaultWidth, h: defaultHeight };
+    });
+  };
 
   const selectedEditingCard = selectedCardId ? cards.find(c => c.id === selectedCardId) : undefined;
   const isEditableCardSelected = selectedEditingCard && selectedEditingCard.type !== 'title' && selectedEditingCard.type !== 'map';
@@ -749,7 +748,7 @@ export default function EditUserPage() {
                   )}
                   <GridLayoutComponent
                       cards={cards}
-                      layoutConfig={currentLayout}
+                      layoutConfig={getLayoutConfig()}
                       onLayoutChange={handleLayoutChange}
                       onUpdateCard={handleUpdateCard}
                       onDeleteCard={handleDeleteCard}
