@@ -1,86 +1,55 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
-import Link from 'next/link'
 import { useToast } from '@/hooks/use-toast'
-import type { UserRole } from '@/lib/types'
+import { Loader2 } from 'lucide-react'
 
-export default function SignUpPage() {
+function SignUpComponent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
+  
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [checkingSession, setCheckingSession] = useState(true);
+  
+  const isFormValid = email.trim() !== '' && password.trim() !== '';
 
   useEffect(() => {
     const prefilledUsername = searchParams.get('username');
     if (prefilledUsername) {
       setUsername(prefilledUsername);
+    } else {
+      // Redirect if no username is provided, as it's now required
+      router.push('/');
     }
-  }, [searchParams]);
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('username')
-          .eq('id', session.user.id)
-          .single();
-        if (profile?.username) {
-          window.location.href = `/${profile.username}/edit`;
-          return;
-        }
-      }
-      setCheckingSession(false);
-    };
-    checkSession();
-  }, [router]);
+  }, [searchParams, router]);
   
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (!isFormValid) return;
+
     setError(null)
     setLoading(true)
-    const trimmedUsername = username.trim().toLowerCase();
     
-    const { data: existingProfile, error: existingProfileError } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('username', trimmedUsername)
-        .single();
-
-    if (existingProfileError && existingProfileError.code !== 'PGRST116') {
-        setError('Erro ao verificar o nome de usuário. Tente novamente.');
-        setLoading(false);
-        return;
-    }
-
-    if (existingProfile) {
-        setError('Este nome de usuário já está em uso. Por favor, escolha outro.');
-        setLoading(false);
-        return;
-    }
-
+    // The username check is already done on the homepage button, 
+    // but a server-side check is always a good practice for robustness.
+    // For this flow, we'll trust the client-side check.
+    
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email, 
       password,
       options: {
         data: {
-          username: trimmedUsername,
-          role: 'free', // All users sign up as free
+          username: username,
+          role: 'free',
         }
       }
     });
@@ -104,61 +73,70 @@ export default function SignUpPage() {
     router.push(`/login`);
   };
 
-  if (checkingSession) {
+  if (!username) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
-        <Card className="w-full max-w-sm">
-          <CardHeader>
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-2"><Skeleton className="h-4 w-1/5" /><Skeleton className="h-10 w-full" /></div>
-            <div className="grid gap-2"><Skeleton className="h-4 w-1/5" /><Skeleton className="h-10 w-full" /></div>
-            <div className="grid gap-2"><Skeleton className="h-4 w-1/5" /><Skeleton className="h-10 w-full" /></div>
-          </CardContent>
-          <CardFooter className="flex flex-col">
-            <Skeleton className="h-10 w-full" />
-          </CardFooter>
-        </Card>
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl">Crie sua página</CardTitle>
-          <CardDescription>Comece a centralizar seus links agora mesmo.</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSignUp}>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="username">Usuário</Label>
-              <Input id="username" type="text" placeholder="seu-usuario" value={username} onChange={(e) => setUsername(e.target.value)} required disabled={loading} />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input id="password" type="password" placeholder="••••••••" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Criando sua página...' : 'Criar conta'}</Button>
-            <p className="text-center text-sm text-muted-foreground">
-              Já tem uma conta?{' '}
-              <Link href="/login" className="font-semibold text-primary hover:underline">
-                Faça login
-              </Link>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
+        <div className="w-full max-w-sm text-center">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-foreground mb-4 break-words">
+                Seu @{username} recebeu o selo visionário!
+            </h1>
+            <p className="text-muted-foreground text-lg mb-8">
+                E com ele diversos benefícios. Cadastre-se agora mesmo.
             </p>
-          </CardFooter>
-        </form>
-      </Card>
+
+            <form onSubmit={handleSignUp} className="space-y-4">
+                <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="Seu melhor e-mail" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    required 
+                    disabled={loading}
+                    className="h-14 bg-gray-100 border-none rounded-2xl text-center text-base"
+                />
+                <Input 
+                    id="password" 
+                    type="password" 
+                    placeholder="Crie uma senha forte" 
+                    minLength={6} 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    required 
+                    disabled={loading}
+                    className="h-14 bg-gray-100 border-none rounded-2xl text-center text-base"
+                />
+                
+                {error && <p className="text-red-500 text-sm">{error}</p>}
+                
+                <Button 
+                    type="submit" 
+                    className="w-full h-14 rounded-2xl text-lg font-bold transition-colors duration-300"
+                    disabled={!isFormValid || loading}
+                    style={{
+                        backgroundColor: isFormValid && !loading ? '#000000' : '#E5E7EB',
+                        color: isFormValid && !loading ? '#FFFFFF' : '#A1A1AA'
+                    }}
+                >
+                    {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : 'Finalizar Cadastro'}
+                </Button>
+            </form>
+        </div>
     </div>
+  )
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <SignUpComponent />
+    </Suspense>
   )
 }
