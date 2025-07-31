@@ -486,9 +486,6 @@ export default function EditUserPage() {
 
   const handleDeleteCard = useCallback(async (cardId: string) => {
     if (!user) return;
-    
-    setCards(prev => prev.filter(c => c.id !== cardId));
-    setSelectedCardId(null);
 
     const { error } = await supabase.from('cards').delete().eq('id', cardId);
 
@@ -497,6 +494,9 @@ export default function EditUserPage() {
         console.error("Error deleting card:", error);
         // Force a full refresh from server data if deletion fails to avoid state mismatch
         fetchPageData(user);
+    } else {
+        setCards(prev => prev.filter(c => c.id !== cardId));
+        setSelectedCardId(null);
     }
   }, [user, toast]);
 
@@ -548,19 +548,17 @@ export default function EditUserPage() {
       let nextY = getNextY(validCurrentLayout);
 
       const newLayoutItems = newCards.map((card, index) => {
-          let w = 1, h = 1;
+          let w, h;
           const isFullWidth = card.type === 'title' || card.type === 'document';
 
           if (isFullWidth) {
               w = cols;
               h = card.type === 'title' ? 0.5 : 1;
-          } else if (isMobile) {
-              w = 2; // Default for link, note on mobile
-          } else {
-              w = 2; // Default for link, note on desktop
-          }
-          if (card.type === 'image') {
-              w = 1; h=1;
+          } else if (card.type === 'image') {
+              w = 1; h = 1;
+          } else { // link, note, map
+              w = isMobile ? 2 : 2;
+              h = 1;
           }
 
 
@@ -786,7 +784,7 @@ export default function EditUserPage() {
                       cards={cards}
                       layoutConfig={currentLayout}
                       onLayoutChange={handleLayoutChange}
-                      onUpdateCard={handleUpdateCard}
+                      onUpdateCard={onUpdateCard}
                       onDeleteCard={handleDeleteCard}
                       onEditCard={handleEditCard}
                       isMobile={isMobile}
@@ -883,5 +881,7 @@ export default function EditUserPage() {
     </div>
   );
 }
+
+    
 
     
