@@ -32,7 +32,7 @@ export default function PublicProfileGrid({ cards, layoutConfig, source }: Publi
 
         const containerWidth = container.clientWidth;
         const cols = isMobile ? 2 : 4;
-        const margin: [number, number] = [10, 10];
+        const margin: [number, number] = [15, 15];
         const calculatedRowHeight = (containerWidth - (margin[0] * (cols + 1))) / cols;
         
         setRowHeight(calculatedRowHeight > 0 ? calculatedRowHeight : 100);
@@ -100,7 +100,7 @@ export default function PublicProfileGrid({ cards, layoutConfig, source }: Publi
             isDraggable={false}
             isResizable={false}
             compactType="vertical"
-            margin={[10, 10]}
+            margin={[15, 15]}
             containerPadding={[0, 0]}
             className="min-h-[400px]"
         >
