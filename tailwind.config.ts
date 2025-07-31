@@ -10,8 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Raleway', 'sans-serif'],
-        headline: ['Aspekta', 'sans-serif'],
+        body: ['var(--font-raleway)', 'sans-serif'],
+        headline: ['var(--font-inter)', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {

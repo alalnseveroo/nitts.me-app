@@ -62,7 +62,7 @@ export default function Home() {
       <header className="px-4 lg:px-6 h-14 flex items-center">
         <Link href="#" className="flex items-center justify-center" prefetch={false}>
           <MountainIcon className="h-6 w-6" />
-          <span className="ml-2 font-bold font-headline">Nits.uno</span>
+          <span className="ml-2 font-bold font-headline">ConectaBio</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
             <Button variant="ghost" asChild>
