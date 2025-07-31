@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import type { CardData } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
-import { Loader2, Tag, Link as LinkIcon, Edit, Text, Palette, ChevronDown, Check, AlertTriangle, Layers, Clock, ShoppingCart, Star, Rocket, CheckCircle } from "lucide-react"
+import { Loader2, Tag, Link as LinkIcon, Edit, Text, Palette, ChevronDown, Check, AlertTriangle, Layers, Clock, ShoppingCart, Star, Rocket, CheckCircle, ArrowLeft, XCircle } from "lucide-react"
 import {
   Popover,
   PopoverContent,
@@ -62,8 +62,6 @@ const predefinedTags = [
 ];
 
 const allTags = predefinedTags.flatMap(g => g.tags);
-const allTagValues = ['none', ...allTags.map(t => t.value)];
-
 
 const colorPresets = {
   background: ['#000000', '#FFFFFF', '#EF4444', '#F97316', '#84CC16', '#22C55E', '#14B8A6', '#0EA5E9', '#6366F1', '#D946EF'],
@@ -89,78 +87,10 @@ const ColorPicker = ({ value, onChange, colors }: { value: string, onChange: (co
   </Popover>
 );
 
-const CustomTagSelect = ({ value, onValueChange }: { value: string | null, onValueChange: (value: string | null) => void }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const selectedTag = allTags.find(t => t.value === value);
-
-  const handleSelect = (newValue: string) => {
-    onValueChange(newValue === 'none' ? null : newValue);
-    setIsOpen(false);
-  };
-  
-  const TriggerIcon = selectedTag?.icon ?? Layers;
-
-  return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={isOpen}
-          className="w-full justify-between"
-        >
-          <span className="flex items-center gap-2">
-            <TriggerIcon className="h-4 w-4" />
-            {selectedTag?.label ?? "Selecione uma tag"}
-          </span>
-          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <div className="py-1">
-          <Button
-            variant="ghost"
-            className={cn(
-              "w-full justify-start font-normal gap-2 px-2",
-              !value && "bg-accent"
-            )}
-            onClick={() => handleSelect('none')}
-          >
-             <Layers className="h-4 w-4" /> Nenhuma
-          </Button>
-        </div>
-        {predefinedTags.map((group) => (
-          <div key={group.group} className="py-1">
-            <p className="px-2 text-xs font-semibold text-muted-foreground">{group.group}</p>
-            {group.tags.map((tag) => {
-              const Icon = tag.icon;
-              return (
-                <Button
-                  key={tag.value}
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-start font-normal gap-2 px-2",
-                    value === tag.value && "bg-accent"
-                  )}
-                  onClick={() => handleSelect(tag.value)}
-                >
-                  <Icon className="h-4 w-4" /> {tag.label}
-                  {value === tag.value && <Check className="ml-auto h-4 w-4" />}
-                </Button>
-              )
-            })}
-          </div>
-        ))}
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-
 const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCardSheetProps) => {
   const [formData, setFormData] = useState<Partial<CardData>>({});
   const [isSaving, setIsSaving] = useState(false);
-  const { toast } = useToast();
+  const [sheetView, setSheetView] = useState<'main' | 'selectTag'>('main');
 
   useEffect(() => {
     if (card) {
@@ -170,12 +100,14 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
         content: card.content,
         background_image: card.background_image,
         tag: card.tag,
-        tag_bg_color: card.tag_bg_color || '#F97316', // Default to orange
-        tag_text_color: card.tag_text_color || '#FFFFFF', // Default to white
+        tag_bg_color: card.tag_bg_color || '#F97316',
+        tag_text_color: card.tag_text_color || '#FFFFFF',
       });
     } else {
       setFormData({});
     }
+    // Reset view when card changes
+    setSheetView('main');
   }, [card]); 
 
   if (!card) return null;
@@ -197,21 +129,18 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
     for (const key in formData) {
         if (formData.hasOwnProperty(key)) {
             const formKey = key as keyof CardData;
-            // Ensure we also save defaults if they were not set before
             if (formData[formKey] !== card[formKey]) {
                  (changedData as any)[formKey] = formData[formKey];
             }
         }
     }
     
-    // Make sure to save default colors if a tag is set but colors are not
     if (changedData.tag && !changedData.tag_bg_color && !card.tag_bg_color) {
       changedData.tag_bg_color = '#F97316';
     }
     if (changedData.tag && !changedData.tag_text_color && !card.tag_text_color) {
       changedData.tag_text_color = '#FFFFFF';
     }
-
 
     onUpdate(card.id, changedData);
 
@@ -221,7 +150,12 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
     }, 1000);
   };
   
-  const renderFormContent = () => {
+  const handleTagSelect = (value: string | null) => {
+    handleFieldChange('tag', value);
+    setSheetView('main');
+  };
+  
+  const renderMainView = () => {
     switch (card.type) {
       case 'title':
         return (
@@ -251,7 +185,6 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
         const isLink = card.type === 'link';
         const isNote = card.type === 'note';
         const isImage = card.type === 'image';
-
         const defaultOpenAccordion = isNote ? ['content', 'tag'] : ['tag'];
 
         return (
@@ -283,11 +216,15 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
                   <span className="font-semibold">Tag</span>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="space-y-4 pt-2">
-                <CustomTagSelect 
-                  value={formData.tag || null} 
-                  onValueChange={(v) => handleFieldChange('tag', v)} 
-                />
+              <AccordionContent className="space-y-4 pt-4">
+                <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">
+                        {formData.tag ? `Tag: ${formData.tag}` : 'Nenhuma tag selecionada'}
+                    </span>
+                    <Button variant="outline" onClick={() => setSheetView('selectTag')}>
+                        Alterar
+                    </Button>
+                </div>
               </AccordionContent>
             </AccordionItem>
             
@@ -379,26 +316,86 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
         return <p className="mb-4 text-center text-muted-foreground">Este tipo de card não tem conteúdo editável.</p>;
     }
   };
+  
+  const renderSelectTagView = () => (
+    <div className="flex flex-col h-full">
+      <header className="flex items-center justify-between pb-4 border-b">
+        <Button variant="ghost" size="icon" onClick={() => setSheetView('main')}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <h3 className="font-semibold">Selecionar Tag</h3>
+        <div className="w-9"></div>
+      </header>
+      <div className="flex-1 overflow-y-auto py-4 space-y-4">
+        <Button 
+            variant="ghost" 
+            className="w-full justify-start text-destructive hover:text-destructive gap-2"
+            onClick={() => handleTagSelect(null)}
+        >
+            <XCircle className="h-5 w-5"/> Remover Tag
+        </Button>
+        {predefinedTags.map(group => (
+            <div key={group.group}>
+                <p className="px-2 text-sm font-semibold text-muted-foreground mb-2">{group.group}</p>
+                <div className="space-y-1">
+                    {group.tags.map(tag => {
+                        const Icon = tag.icon;
+                        return (
+                            <Button 
+                                key={tag.value}
+                                variant="ghost"
+                                className={cn(
+                                    "w-full justify-start font-normal text-base h-auto py-3 gap-3",
+                                    formData.tag === tag.value && "bg-accent"
+                                )}
+                                onClick={() => handleTagSelect(tag.value)}
+                            >
+                                <Icon className="h-5 w-5 text-muted-foreground"/>
+                                <span>{tag.label}</span>
+                                {formData.tag === tag.value && <Check className="ml-auto h-5 w-5" />}
+                            </Button>
+                        )
+                    })}
+                </div>
+            </div>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="rounded-t-2xl max-h-[90dvh] flex flex-col">
-        <SheetHeader className="text-left">
-          <SheetTitle>Editar Card</SheetTitle>
-          <SheetDescription>
-            Faça alterações no conteúdo do seu card aqui. Clique em salvar quando terminar.
-          </SheetDescription>
-        </SheetHeader>
-        <div className="py-4 flex-1 overflow-y-auto">
-          {renderFormContent()}
-        </div>
-        <SheetFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>Cancelar</Button>
-          <Button onClick={handleSaveChanges} disabled={isSaving}>
-            {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            {isSaving ? 'Salvando...' : 'Salvar Alterações'}
-          </Button>
-        </SheetFooter>
+      <SheetContent 
+        side="bottom" 
+        className="rounded-t-2xl max-h-[90dvh] flex flex-col"
+        onOpenAutoFocus={(e) => {
+            if (sheetView !== 'main') {
+                e.preventDefault();
+            }
+        }}
+      >
+        {sheetView === 'main' ? (
+            <>
+                <SheetHeader className="text-left">
+                    <SheetTitle>Editar Card</SheetTitle>
+                    <SheetDescription>
+                        Faça alterações no conteúdo do seu card aqui. Clique em salvar quando terminar.
+                    </SheetDescription>
+                </SheetHeader>
+                <div className="py-4 flex-1 overflow-y-auto">
+                    {renderMainView()}
+                </div>
+                <SheetFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>Cancelar</Button>
+                    <Button onClick={handleSaveChanges} disabled={isSaving}>
+                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                        {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+                    </Button>
+                </SheetFooter>
+            </>
+        ) : (
+           renderSelectTagView()
+        )}
       </SheetContent>
     </Sheet>
   );
