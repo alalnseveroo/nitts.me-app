@@ -89,7 +89,7 @@ export default function Home() {
               
               <motion.div variants={FADE_UP_ANIMATION_VARIANTS} className="space-y-4">
                 <h1 className="font-headline text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-                  Sua Página, Seus Links, Seu Universo.
+                  Seu link da bio longe do básico e colado na conversão!
                 </h1>
                 <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
                   Crie sua página de links gratuitamente. É rápido, fácil e o resultado é incrível.
