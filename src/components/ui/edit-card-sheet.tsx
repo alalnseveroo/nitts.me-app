@@ -318,8 +318,8 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
   };
   
   const renderSelectTagView = () => (
-    <div className="flex flex-col h-full">
-      <header className="flex items-center justify-between pb-4 border-b">
+    <>
+      <header className="flex items-center justify-between pb-4 border-b shrink-0">
         <Button variant="ghost" size="icon" onClick={() => setSheetView('main')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
@@ -360,14 +360,14 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
             </div>
         ))}
       </div>
-    </div>
+    </>
   );
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent 
         side="bottom" 
-        className="rounded-t-2xl max-h-[90dvh] flex flex-col"
+        className="rounded-t-2xl max-h-[90dvh] flex flex-col p-0"
         onOpenAutoFocus={(e) => {
             if (sheetView !== 'main') {
                 e.preventDefault();
@@ -376,25 +376,31 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
       >
         {sheetView === 'main' ? (
             <>
-                <SheetHeader className="text-left">
-                    <SheetTitle>Editar Card</SheetTitle>
-                    <SheetDescription>
-                        Faça alterações no conteúdo do seu card aqui. Clique em salvar quando terminar.
-                    </SheetDescription>
-                </SheetHeader>
-                <div className="py-4 flex-1 overflow-y-auto">
+                <div className="p-6">
+                    <SheetHeader className="text-left">
+                        <SheetTitle>Editar Card</SheetTitle>
+                        <SheetDescription>
+                            Faça alterações no conteúdo do seu card aqui. Clique em salvar quando terminar.
+                        </SheetDescription>
+                    </SheetHeader>
+                </div>
+                <div className="px-6 py-4 flex-1 overflow-y-auto">
                     {renderMainView()}
                 </div>
-                <SheetFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>Cancelar</Button>
-                    <Button onClick={handleSaveChanges} disabled={isSaving}>
-                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                        {isSaving ? 'Salvando...' : 'Salvar Alterações'}
-                    </Button>
-                </SheetFooter>
+                <div className="p-6">
+                    <SheetFooter>
+                        <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>Cancelar</Button>
+                        <Button onClick={handleSaveChanges} disabled={isSaving}>
+                            {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                            {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+                        </Button>
+                    </SheetFooter>
+                </div>
             </>
         ) : (
-           renderSelectTagView()
+           <div className="p-6 flex flex-col h-full">
+            {renderSelectTagView()}
+           </div>
         )}
       </SheetContent>
     </Sheet>
