@@ -260,12 +260,8 @@ export default function EditUserPage() {
 
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-        updateRowHeight();
-    }, 100);
     window.addEventListener('resize', updateRowHeight);
     return () => {
-        clearTimeout(timer);
         window.removeEventListener('resize', updateRowHeight);
     };
   }, [updateRowHeight]);
@@ -334,8 +330,8 @@ export default function EditUserPage() {
     
     setLoading(false);
     setTimeout(() => {
-      isInitialMount.current = false;
       updateRowHeight();
+      isInitialMount.current = false;
     }, 50);
 
   }
