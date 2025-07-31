@@ -20,7 +20,6 @@ interface GridLayoutCardProps {
 
 const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCard, isSelected, isMobile }: GridLayoutCardProps) => {
     
-    const [isEditingNote, setIsEditingNote] = useState(false);
     const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
     useEffect(() => {
@@ -34,13 +33,12 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
     }, [isConfirmingDelete]);
 
     const isTitleCard = card.type === 'title';
-    const isNoteCard = card.type === 'note';
 
     const handleClick = (e: React.MouseEvent) => {
         const target = e.target as HTMLElement;
         const isControlClick = target.closest('.drag-handle, [data-delete-button], [data-edit-button]');
         
-        if (isControlClick || (isNoteCard && isEditingNote)) {
+        if (isControlClick) {
              e.stopPropagation();
              return;
         }
@@ -48,24 +46,14 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
         if (isMobile) {
             onSelectCard(card.id);
         } else {
-            // For desktop, any click that is not a control click should trigger edit, unless it's a note.
-            if (!isNoteCard) {
-                onEdit(card.id);
-            }
+            // For desktop, any click that is not a control click should trigger edit
+            onEdit(card.id);
         }
     };
 
     const handleEditClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (isNoteCard) {
-            setIsEditingNote(prev => !prev);
-            // Ensure the card remains selected to show controls if needed
-            if (!isSelected && isMobile) {
-                onSelectCard(card.id);
-            }
-        } else {
-            onEdit(card.id);
-        }
+        onEdit(card.id);
     }
     
     const handleDeleteClick = (e: React.MouseEvent) => {
@@ -87,12 +75,11 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
                 "w-full h-full transition-all overflow-hidden",
                 isSelected && !isTitleCard ? "border-2 border-foreground rounded-3xl md:rounded-lg" : "border-2 border-transparent",
                 isMobile && !isSelected && "cursor-pointer",
-                !isMobile && !isNoteCard && "cursor-pointer"
+                !isMobile && "cursor-pointer"
             )}>
                  <GridLayoutCardBase
                     card={card}
                     onUpdate={onUpdate}
-                    isEditing={isEditingNote}
                     isMobile={isMobile}
                 />
             </div>
@@ -130,28 +117,26 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
                     >
                         {isConfirmingDelete ? <Check className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
                     </Button>
-                    {(isNoteCard || card.type !== 'map') && (
+                    {(card.type !== 'map') && (
                          <Button
                             data-edit-button
-                            title={isNoteCard ? (isEditingNote ? "Pronto" : "Editar Nota") : "Editar Card"}
-                            variant={isNoteCard && isEditingNote ? "default" : "ghost"}
+                            title="Editar Card"
+                            variant="ghost"
                             size="icon"
                             onClick={handleEditClick}
                             className={cn(
                                 "absolute top-[-10px] right-[-10px] z-20 h-8 w-8 rounded-full shadow-md transition-all hover:bg-gray-200",
-                                isNoteCard && isEditingNote 
-                                    ? "bg-green-500 text-white hover:bg-green-600 opacity-100"
-                                    : "bg-white text-black opacity-0 group-hover/card:opacity-100"
+                                "bg-white text-black opacity-0 group-hover/card:opacity-100"
                             )}
                         >
-                            {isNoteCard && isEditingNote ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+                           <Edit className="h-4 w-4" />
                         </Button>
                     )}
                 </>
             )}
 
             {/* --- MOBILE CONTROLS --- */}
-            { isMobile && (isSelected || (isNoteCard && isEditingNote)) && (
+            { isMobile && isSelected && (
                 <>
                     <Button
                         data-delete-button
@@ -168,7 +153,7 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
                     >
                         {isConfirmingDelete ? <Check className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
                     </Button>
-                    {(isNoteCard || card.type !== 'map') && (
+                    {(card.type !== 'map') && (
                         <Button
                             title="Editar conteúdo"
                             variant="default"
@@ -176,12 +161,10 @@ const GridLayoutCardComponent = ({ card, onUpdate, onDelete, onEdit, onSelectCar
                             onClick={handleEditClick}
                             className={cn(
                                 "absolute top-[-12px] right-[-12px] z-30 h-8 w-8 rounded-full shadow-lg",
-                                isNoteCard && isEditingNote
-                                    ? "bg-green-500 text-white hover:bg-green-600"
-                                    : "bg-black text-white hover:bg-gray-800"
+                                "bg-black text-white hover:bg-gray-800"
                             )}
                         >
-                            {isNoteCard && isEditingNote ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+                            <Edit className="h-4 w-4" />
                         </Button>
                     )}
                     

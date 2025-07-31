@@ -20,7 +20,6 @@ interface GridLayoutCardBaseProps {
     card: CardData;
     onUpdate: (id: string, updates: Partial<CardData>) => void;
     isDisabled?: boolean;
-    isEditing?: boolean;
     isMobile: boolean;
 }
 
@@ -58,34 +57,15 @@ const getDomainIcon = (link: string | null) => {
     }
 }
 
-export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditing = false, isMobile }: GridLayoutCardBaseProps) => {
+export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isMobile }: GridLayoutCardBaseProps) => {
     const [currentData, setCurrentData] = useState(card);
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
         setCurrentData(card);
     }, [card]);
-    
-    useEffect(() => {
-        if (isEditing && card.type === 'note' && textareaRef.current) {
-            textareaRef.current.focus();
-            textareaRef.current.select();
-        }
-    }, [isEditing, card.type]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setCurrentData(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleBlur = () => {
-        if (JSON.stringify(currentData) !== JSON.stringify(card)) {
-            onUpdate(card.id, currentData);
-        }
-    };
-    
     const handleImageFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files || event.target.files.length === 0) return;
         
@@ -186,19 +166,12 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
                 );
             case 'note':
                 return (
-                    <Textarea
-                        ref={textareaRef}
-                        name="content"
-                        placeholder="Escreva sua nota aqui..."
-                        value={currentData.content || ''}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        className={cn(
-                            "border-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none p-0 resize-none bg-transparent text-center text-xl font-medium",
-                            !isEditing && "pointer-events-none"
-                        )}
-                        disabled={!isEditing}
-                    />
+                    <p className={cn(
+                        "text-center text-xl font-medium p-4 whitespace-pre-wrap",
+                        "pointer-events-none"
+                    )}>
+                       {currentData.content || ''}
+                    </p>
                 );
             case 'map':
                  return (
@@ -216,6 +189,7 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
 
     const cardStyle = {
         backgroundColor: currentData.background_color ?? undefined,
+        color: currentData.text_color ?? undefined,
     };
 
     return (
@@ -227,9 +201,8 @@ export const GridLayoutCardBase = ({ card, onUpdate, isDisabled = false, isEditi
             style={cardStyle}
         >
              <div className={cn(
-                "w-full h-full p-0", 
-                { "pointer-events-none": isDisabled && card.type !== 'note' },
-                isNoteCard && 'flex items-center justify-center p-4'
+                "w-full h-full p-0 flex items-center justify-center", 
+                { "pointer-events-none": isDisabled },
             )}>
                 {renderContent()}
             </div>

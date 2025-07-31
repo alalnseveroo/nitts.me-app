@@ -252,8 +252,30 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
         const isNote = card.type === 'note';
         const isImage = card.type === 'image';
 
+        const defaultOpenAccordion = isNote ? ['content', 'tag'] : ['tag'];
+
         return (
-          <Accordion type="multiple" className="w-full space-y-2" defaultValue={isNote ? ['content'] : ['tag']}>
+          <Accordion type="multiple" className="w-full space-y-2" defaultValue={defaultOpenAccordion}>
+            {isNote && (
+              <AccordionItem value="content">
+                <AccordionTrigger>
+                  <div className="flex items-center gap-3">
+                    <Edit className="h-5 w-5" />
+                    <span className="font-semibold">Conteúdo da Nota</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pt-2">
+                  <Textarea
+                    id="content"
+                    name="content"
+                    value={formData.content || ''}
+                    onChange={handleChange}
+                    rows={8}
+                  />
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
             <AccordionItem value="tag">
               <AccordionTrigger>
                 <div className="flex items-center gap-3">
@@ -346,29 +368,10 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
                 </AccordionContent>
               </AccordionItem>
             )}
-
-            {isNote && (
-              <AccordionItem value="content">
-                <AccordionTrigger>
-                  <div className="flex items-center gap-3">
-                    <Edit className="h-5 w-5" />
-                    <span className="font-semibold">Conteúdo da Nota</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="pt-2">
-                  <Textarea
-                    id="content"
-                    name="content"
-                    value={formData.content || ''}
-                    onChange={handleChange}
-                    rows={8}
-                  />
-                </AccordionContent>
-              </AccordionItem>
-            )}
           </Accordion>
         );
       case 'map':
+      case 'document':
         return (
           <p className="mb-4 text-center text-muted-foreground">Este tipo de card não tem conteúdo editável.</p>
         );
