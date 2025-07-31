@@ -549,47 +549,30 @@ export default function EditUserPage() {
 
       const newLayoutItems = newCards.map((card, index) => {
           let w = 1, h = 1;
-          switch (card.type) {
-              case 'title':
-                  w = cols; h = 0.5; break;
-              case 'document':
-                  w = cols; h = 1; break;
-              case 'image':
-                  w = 1; h = 1; break; // Default, can be changed by user
-              default:
-                  w = 2; h = 1; // Default for link, note etc on mobile
-                  if (!isMobile) w = 2;
-          }
+          const isFullWidth = card.type === 'title' || card.type === 'document';
 
-          // Simple packing: find next available spot
-          let placeAtX = 0;
-          let placeAtY = nextY;
-          // This is a naive packing, can be improved.
-          // For now, just place at the bottom.
-          if (validCurrentLayout.length > 0) {
-              const lastItem = validCurrentLayout[validCurrentLayout.length -1];
-              placeAtX = (lastItem.x + lastItem.w) % cols;
-              placeAtY = (placeAtX === 0) ? nextY : lastItem.y;
+          if (isFullWidth) {
+              w = cols;
+              h = card.type === 'title' ? 0.5 : 1;
+          } else if (isMobile) {
+              w = 2; // Default for link, note on mobile
+          } else {
+              w = 2; // Default for link, note on desktop
+          }
+          if (card.type === 'image') {
+              w = 1; h=1;
           }
 
 
           const layoutItem = {
               i: card.id,
-              x: placeAtX,
-              y: placeAtY,
+              x: 0,
+              y: nextY,
               w: w,
               h: h,
           };
           
-          if(placeAtX + w > cols) {
-            // new row
-            layoutItem.x = 0;
-            layoutItem.y = nextY;
-            nextY += h;
-          } else if (index === newCards.length -1) {
-             nextY += h;
-          }
-
+          nextY += h;
 
           return layoutItem;
       });
@@ -727,7 +710,7 @@ export default function EditUserPage() {
                     </div>
 
                     <Input
-                    className="text-4xl font-bold border-none focus:ring-0 shadow-none p-0 h-auto mb-2 bg-transparent"
+                    className="text-4xl font-headline font-bold border-none focus:ring-0 shadow-none p-0 h-auto mb-2 bg-transparent"
                     value={profile?.name || ''}
                     onChange={(e) => setProfile(p => p ? { ...p, name: e.target.value } : null)}
                     placeholder="Seu Nome"
