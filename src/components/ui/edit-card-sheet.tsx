@@ -319,14 +319,14 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
   
   const renderSelectTagView = () => (
     <>
-      <header className="flex items-center justify-between pb-4 border-b shrink-0">
+      <header className="flex items-center justify-between pb-4 border-b shrink-0 p-6">
         <Button variant="ghost" size="icon" onClick={() => setSheetView('main')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h3 className="font-semibold">Selecionar Tag</h3>
-        <div className="w-9"></div>
+        <div className="w-9" />
       </header>
-      <div className="flex-1 overflow-y-auto py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto py-4 px-6 space-y-4">
         <Button 
             variant="ghost" 
             className="w-full justify-start text-destructive hover:text-destructive gap-2"
@@ -398,9 +398,7 @@ const EditCardSheetComponent = ({ isOpen, onOpenChange, card, onUpdate }: EditCa
                 </div>
             </>
         ) : (
-           <div className="p-6 flex flex-col h-full">
-            {renderSelectTagView()}
-           </div>
+           renderSelectTagView()
         )}
       </SheetContent>
     </Sheet>
