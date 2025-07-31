@@ -70,7 +70,7 @@ export default async function PublicProfilePage({ params, searchParams }: { para
                           <AvatarImage src={profile?.avatar_url || ''} />
                           <AvatarFallback>{profile?.name?.charAt(0)}</AvatarFallback>
                       </Avatar>
-                      <h1 className="text-4xl font-headline font-bold">{profile?.name || `@${profile?.username}`}</h1>
+                      <h1 className="text-3xl font-headline font-bold">{profile?.name || `@${profile?.username}`}</h1>
                       <p className="text-muted-foreground mt-2 whitespace-pre-wrap">{profile?.bio}</p>
                   </div>
               </header>

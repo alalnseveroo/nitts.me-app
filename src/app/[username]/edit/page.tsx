@@ -431,7 +431,7 @@ export default function EditUserPage() {
     if (!user) return;
     setIsAddCardPopoverOpen(false);
 
-    let newCardData: Omit<CardData, 'id' | 'created_at'>;
+    let newCardData: Omit<CardData, 'id' | 'created_at' | 'price' | 'original_file_path'>;
 
     const baseData = {
         user_id: user.id,
@@ -445,8 +445,6 @@ export default function EditUserPage() {
         tag: null,
         tag_bg_color: null,
         tag_text_color: null,
-        price: null,
-        original_file_path: null,
     };
     
     switch (type) {
@@ -487,18 +485,19 @@ export default function EditUserPage() {
   const handleDeleteCard = useCallback(async (cardId: string) => {
     if (!user) return;
 
+    // First, delete from the database
     const { error } = await supabase.from('cards').delete().eq('id', cardId);
 
     if (error) {
         toast({ title: 'Erro', description: 'Não foi possível deletar o card.', variant: 'destructive' });
         console.error("Error deleting card:", error);
-        // Force a full refresh from server data if deletion fails to avoid state mismatch
-        fetchPageData(user);
     } else {
+        // Only on successful deletion, update the UI state
         setCards(prev => prev.filter(c => c.id !== cardId));
         setSelectedCardId(null);
     }
   }, [user, toast]);
+
 
   const handleImageFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0 || !user) {
@@ -555,7 +554,8 @@ export default function EditUserPage() {
               w = cols;
               h = card.type === 'title' ? 0.5 : 1;
           } else if (card.type === 'image') {
-              w = 1; h = 1;
+              w = isMobile ? 1 : 1;
+              h = 1;
           } else { // link, note, map
               w = isMobile ? 2 : 2;
               h = 1;
@@ -708,7 +708,7 @@ export default function EditUserPage() {
                     </div>
 
                     <Input
-                    className="text-4xl font-headline font-bold border-none focus:ring-0 shadow-none p-0 h-auto mb-2 bg-transparent"
+                    className="text-3xl font-headline font-bold border-none focus:ring-0 shadow-none p-0 h-auto mb-2 bg-transparent"
                     value={profile?.name || ''}
                     onChange={(e) => setProfile(p => p ? { ...p, name: e.target.value } : null)}
                     placeholder="Seu Nome"
