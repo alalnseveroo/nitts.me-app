@@ -784,7 +784,7 @@ export default function EditUserPage() {
                       cards={cards}
                       layoutConfig={currentLayout}
                       onLayoutChange={handleLayoutChange}
-                      onUpdateCard={onUpdateCard}
+                      onUpdateCard={handleUpdateCard}
                       onDeleteCard={handleDeleteCard}
                       onEditCard={handleEditCard}
                       isMobile={isMobile}
