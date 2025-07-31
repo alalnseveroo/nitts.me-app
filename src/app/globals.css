@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Aspekta';
+  src: url('https://lkdltnrpyuyuguttuaiy.supabase.co/storage/v1/object/public/fonts/Aspekta-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
 body {
   font-family: 'Raleway', sans-serif;
 }

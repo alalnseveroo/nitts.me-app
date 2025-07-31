@@ -11,7 +11,7 @@ export default {
     extend: {
       fontFamily: {
         body: ['var(--font-raleway)', 'sans-serif'],
-        headline: ['var(--font-inter)', 'sans-serif'],
+        headline: ['Aspekta', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
